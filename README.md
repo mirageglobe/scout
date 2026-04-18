@@ -2,9 +2,36 @@
 
 *When you need a rapid intelligence overview of your environment, you call in a Scout.*
 
-Scout was born out of a desire for a fast, elegant, terminal-native file explorer that doesn't just list files, but gives you immediate situational awareness. Designed for power users, it uses a dual-pane layout: the left panel presents a structured list of files/directories interwoven with live Git status markers, while the right panel provides a robust real-time preview revealing file metadata, text contents, or inner directory structures.
+![Scout Demo](demo.gif)
 
-It is lightweight, completely keyboard-driven (`j`/`k`/`h`/`enter`), and seamlessly hands off to your editor (`vim`) when you need to act on your reconnaissance. Built purely in Go using the [Charm](https://charm.sh) stack (Bubble Tea & Lip Gloss), Scout combines rich visual aesthetics with strict UNIX philosophy.
+Scout is a fast, elegant, terminal-native file explorer designed for immediate situational awareness. It combines a high-performance dual-pane layout with real-time Git integration and rich previews to help you navigate your codebase with speed and precision.
+
+### ✨ Key Features
+- **🚀 Turbo-Charged Navigation**: Fully keyboard-driven (`j`/`k`/`h`/`l`) with instant directory entry and parent-navigation.
+- **🎨 Rich Previews**: Real-time file previews with **Chroma syntax highlighting**, directory metadata, and intelligent binary detection.
+- **🌱 Git Integration**: Integrated git status indicators (`●`, `○`) show you exactly which files have changed before you even open them.
+- **🔍 Pane Focus System**: Effortlessly switch focus between the file list and the preview pane for deep-dive scrolling.
+- **⚡ Editor Handoff**: Seamlessly launch into `vim` (and soon others) with a single keystroke.
+- **💎 Premium Aesthetics**: Built with the [Charm](https://charm.sh) stack, featuring a polished UI and minimalist symbols (`▸`, `•`).
+
+---
+
+### 🛠️ Getting Started
+Ensure you have [Go](https://go.dev/) installed, then:
+
+```bash
+# Clone and build
+git clone https://github.com/mirageglobe/scout.git
+cd scout
+make build
+
+# Run Scout
+./scout
+```
+
+*To regenerate the demo GIF, ensure you have [vhs](https://github.com/charmbracelet/vhs) installed and run `make demo`.*
+
+---
 
 ## Target Go Architecture
 While initially prototyped as a standalone `main.go`, the target reference structure for this project follows standard Go conventions for scalable, modular CLIs:
@@ -38,7 +65,10 @@ scout/
 - [x] ls all files in current directory
 - [ ] allow vim as editor by reading editor in env var
 - [ ] Implement target Go folder refactor (`cmd/` + `internal/`)
+- [x] syntax highlighting
 
-### Ideas and Issues
-- preview images
-- syntax highlighting
+### Future Ideas
+- [ ] preview images
+
+## Known Issues
+- **TUI Viewport Overflow**: In some environments (notably `tmux`), the preview pane can occasionally extend beyond the bottom of the screen when viewing long files, causing the status bar to disappear. This is likely due to complex ANSI/Emoji width calculations or terminal height reporting discrepancies.

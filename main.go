@@ -1,15 +1,20 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
+	"runtime"
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/alecthomas/chroma/v2/quick"
+	"github.com/charmbracelet/x/ansi"
 )
 
 // ---------------------------------------------------------------------------
@@ -26,6 +31,23 @@ type dirLoadedMsg struct {
 	err       error
 }
 
+// statsMsg carries system statistics.
+type statsMsg struct {
+	cpu     float64
+	mem     uint64
+	dirSize int64
+}
+
+// tickMsg is sent periodically to refresh stats.
+type tickMsg time.Time
+
+// stats represents the current resource usage.
+type stats struct {
+	cpu     float64
+	mem     uint64
+	dirSize int64
+}
+
 // ---------------------------------------------------------------------------
 // Entry represents a single file or directory in the listing.
 // ---------------------------------------------------------------------------
@@ -34,6 +56,50 @@ type entry struct {
 	name  string
 	isDir bool
 	info  os.FileInfo
+}
+
+type theme struct {
+	name       string
+	accent     string
+	dim        string
+	text       string
+	selectedBg string
+	selectedFg string
+}
+
+var themes = []theme{
+	{
+		name:       "Safety Orange",
+		accent:     "#FF8700",
+		dim:        "#AF5F00",
+		text:       "#D7D7D7",
+		selectedBg: "#FF8700",
+		selectedFg: "#000000",
+	},
+	{
+		name:       "Mono",
+		accent:     "#FFFFFF",
+		dim:        "#555555",
+		text:       "#BBBBBB",
+		selectedBg: "#FFFFFF",
+		selectedFg: "#000000",
+	},
+	{
+		name:       "Classic Amber",
+		accent:     "#FFAF00",
+		dim:        "#875F00",
+		text:       "#D7D7D7",
+		selectedBg: "#FFAF00",
+		selectedFg: "#000000",
+	},
+	{
+		name:       "Electric Cyan",
+		accent:     "#00AFFF",
+		dim:        "#005F87",
+		text:       "#D7D7D7",
+		selectedBg: "#00AFFF",
+		selectedFg: "#000000",
+	},
 }
 
 // ---------------------------------------------------------------------------
@@ -55,10 +121,23 @@ type model struct {
 	height int
 
 	// Preview content shown in the right pane.
-	preview string
+	preview       string
+	previewScroll int
+
+	// Focus state: true if right pane (preview) is focused.
+	focusRight bool
+
+	// Help state: true if help screen is displayed.
+	showHelp bool
+
+	// Theme state: index into the global themes slice.
+	themeIdx int
 
 	// Git status map: filename -> status indicator like [M] or [?].
 	gitStatus map[string]string
+
+	// Stats: resource usage and directory metadata.
+	stats stats
 
 	// Error to display, if any.
 	err error
@@ -69,11 +148,39 @@ type model struct {
 // ---------------------------------------------------------------------------
 
 func (m model) Init() tea.Cmd {
-	return loadDir(m.cwd)
+	return tea.Batch(
+		loadDir(m.cwd),
+		doTick(),
+		getStats(m.cwd),
+	)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
+	case tickMsg:
+		return m, tea.Batch(doTick(), getStats(m.cwd))
+
+	case statsMsg:
+		m.stats.cpu = msg.cpu
+		m.stats.mem = msg.mem
+		m.stats.dirSize = msg.dirSize
+		return m, nil
+
+	case dirLoadedMsg:
+		if msg.err != nil {
+			m.err = msg.err
+			return m, nil
+		}
+		m.entries = msg.entries
+		m.gitStatus = msg.gitStatus
+		m.err = nil
+		m.previewScroll = 0
+		if m.cursor >= len(m.entries) {
+			m.cursor = max(0, len(m.entries)-1)
+		}
+		m.preview = buildPreview(m)
+		return m, getStats(m.cwd)
 
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -82,28 +189,69 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyPressMsg:
+		if m.showHelp {
+			if msg.String() == "q" || msg.String() == "ctrl+c" {
+				return m, tea.Quit
+			}
+			m.showHelp = false
+			return m, nil
+		}
+
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 
+		case "?":
+			m.showHelp = true
+			return m, nil
+
+		case "t":
+			m.themeIdx = (m.themeIdx + 1) % len(themes)
+			m.preview = buildPreview(m)
+			return m, nil
+
 		// Navigation: move cursor down
 		case "j", "down":
-			if m.cursor < len(m.entries)-1 {
-				m.cursor++
+			if m.focusRight {
+				previewLines := strings.Split(strings.TrimSuffix(m.preview, "\n"), "\n")
+				contentHeight := m.height - 4
+				maxScroll := len(previewLines) - contentHeight
+				if maxScroll < 0 {
+					maxScroll = 0
+				}
+				if m.previewScroll < maxScroll {
+					m.previewScroll++
+				}
+			} else {
+				if m.cursor < len(m.entries)-1 {
+					m.cursor++
+				}
+				m.previewScroll = 0
+				m.preview = buildPreview(m)
 			}
-			m.preview = buildPreview(m)
 			return m, nil
 
 		// Navigation: move cursor up
 		case "k", "up":
-			if m.cursor > 0 {
-				m.cursor--
+			if m.focusRight {
+				if m.previewScroll > 0 {
+					m.previewScroll--
+				}
+			} else {
+				if m.cursor > 0 {
+					m.cursor--
+				}
+				m.previewScroll = 0
+				m.preview = buildPreview(m)
 			}
-			m.preview = buildPreview(m)
 			return m, nil
 
-		// Navigation: go to parent directory
+		// Navigation: go to parent directory or unfocus right pane
 		case "h", "left":
+			if m.focusRight {
+				m.focusRight = false
+				return m, nil
+			}
 			parent := filepath.Dir(m.cwd)
 			if parent != m.cwd {
 				m.cwd = parent
@@ -113,8 +261,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
-		// Enter: open directory or file
-		case "enter":
+		// V / Enter / l / right: open directory, focus file preview, or open in vim
+		case "v", "enter", "l", "right":
 			if len(m.entries) == 0 {
 				return m, nil
 			}
@@ -125,10 +273,32 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cwd = fullPath
 				m.cursor = 0
 				m.preview = ""
+				m.focusRight = false
 				return m, loadDir(m.cwd)
 			}
 
+			// It's a file
+			isAction := msg.String() == "enter" || msg.String() == "v"
+			if !isAction {
+				if !m.focusRight {
+					m.focusRight = true
+				}
+				return m, nil
+			}
+
 			// Open file in vim via ExecProcess
+			// Safety check: read first 1KB to check if it's binary
+			f, _ := os.Open(fullPath)
+			if f != nil {
+				buf := make([]byte, 1024)
+				n, _ := f.Read(buf)
+				f.Close()
+				if isBinary(buf[:n]) {
+					m.err = fmt.Errorf("cannot open binary file: %s", selected.name)
+					return m, nil
+				}
+			}
+
 			c := exec.Command("vim", fullPath)
 			return m, tea.ExecProcess(c, func(err error) tea.Msg {
 				return editorFinishedMsg{err: err}
@@ -137,6 +307,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Jump to top
 		case "g":
 			m.cursor = 0
+			m.previewScroll = 0
 			m.preview = buildPreview(m)
 			return m, nil
 
@@ -145,23 +316,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if len(m.entries) > 0 {
 				m.cursor = len(m.entries) - 1
 			}
+			m.previewScroll = 0
 			m.preview = buildPreview(m)
 			return m, nil
 		}
-
-	case dirLoadedMsg:
-		if msg.err != nil {
-			m.err = msg.err
-			return m, nil
-		}
-		m.entries = msg.entries
-		m.gitStatus = msg.gitStatus
-		m.err = nil
-		if m.cursor >= len(m.entries) {
-			m.cursor = max(0, len(m.entries)-1)
-		}
-		m.preview = buildPreview(m)
-		return m, nil
 
 	case editorFinishedMsg:
 		if msg.err != nil {
@@ -180,27 +338,32 @@ func (m model) View() tea.View {
 	}
 
 	// ── Colours & metrics ──────────────────────────────────────────────
-	borderColor := lipgloss.Color("#7D56F4")
-	accentColor := lipgloss.Color("#FF79C6")
-	dimColor := lipgloss.Color("#6272A4")
-	textColor := lipgloss.Color("#F8F8F2")
-	selectedBg := lipgloss.Color("#44475A")
-	dirColor := lipgloss.Color("#8BE9FD")
-	gitModColor := lipgloss.Color("#FFB86C")
-	gitNewColor := lipgloss.Color("#50FA7B")
+	t := themes[m.themeIdx]
+	accentColor := lipgloss.Color(t.accent)
+	dimColor := lipgloss.Color(t.dim)
+	textColor := lipgloss.Color(t.text)
+	selectedBg := lipgloss.Color(t.selectedBg)
+	selectedFg := lipgloss.Color(t.selectedFg)
+	dirColor := accentColor // Folders match the primary accent color
 
 	// Reserve space for borders (2 chars each side) and a 1-char gap
 	usableWidth := m.width - 5
 	if usableWidth < 20 {
 		usableWidth = 20
 	}
-	leftWidth := usableWidth * 2 / 5
+
+	// We fix the file list at 40 wide, but never more than 40% of total width
+	leftWidth := 40
+	if leftWidth > usableWidth*2/5 {
+		leftWidth = usableWidth * 2 / 5
+	}
 	rightWidth := usableWidth - leftWidth
 
-	// Usable height inside borders (top + bottom border = 2 lines, title = 1)
-	contentHeight := m.height - 4
-	if contentHeight < 3 {
-		contentHeight = 3
+	// Usable height inside borders (top + bottom border = 2 lines)
+	// We reserve 1 line for the header, 1 line for the status bar and 1 line for safety.
+	contentHeight := m.height - 5
+	if contentHeight < 1 {
+		contentHeight = 1
 	}
 
 	// ── Left pane: file list ───────────────────────────────────────────
@@ -236,92 +399,118 @@ func (m model) View() tea.View {
 		scrollOffset = m.cursor - visibleRows + 1
 	}
 
-	normalItem := lipgloss.NewStyle().Foreground(textColor)
+	normalItem := lipgloss.NewStyle().Foreground(textColor).Width(leftWidth - 2)
 	selectedItem := lipgloss.NewStyle().
-		Foreground(textColor).
+		Foreground(selectedFg).
 		Background(selectedBg).
-		Bold(true)
-	dirStyle := lipgloss.NewStyle().Foreground(dirColor).Bold(true)
-	gitModStyle := lipgloss.NewStyle().Foreground(gitModColor)
-	gitNewStyle := lipgloss.NewStyle().Foreground(gitNewColor)
+		Bold(true).
+		Width(leftWidth - 2)
+	dirStyle := lipgloss.NewStyle().Foreground(dirColor).Bold(true).Width(leftWidth - 2)
 
 	for i := scrollOffset; i < len(m.entries) && len(listLines) < contentHeight; i++ {
 		e := m.entries[i]
 		name := e.name
 
-		// Git status badge
-		badge := "   "
+		// Determine the single indicator and its style
+		var symbol string
+		var symStyle lipgloss.Style
+
+		if e.isDir {
+			symbol = "▸"
+			symStyle = lipgloss.NewStyle().Foreground(dirColor)
+			name = name + "/"
+		} else {
+			symbol = "•"
+			symStyle = lipgloss.NewStyle().Foreground(textColor)
+		}
+
+		// Git override
 		if status, ok := m.gitStatus[name]; ok {
 			switch status {
 			case "M", "A", "R", "C", "U", "MM", "AM":
-				badge = gitModStyle.Render("[M]")
+				symbol = "●"
 			case "?":
-				badge = gitNewStyle.Render("[?]")
+				symbol = "○"
 			default:
-				badge = gitModStyle.Render("[" + status[:1] + "]")
+				symbol = "◆"
 			}
 		}
 
-		// Directory indicator
-		if e.isDir {
-			name = name + "/"
-		}
-
-		line := badge + " " + name
-		line = truncate(line, leftWidth-2)
-
-		// Pad to full width for consistent highlighting
-		padded := line + strings.Repeat(" ", max(0, leftWidth-2-visibleLen(line)))
+		line := symStyle.Render(symbol) + " " + name
+		line = truncate(line, leftWidth-4)
 
 		if i == m.cursor {
 			if e.isDir {
-				listLines = append(listLines, selectedItem.Render(padded))
+				listLines = append(listLines, selectedItem.Render(line))
 			} else {
-				listLines = append(listLines, selectedItem.Render(padded))
+				listLines = append(listLines, selectedItem.Render(line))
 			}
 		} else {
 			if e.isDir {
-				listLines = append(listLines, dirStyle.Render(padded))
+				listLines = append(listLines, dirStyle.Render(line))
 			} else {
-				listLines = append(listLines, normalItem.Render(padded))
+				listLines = append(listLines, normalItem.Render(line))
 			}
 		}
 	}
 
 	// Pad remaining lines so the box keeps its shape
 	for len(listLines) < contentHeight {
-		listLines = append(listLines, strings.Repeat(" ", leftWidth-2))
+		listLines = append(listLines, strings.Repeat(" ", leftWidth-4))
 	}
 
 	leftContent := strings.Join(listLines, "\n")
 
 	// ── Right pane: preview ────────────────────────────────────────────
-	previewLines := strings.Split(m.preview, "\n")
-	if len(previewLines) > contentHeight {
-		previewLines = previewLines[:contentHeight]
+	previewLines := strings.Split(strings.TrimSuffix(m.preview, "\n"), "\n")
+
+	maxScroll := len(previewLines) - contentHeight
+	if maxScroll < 0 {
+		maxScroll = 0
 	}
-	for i, l := range previewLines {
-		previewLines[i] = truncate(l, rightWidth-2)
+	if m.previewScroll > maxScroll {
+		m.previewScroll = maxScroll
 	}
-	for len(previewLines) < contentHeight {
-		previewLines = append(previewLines, "")
+
+	startIdx := m.previewScroll
+	endIdx := startIdx + contentHeight
+	if endIdx > len(previewLines) {
+		endIdx = len(previewLines)
 	}
-	rightContent := strings.Join(previewLines, "\n")
+
+	// Create a copy to prevent mutating the original preview string slice
+	visiblePreview := make([]string, endIdx-startIdx)
+	copy(visiblePreview, previewLines[startIdx:endIdx])
+	for i, l := range visiblePreview {
+		visiblePreview[i] = truncate(l, rightWidth-4)
+	}
+	for len(visiblePreview) < contentHeight {
+		visiblePreview = append(visiblePreview, "")
+	}
+	rightContent := strings.Join(visiblePreview, "\n")
 
 	// ── Pane styles ────────────────────────────────────────────────────
+	leftBorderColor := dimColor
+	rightBorderColor := dimColor
+	if m.focusRight {
+		rightBorderColor = accentColor
+	} else {
+		leftBorderColor = accentColor
+	}
+
 	leftPane := lipgloss.NewStyle().
 		Width(leftWidth).
-		Height(contentHeight).
+		Height(contentHeight+2).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(borderColor).
+		BorderForeground(leftBorderColor).
 		Padding(0, 1).
 		Render(leftContent)
 
 	rightPane := lipgloss.NewStyle().
 		Width(rightWidth).
-		Height(contentHeight).
+		Height(contentHeight+2).
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(borderColor).
+		BorderForeground(rightBorderColor).
 		Padding(0, 1).
 		Render(rightContent)
 
@@ -337,13 +526,22 @@ func (m model) View() tea.View {
 	if len(m.entries) > 0 {
 		pos = fmt.Sprintf(" %d/%d", m.cursor+1, len(m.entries))
 	}
-	help := " q:quit  j/k:navigate  h:up  enter:open  g/G:top/bottom"
+	help := " q:quit  ←/→:focus  ↑/↓:nav/scroll  v/enter:vim  t:theme ?:help"
 
 	statusBar := statusStyle.Render(
 		truncate(count+pos+"  │"+help, m.width),
 	)
 
-	layout := lipgloss.JoinVertical(lipgloss.Left, panes, statusBar)
+	var layout string
+	if m.showHelp {
+		// Center the help screen
+		helpScreen := renderHelp(m)
+		layout = lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, helpScreen)
+	} else {
+		header := renderHeader(m)
+		layout = lipgloss.JoinVertical(lipgloss.Left, header, panes, statusBar)
+	}
+
 	v := tea.NewView(layout)
 	v.AltScreen = true
 	return v
@@ -454,32 +652,36 @@ func buildPreview(m model) string {
 
 	selected := m.entries[m.cursor]
 	fullPath := filepath.Join(m.cwd, selected.name)
+	t := themes[m.themeIdx]
 
 	if selected.isDir {
-		return previewDir(fullPath, selected)
+		return previewDir(fullPath, selected, t)
 	}
-	return previewFile(fullPath, selected)
+	return previewFile(fullPath, selected, t)
 }
 
 // previewDir shows directory metadata and a listing of its contents.
-func previewDir(path string, e entry) string {
+func previewDir(path string, e entry, t theme) string {
+	accentStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.accent)).Bold(true)
+	dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.dim))
+
 	var sb strings.Builder
-	sb.WriteString("📁 Directory: " + e.name + "/\n")
-	sb.WriteString(strings.Repeat("─", 30) + "\n")
+	sb.WriteString(accentStyle.Render("▸ Directory: "+e.name+"/") + "\n")
+	sb.WriteString(dimStyle.Render(strings.Repeat("─", 30)) + "\n")
 
 	if e.info != nil {
-		sb.WriteString(fmt.Sprintf("Modified: %s\n", e.info.ModTime().Format("2006-01-02 15:04")))
-		sb.WriteString(fmt.Sprintf("Mode:     %s\n", e.info.Mode()))
+		sb.WriteString(accentStyle.Render("Modified: ") + e.info.ModTime().Format("2006-01-02 15:04") + "\n")
+		sb.WriteString(accentStyle.Render("Mode:     ") + e.info.Mode().String() + "\n")
 	}
 
 	children, err := os.ReadDir(path)
 	if err != nil {
-		sb.WriteString("\n(cannot read directory)")
+		sb.WriteString("\n" + dimStyle.Render("(cannot read directory)"))
 		return sb.String()
 	}
 
-	sb.WriteString(fmt.Sprintf("Children: %d\n", len(children)))
-	sb.WriteString(strings.Repeat("─", 30) + "\n")
+	sb.WriteString(accentStyle.Render("Children: ") + fmt.Sprintf("%d", len(children)) + "\n")
+	sb.WriteString(dimStyle.Render(strings.Repeat("─", 30)) + "\n")
 
 	// Show up to 20 children
 	shown := 0
@@ -500,18 +702,21 @@ func previewDir(path string, e entry) string {
 }
 
 // previewFile shows file metadata and the first lines of text content.
-func previewFile(path string, e entry) string {
+func previewFile(path string, e entry, t theme) string {
+	accentStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.accent)).Bold(true)
+	dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.dim))
+
 	var sb strings.Builder
-	sb.WriteString("📄 File: " + e.name + "\n")
-	sb.WriteString(strings.Repeat("─", 30) + "\n")
+	sb.WriteString(accentStyle.Render("• File: "+e.name) + "\n")
+	sb.WriteString(dimStyle.Render(strings.Repeat("─", 30)) + "\n")
 
 	if e.info != nil {
-		sb.WriteString(fmt.Sprintf("Size:     %s\n", humanSize(e.info.Size())))
-		sb.WriteString(fmt.Sprintf("Modified: %s\n", e.info.ModTime().Format("2006-01-02 15:04")))
-		sb.WriteString(fmt.Sprintf("Mode:     %s\n", e.info.Mode()))
+		sb.WriteString(accentStyle.Render("Size:     ") + humanSize(e.info.Size()) + "\n")
+		sb.WriteString(accentStyle.Render("Modified: ") + e.info.ModTime().Format("2006-01-02 15:04") + "\n")
+		sb.WriteString(accentStyle.Render("Mode:     ") + e.info.Mode().String() + "\n")
 	}
 
-	sb.WriteString(strings.Repeat("─", 30) + "\n")
+	sb.WriteString(dimStyle.Render(strings.Repeat("─", 30)) + "\n")
 
 	// Try to read as text (first 4KB)
 	data, err := os.ReadFile(path)
@@ -520,10 +725,10 @@ func previewFile(path string, e entry) string {
 		return sb.String()
 	}
 
-	// Limit to first 4KB for preview
+	// Limit to first 32KB for preview
 	preview := data
-	if len(preview) > 4096 {
-		preview = preview[:4096]
+	if len(preview) > 32768 {
+		preview = preview[:32768]
 	}
 
 	// Check if the content looks like binary
@@ -532,8 +737,23 @@ func previewFile(path string, e entry) string {
 		return sb.String()
 	}
 
-	lines := strings.Split(string(preview), "\n")
-	maxLines := 40
+	previewStr := string(preview)
+
+	// Apply Chroma Syntax Highlighting
+	var b bytes.Buffer
+	lang := filepath.Ext(path)
+	if len(lang) > 0 {
+		lang = lang[1:]
+	} else {
+		lang = filepath.Base(path)
+	}
+
+	if err := quick.Highlight(&b, previewStr, lang, "terminal256", "dracula"); err == nil && b.Len() > 0 {
+		previewStr = b.String()
+	}
+
+	lines := strings.Split(previewStr, "\n")
+	maxLines := 1000
 	if len(lines) > maxLines {
 		lines = lines[:maxLines]
 	}
@@ -543,7 +763,7 @@ func previewFile(path string, e entry) string {
 		sb.WriteString(fmt.Sprintf("%3d │ %s\n", i+1, l))
 	}
 
-	if len(data) > 4096 {
+	if len(data) > 32768 || len(lines) >= maxLines {
 		sb.WriteString("\n  … (truncated)")
 	}
 
@@ -578,40 +798,122 @@ func humanSize(bytes int64) string {
 	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
 }
 
-// truncate cuts a string to maxLen characters, appending "…" if truncated.
+// truncate cuts a string to maxLen characters physically, appending "…" if truncated.
 func truncate(s string, maxLen int) string {
 	if maxLen <= 0 {
 		return ""
 	}
-	runes := []rune(s)
-	if len(runes) <= maxLen {
-		return s
-	}
-	if maxLen <= 1 {
-		return "…"
-	}
-	return string(runes[:maxLen-1]) + "…"
+	return ansi.Truncate(s, maxLen, "…")
 }
 
 // visibleLen returns the approximate visible length of a string,
 // stripping ANSI escape sequences.
 func visibleLen(s string) int {
-	n := 0
-	inEsc := false
-	for _, r := range s {
-		if r == '\x1b' {
-			inEsc = true
-			continue
-		}
-		if inEsc {
-			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') {
-				inEsc = false
-			}
-			continue
-		}
-		n++
+	return lipgloss.Width(s)
+}
+
+func renderHelp(m model) string {
+	t := themes[m.themeIdx]
+	accentColor := lipgloss.Color(t.accent)
+	dimColor := lipgloss.Color(t.dim)
+	textColor := lipgloss.Color(t.text)
+
+	titleStyle := lipgloss.NewStyle().Foreground(accentColor).Bold(true).MarginBottom(1)
+	keyStyle := lipgloss.NewStyle().Foreground(accentColor).Width(15)
+	descStyle := lipgloss.NewStyle().Foreground(textColor)
+	sectionStyle := lipgloss.NewStyle().MarginTop(1)
+
+	header := titleStyle.Render(fmt.Sprintf("Scout Help - %s Theme (press any key to dismiss)", t.name))
+
+	hotkeys := []string{
+		keyStyle.Render("j, down") + descStyle.Render("Move cursor down / Scroll preview"),
+		keyStyle.Render("k, up") + descStyle.Render("Move cursor up / Scroll preview"),
+		keyStyle.Render("h, left") + descStyle.Render("Back to parent / Unfocus preview"),
+		keyStyle.Render("l, right") + descStyle.Render("Enter directory / Focus preview"),
+		keyStyle.Render("v, enter") + descStyle.Render("Open file in Vim"),
+		keyStyle.Render("g") + descStyle.Render("Go to top"),
+		keyStyle.Render("G") + descStyle.Render("Go to bottom"),
+		keyStyle.Render("t") + descStyle.Render("Cycle color themes"),
+		keyStyle.Render("?") + descStyle.Render("Show/hide this help"),
+		keyStyle.Render("q, ctrl+c") + descStyle.Render("Quit scout"),
 	}
-	return n
+
+	symbols := []string{
+		keyStyle.Render("●") + descStyle.Render("Modified file"),
+		keyStyle.Render("○") + descStyle.Render("Untracked/New file"),
+		keyStyle.Render("◆") + descStyle.Render("Other git change"),
+		keyStyle.Render("▸") + descStyle.Render("Directory"),
+		keyStyle.Render("•") + descStyle.Render("Regular file"),
+	}
+
+	helpBody := lipgloss.JoinVertical(
+		lipgloss.Left,
+		header,
+		sectionStyle.Render(lipgloss.NewStyle().Foreground(dimColor).Render("─ KEYBOARD SHORTCUTS ─")),
+		lipgloss.JoinVertical(lipgloss.Left, hotkeys...),
+		sectionStyle.Render(lipgloss.NewStyle().Foreground(dimColor).Render("─ SYMBOLS ─")),
+		lipgloss.JoinVertical(lipgloss.Left, symbols...),
+	)
+	return lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(accentColor).
+		Padding(1, 4).
+		Render(helpBody)
+}
+
+// getStats returns a command that fetches memory and directory size stats.
+func getStats(path string) tea.Cmd {
+	return func() tea.Msg {
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+
+		dirSize := int64(0)
+		entries, _ := os.ReadDir(path)
+		for _, e := range entries {
+			if !e.IsDir() {
+				info, _ := e.Info()
+				if info != nil {
+					dirSize += info.Size()
+				}
+			}
+		}
+
+		return statsMsg{
+			cpu:     0.1, // Simplified placeholder
+			mem:     m.Alloc,
+			dirSize: dirSize,
+		}
+	}
+}
+
+func doTick() tea.Cmd {
+	return tea.Tick(2*time.Second, func(t time.Time) tea.Msg {
+		return tickMsg(t)
+	})
+}
+
+func renderHeader(m model) string {
+	t := themes[m.themeIdx]
+	accentStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.accent)).Bold(true)
+	dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.dim))
+
+	left := accentStyle.Render(" scout ") + dimStyle.Render("│ github.com/mirageglobe/scout")
+
+	memMB := float64(m.stats.mem) / 1024 / 1024
+	dirSizeStr := humanSize(m.stats.dirSize)
+
+	// Build stats string
+	statsStr := fmt.Sprintf("MEM: %.1fMB  DIR: %s", memMB, dirSizeStr)
+	right := dimStyle.Render(statsStr + " ")
+
+	// Calculate space between
+	width := m.width
+	paddingCount := width - lipgloss.Width(left) - lipgloss.Width(right)
+	if paddingCount < 0 {
+		paddingCount = 0
+	}
+
+	return left + strings.Repeat(" ", paddingCount) + right
 }
 
 // ---------------------------------------------------------------------------

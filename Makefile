@@ -24,5 +24,8 @@ fmt: ## Format the Go source code
 lint: ## Run go vet (basic linting)
 	go vet ./...
 
-clean: ## Remove the compiled binary
-	rm -f scout
+demo: build ## Generate a VHS demo GIF
+	vhs < demo.tape
+
+clean: ## Remove the compiled binary and demo assets
+	rm -f scout demo.gif
