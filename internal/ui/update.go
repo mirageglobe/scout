@@ -26,12 +26,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case filesystem.DirLoadedMsg:
 		if msg.Err != nil {
-			m.Err = msg.Err
+			m.StatusMsg = fmt.Sprintf("Error: %v", msg.Err)
 			return m, nil
 		}
 		m.Entries = msg.Entries
 		m.GitStatus = msg.GitStatus
 		m.Err = nil
+		m.StatusMsg = ""
 		m.PreviewScroll = 0
 		if m.Cursor >= len(m.Entries) {
 			m.Cursor = max(0, len(m.Entries)-1)
@@ -62,6 +63,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ShowHelp = true
 			return m, nil
 
+		case "o":
+			if len(m.Entries) > 0 {
+				selected := m.Entries[m.Cursor]
+				fullPath := filepath.Join(m.Cwd, selected.Name)
+				if !selected.IsDir {
+					if err := filesystem.OpenWithSystem(fullPath); err != nil {
+						m.StatusMsg = fmt.Sprintf("Error: %v", err)
+					} else {
+						m.StatusMsg = fmt.Sprintf("Opened: %s", selected.Name)
+					}
+				}
+			}
+			return m, nil
+
 		case "t":
 			m.ThemeIdx = (m.ThemeIdx + 1) % len(Themes)
 			m.Preview = m.BuildPreview()
@@ -85,6 +100,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.PreviewScroll = 0
 				m.Preview = m.BuildPreview()
+				m.StatusMsg = ""
 			}
 			return m, nil
 
@@ -100,6 +116,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.PreviewScroll = 0
 				m.Preview = m.BuildPreview()
+				m.StatusMsg = ""
 			}
 			return m, nil
 
@@ -112,8 +129,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			parent := filepath.Dir(m.Cwd)
 			if parent != m.Cwd {
 				m.Cwd = parent
-				m.Cursor = 0
+				m.PreviewScroll = 0
 				m.Preview = ""
+				m.StatusMsg = ""
 				return m, m.LoadDir(m.Cwd)
 			}
 			return m, nil
@@ -150,7 +168,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				n, _ := f.Read(buf)
 				f.Close()
 				if filesystem.IsBinary(buf[:n]) {
-					m.Err = fmt.Errorf("cannot open binary file: %s", selected.Name)
+					m.StatusMsg = fmt.Sprintf("Error: cannot open binary file: %s", selected.Name)
 					return m, nil
 				}
 			}
@@ -164,6 +182,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Cursor = 0
 			m.PreviewScroll = 0
 			m.Preview = m.BuildPreview()
+			m.StatusMsg = ""
 			return m, nil
 
 		case "G", "shift+g":
@@ -172,12 +191,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.PreviewScroll = 0
 			m.Preview = m.BuildPreview()
+			m.StatusMsg = ""
 			return m, nil
 		}
 
 	case EditorFinishedMsg:
 		if msg.Err != nil {
-			m.Err = msg.Err
+			m.StatusMsg = fmt.Sprintf("Error: %v", msg.Err)
 		}
 		return m, m.LoadDir(m.Cwd)
 	}

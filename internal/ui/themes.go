@@ -13,6 +13,14 @@ type Theme struct {
 // Themes is the global list of available color palettes.
 var Themes = []Theme{
 	{
+		Name:       "Classic Amber",
+		Accent:     "#FFAF00",
+		Dim:        "#875F00",
+		Text:       "#D7D7D7",
+		SelectedBg: "#FFAF00",
+		SelectedFg: "#000000",
+	},
+	{
 		Name:       "Safety Orange",
 		Accent:     "#FF8700",
 		Dim:        "#AF5F00",
@@ -26,14 +34,6 @@ var Themes = []Theme{
 		Dim:        "#555555",
 		Text:       "#BBBBBB",
 		SelectedBg: "#FFFFFF",
-		SelectedFg: "#000000",
-	},
-	{
-		Name:       "Classic Amber",
-		Accent:     "#FFAF00",
-		Dim:        "#875F00",
-		Text:       "#D7D7D7",
-		SelectedBg: "#FFAF00",
 		SelectedFg: "#000000",
 	},
 	{

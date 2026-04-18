@@ -20,3 +20,6 @@ This document is intended for AI coding assistants working in the `scout` direct
 - Run `go build` after making changes to verify compilation. Use standard `go fmt` rules.
 - **Git Commits**: Do not commit code with co-authors.
 - **Aesthetics**: Prefer clean ASCII and Unicode characters over emoji for icons and UI elements to maintain a professional, high-contrast look.
+- **Diagrams**: Structure all architectural or logic diagrams using clean ASCII or Unicode characters.
+- **Tables**: Ensure all Markdown tables are highly readable by maintaining perfect column alignment and spacing.
+- **Documentation**: Prioritise code comments where possible; they are essential for readability and context for both humans and AI.

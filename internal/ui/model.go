@@ -23,6 +23,7 @@ type Model struct {
 	ThemeIdx      int
 	GitStatus     map[string]string
 	Stats         filesystem.Stats
+	StatusMsg     string
 	Err           error
 }
 

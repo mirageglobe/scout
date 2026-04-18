@@ -1,7 +1,9 @@
 package filesystem
 
 import (
+	"fmt"
 	"os"
+	"os/exec"
 	"runtime"
 	"sort"
 	"strings"
@@ -9,6 +11,27 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 )
+
+// OpenWithSystem opens the given path using the default system application.
+func OpenWithSystem(path string) error {
+	var cmd *exec.Cmd
+
+	switch runtime.GOOS {
+	case "darwin":
+		// macOS
+		cmd = exec.Command("open", path)
+	case "linux":
+		// Linux
+		cmd = exec.Command("xdg-open", path)
+	case "windows":
+		// Windows
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", path)
+	default:
+		return fmt.Errorf("unsupported platform: %s", runtime.GOOS)
+	}
+
+	return cmd.Start()
+}
 
 // ReadDir reads the directory at path and returns a slice of sorted entries.
 func ReadDir(path string) ([]Entry, error) {

@@ -29,6 +29,7 @@ func (m Model) RenderHelp() string {
 		keyStyle.Render("g") + descStyle.Render("Go to top"),
 		keyStyle.Render("G") + descStyle.Render("Go to bottom"),
 		keyStyle.Render("t") + descStyle.Render("Cycle color themes"),
+		keyStyle.Render("o") + descStyle.Render("Open with system default"),
 		keyStyle.Render("?") + descStyle.Render("Show/hide this help"),
 		keyStyle.Render("q, ctrl+c") + descStyle.Render("Quit scout"),
 	}

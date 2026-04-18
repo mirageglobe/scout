@@ -25,8 +25,8 @@ func (m Model) View() tea.View {
 	selectedFg := lipgloss.Color(t.SelectedFg)
 	dirColor := accentColor
 
-	// Reserve space for borders (2 chars each side) and internal padding
-	usableWidth := m.Width - 5
+	// Use the full width of the terminal
+	usableWidth := m.Width
 	if usableWidth < 20 {
 		usableWidth = 20
 	}
@@ -52,11 +52,6 @@ func (m Model) View() tea.View {
 
 	headerStyle := lipgloss.NewStyle().Foreground(accentColor).Bold(true)
 	listLines = append(listLines, headerStyle.Render(filesystem.Truncate(cwdDisplay, leftWidth-4)))
-
-	if m.Err != nil {
-		errStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#FF5555"))
-		listLines = append(listLines, errStyle.Render("Error: "+filesystem.Truncate(m.Err.Error(), leftWidth-4)))
-	}
 
 	visibleRows := contentHeight - len(listLines)
 	if visibleRows < 1 {
@@ -103,17 +98,23 @@ func (m Model) View() tea.View {
 			}
 		}
 
-		line := symStyle.Render(symbol) + " " + name
-		line = filesystem.Truncate(line, leftWidth-4)
+		// Raw text for selection (no ANSI)
+		rawLine := symbol + " " + name
+		truncated := filesystem.Truncate(rawLine, leftWidth-4)
 
 		if i == m.Cursor {
-			listLines = append(listLines, selectedItem.Render(line))
+			// SELECTED: Render plain text on a solid background
+			listLines = append(listLines, selectedItem.Render(truncated))
 		} else {
+			// NORMAL: Render with themed symbol and name colors
+			symStyled := symStyle.Render(symbol)
+			var lineStyled string
 			if e.IsDir {
-				listLines = append(listLines, dirStyle.Render(line))
+				lineStyled = symStyled + " " + dirStyle.Render(name)
 			} else {
-				listLines = append(listLines, normalItem.Render(line))
+				lineStyled = symStyled + " " + normalItem.Render(name)
 			}
+			listLines = append(listLines, filesystem.Truncate(lineStyled, leftWidth-4))
 		}
 	}
 
@@ -175,7 +176,7 @@ func (m Model) View() tea.View {
 	if len(m.Entries) > 0 {
 		pos = fmt.Sprintf(" %d/%d", m.Cursor+1, len(m.Entries))
 	}
-	help := " q:quit  ←/→:focus  ↑/↓:nav/scroll  v/enter:vim  t:theme ?:help"
+	help := " q:quit  ←/→:focus  ↑/↓:nav/scroll  v/enter:vim  t:theme  o:open ?:help"
 
 	statusBar := statusStyle.Render(
 		filesystem.Truncate(count+pos+"  │"+help, m.Width),
@@ -187,10 +188,29 @@ func (m Model) View() tea.View {
 		layout = lipgloss.Place(m.Width, m.Height, lipgloss.Center, lipgloss.Center, helpScreen)
 	} else {
 		header := m.RenderHeader()
-		layout = lipgloss.JoinVertical(lipgloss.Left, header, panes, statusBar)
+		statusLine := m.RenderStatusLine()
+		layout = lipgloss.JoinVertical(lipgloss.Left, header, panes, statusLine, statusBar)
 	}
 
 	v := tea.NewView(layout)
 	v.AltScreen = true
 	return v
+}
+
+// RenderStatusLine generates the informational line between the panes and shortcuts.
+func (m Model) RenderStatusLine() string {
+	if m.StatusMsg == "" {
+		return ""
+	}
+
+	style := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(Themes[m.ThemeIdx].Accent)).
+		Italic(true).
+		Padding(0, 1)
+
+	if strings.HasPrefix(m.StatusMsg, "Error:") {
+		style = style.Foreground(lipgloss.Color("#FF5555")).Bold(true)
+	}
+
+	return style.Render(filesystem.Truncate(m.StatusMsg, m.Width-2))
 }

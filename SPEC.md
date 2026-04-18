@@ -12,12 +12,12 @@
 
 | Goal | Status |
 |---|---|
-| Two-pane layout (file list + preview) | ✅ |
-| Keyboard navigation (j/k/h/enter/g/G) | ✅ |
-| Editor hand-off via `vim` + `tea.ExecProcess` | ✅ |
-| Git status integration (`[M]` / `[?]`) | ✅ |
-| Styled borders via Lip Gloss | ✅ |
-| Single-file architecture (`main.go`) | ✅ |
+| Two-pane layout (file list + preview) | ● |
+| Keyboard navigation (j/k/h/enter/g/G) | ● |
+| Editor hand-off via `vim` + `tea.ExecProcess` | ● |
+| Git status integration (`[M]` / `[?]`) | ● |
+| Styled borders via Lip Gloss | ● |
+| Modular architecture (`cmd/` + `internal/`) | ● |
 
 ---
 
@@ -105,14 +105,14 @@ Suspends the TUI, forks `vim <file>`, and resumes on exit. The callback wraps th
 
 ```
 ┌─────────────────────────┬────────────────────────────────┐
-│  ~/projects/scout       │  📄 File: main.go              │
+│  ~/projects/scout       │  • File: main.go               │
 │  ──────────────────     │  ──────────────────────────    │
-│  [M] main.go            │  Size:     16.0 KB             │
-│  [?] SPEC.md            │  Modified: 2026-04-18 17:00    │
-│  ▶  go.mod              │  Mode:     -rw-r--r--          │
-│     go.sum              │  ──────────────────────────    │
-│     README.md           │    1 │ package main            │
-│     scout               │    2 │                         │
+│  ● main.go              │  Size:     16.0 KB             │
+│  ○ SPEC.md              │  Modified: 2026-04-18 17:00    │
+│  ▸ go.mod               │  Mode:     -rw-r--r--          │
+│    go.sum               │  ──────────────────────────    │
+│    README.md            │    1 │ package main            │
+│    scout                │    2 │                         │
 │                         │    3 │ import (                │
 │                         │    …                           │
 └─────────────────────────┴────────────────────────────────┘
@@ -175,12 +175,18 @@ Preview is regenerated eagerly whenever the cursor moves, a directory is loaded,
 
 ```
 scout/
-├── main.go       # Entire application — Model, Update, View + helpers
-├── go.mod        # Module: github.com/mirageglobe/scout
-├── go.sum        # Dependency lock
-├── README.md     # Project overview
-├── SPEC.md       # This document
-└── scout         # Compiled binary (gitignored)
+├── cmd/
+│   └── scout/
+│       └── main.go       # Entry point
+├── internal/
+│   ├── filesystem/       # Operations, stats, utils
+│   ├── git/              # Git logic
+│   └── ui/               # MVU loop and rendering
+├── go.mod
+├── go.sum
+├── AGENT.md
+├── README.md
+└── SPEC.md
 ```
 
 ---
