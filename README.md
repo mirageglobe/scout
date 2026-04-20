@@ -60,6 +60,43 @@ make build
 
 ---
 
+## Releasing
+
+Scout uses [goreleaser](https://goreleaser.com) to build cross-platform binaries, publish a GitHub release, and auto-update the [homebrew-tap](https://github.com/mirageglobe/homebrew-tap) formula.
+
+### prerequisites
+
+- [`goreleaser`](https://goreleaser.com/install/) installed (`brew install goreleaser`)
+- two GitHub personal access tokens (classic or fine-grained, with repo write scope):
+  - `GITHUB_TOKEN` — write access to this repo (scout)
+  - `HOMEBREW_TAP_GITHUB_TOKEN` — write access to the homebrew-tap repo
+
+### steps
+
+```bash
+# 1. ensure you are on main and everything is merged + clean
+git checkout main && git pull
+
+# 2. export tokens (add these to ~/.zshrc or ~/.bashrc to avoid repeating)
+export GITHUB_TOKEN=<your-scout-token>
+export HOMEBREW_TAP_GITHUB_TOKEN=<your-tap-token>
+
+# 3. tag the release (use semantic versioning)
+git tag v0.2.0
+git push origin v0.2.0
+
+# 4. release (builds binaries, publishes GitHub release, updates homebrew formula)
+make release
+```
+
+to test the release pipeline locally without publishing:
+
+```bash
+make release-dry
+```
+
+---
+
 ## Architecture
 
 Scout follows standard Go conventions for scalable, modular CLIs:

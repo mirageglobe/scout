@@ -1,0 +1,62 @@
+version: 2
+
+project_name: scout
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: scout
+    main: ./cmd/scout/main.go
+    binary: scout
+    ldflags:
+      - -s -w -X github.com/mirageglobe/scout/internal/ui.Version={{.Version}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: linux
+        goarch: arm64
+
+archives:
+  - id: scout
+    formats:
+      - tar.gz
+    name_template: "scout_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "scout_{{ .Version }}_checksums.txt"
+  algorithm: sha256
+
+release:
+  github:
+    owner: mirageglobe
+    name: scout
+  draft: false
+  prerelease: auto
+  name_template: "v{{ .Version }}"
+
+brews:
+  - name: scout
+    repository:
+      owner: mirageglobe
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/mirageglobe/scout"
+    description: "terminal-native dual-pane file explorer"
+    license: "MIT"
+    test: |
+      system "#{bin}/scout", "--version"
+    install: |
+      bin.install "scout"
