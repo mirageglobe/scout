@@ -24,6 +24,9 @@ Icon
 # Logs
 *.log
 
+# Claude Code
+.claude/
+
 # Editors / IDEs
 .vscode/*
 !.vscode/settings.json

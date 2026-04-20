@@ -1,6 +1,6 @@
 # Scout — Specification & Architecture
 
-> A terminal file browser built with Go and the Charm library suite (Bubble Tea, Lip Gloss).
+> a terminal file browser built with Go and the Charm library suite (Bubble Tea, Lip Gloss).
 
 ---
 
@@ -10,26 +10,35 @@
 
 ### Goals
 
-| Goal | Status |
-|---|---|
-| Two-pane layout (file list + preview) | ● |
-| Keyboard navigation (j/k/h/enter/g/G) | ● |
-| Editor hand-off via `vim` + `tea.ExecProcess` | ● |
-| Git status integration (`[M]` / `[?]`) | ● |
-| Styled borders via Lip Gloss | ● |
-| Modular architecture (`cmd/` + `internal/`) | ● |
+| goal                                             | status |
+| ------------------------------------------------ | ------ |
+| two-pane layout (file list + preview)            | ●      |
+| keyboard navigation (j/k/h/l/g/G)               | ●      |
+| editor hand-off via `vim` + `tea.ExecProcess`    | ●      |
+| git status badges and branch display             | ●      |
+| styled borders via Lip Gloss                     | ●      |
+| modular architecture (`cmd/` + `internal/`)      | ●      |
+| chroma syntax highlighting in preview            | ●      |
+| time-aware color themes (7 themes, manual cycle) | ●      |
+| help overlay (`?`)                               | ●      |
+| live system stats (CPU, memory, clock)           | ●      |
+| hidden file toggle (`i`)                         | ●      |
+| collapsible file list pane (`tab`)               | ●      |
+| open with system default application (`o`)       | ●      |
+| scrollable preview pane (focus + j/k)            | ●      |
 
 ---
 
 ## 2. Technology Stack
 
-| Dependency | Version | Purpose |
-|---|---|---|
-| `charm.land/bubbletea/v2` | v2.0.6 | TUI runtime, MVU event loop |
-| `charm.land/lipgloss/v2` | v2.0.3 | Terminal styling & layout |
-| Go stdlib (`os`, `os/exec`, `path/filepath`, `sort`, `strings`, `fmt`) | — | I/O, process execution, text |
+| dependency                                                   | version | purpose                              |
+| ------------------------------------------------------------ | ------- | ------------------------------------ |
+| `charm.land/bubbletea/v2`                                    | v2.0.6  | TUI runtime, MVU event loop          |
+| `charm.land/lipgloss/v2`                                     | v2.0.3  | terminal styling and layout          |
+| `github.com/alecthomas/chroma/v2`                            | v2.x    | syntax highlighting for file preview |
+| Go stdlib (`os`, `os/exec`, `path/filepath`, `runtime`, ...) | —       | I/O, process execution, system stats |
 
-> **No external bubbles components are used.** The file list is hand-rolled to give precise control over scrolling, padding, and git badge rendering.
+> **no external bubbles components are used.** the file list is hand-rolled to give precise control over scrolling, padding, and git badge rendering.
 
 ---
 
@@ -38,136 +47,191 @@
 Scout follows the **Model-Update-View (MVU)** pattern enforced by Bubble Tea.
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                        tea.Program                        │
-│  ┌───────────┐   Msg   ┌──────────┐   tea.View   ┌──────┐│
-│  │   Init()  │────────▶│ Update() │─────────────▶│View()││
-│  └───────────┘         └──────────┘              └──────┘│
-│                             │                            │
-│                             │ tea.Cmd                    │
-│                             ▼                            │
-│                    ┌─────────────────┐                   │
-│                    │  Async Commands │                   │
-│                    │  - loadDir()    │                   │
-│                    │  - ExecProcess()│                   │
-│                    └─────────────────┘                   │
-└──────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                          tea.Program                          │
+│  ┌───────────┐   Msg   ┌──────────────┐   string   ┌───────┐ │
+│  │   Init()  │────────▶│   Update()   │───────────▶│View() │ │
+│  └───────────┘         └──────────────┘            └───────┘ │
+│                                │                             │
+│                                │ tea.Cmd                     │
+│                                ▼                             │
+│                     ┌──────────────────────┐                 │
+│                     │    Async Commands    │                 │
+│                     │  - LoadDir()         │                 │
+│                     │  - RefreshGit()      │                 │
+│                     │  - GetStats()        │                 │
+│                     │  - DoTick()          │                 │
+│                     │  - tea.ExecProcess() │                 │
+│                     └──────────────────────┘                 │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ### 3.1 Model
 
 ```go
-type model struct {
-    cwd       string            // Current working directory (absolute)
-    entries   []entry           // Sorted list of directory entries
-    cursor    int               // Index of selected entry
-    width     int               // Terminal width (from WindowSizeMsg)
-    height    int               // Terminal height (from WindowSizeMsg)
-    preview   string            // Pre-computed preview string for right pane
-    gitStatus map[string]string // filename → git status code ("M", "?", …)
-    err       error             // Last error to display in-pane
+type Model struct {
+    Cwd               string            // current working directory (absolute)
+    Entries           []filesystem.Entry // sorted list of directory entries
+    Cursor            int               // index of selected entry
+    Width             int               // terminal width (from WindowSizeMsg)
+    Height            int               // terminal height (from WindowSizeMsg)
+    Preview           string            // pre-computed preview string for right pane
+    PreviewScroll     int               // scroll offset for preview pane
+    FocusRight        bool              // true when preview pane has keyboard focus
+    ShowHelp          bool              // true when help overlay is visible
+    ThemeIdx          int               // index into themes slice
+    GitStatus         map[string]string // filename → git status code ("M", "+", "?", "!")
+    GitBranch         string            // current git branch name
+    ShowHidden        bool              // whether hidden (dot) files are shown
+    ExplorerCollapsed bool              // whether file list pane is collapsed to 8 chars
+    Stats             filesystem.Stats  // live CPU, memory, and directory size
+    StatusMsg         string            // transient status or error message
+    Err               error             // last error to display in-pane
 }
 ```
 
-The `entry` struct wraps `os.FileInfo` alongside the name and a boolean `isDir` flag, providing everything needed for both rendering and navigation without additional stat calls.
+`NewModel` sets the initial `ThemeIdx` by calling `ThemeForHour(time.Now().Hour())` so the theme is automatically chosen based on time of day.
 
 ### 3.2 Messages (Msg)
 
-| Message | Source | Purpose |
-|---|---|---|
-| `tea.WindowSizeMsg` | Bubble Tea runtime | Captures terminal dimensions for layout |
-| `tea.KeyPressMsg` | Keyboard | All navigation and quit signals |
-| `dirLoadedMsg` | `loadDir` cmd | Delivers fresh entry list + git map |
-| `editorFinishedMsg` | `tea.ExecProcess` callback | Signals vim has exited; triggers reload |
+| message                      | source                | purpose                                              |
+| ---------------------------- | --------------------- | ---------------------------------------------------- |
+| `tea.WindowSizeMsg`          | Bubble Tea runtime    | captures terminal dimensions for layout              |
+| `tea.KeyPressMsg`            | keyboard              | all navigation, actions, and quit signals            |
+| `filesystem.DirLoadedMsg`    | `LoadDir` cmd         | delivers fresh entry list, git status, and branch    |
+| `filesystem.GitRefreshMsg`   | `RefreshGit` cmd      | periodic git status and branch refresh               |
+| `filesystem.TickMsg`         | `DoTick` cmd          | 2-second heartbeat; triggers stats and git refresh   |
+| `filesystem.StatsMsg`        | `GetStats` cmd        | delivers live CPU, memory, and directory size        |
+| `ui.EditorFinishedMsg`       | `tea.ExecProcess` cb  | signals vim has exited; triggers directory reload    |
 
 ### 3.3 Commands (Cmd)
 
-#### `loadDir(path string) tea.Cmd`
-Runs asynchronously. Reads the directory with `os.ReadDir`, sorts entries (directories first, then alphabetical), and calls `getGitStatus` in the same goroutine. Returns `dirLoadedMsg`.
+#### `LoadDir(path string) tea.Cmd`
+runs asynchronously. reads the directory with `os.ReadDir`, sorts entries (directories first, then alphabetical), fetches git status and branch in the same goroutine. returns `DirLoadedMsg`.
+
+#### `RefreshGit() tea.Cmd`
+re-fetches git status and branch for the current directory without reloading entries. returns `GitRefreshMsg`.
+
+#### `GetStats(path string) tea.Cmd`
+reads CPU usage via `runtime.ReadMemStats`, allocated memory, and directory size by walking the tree. returns `StatsMsg`.
+
+#### `DoTick() tea.Cmd`
+fires a `TickMsg` after a 2-second delay to drive the heartbeat for stats and git refresh.
 
 #### `tea.ExecProcess(cmd, callback)`
-Suspends the TUI, forks `vim <file>`, and resumes on exit. The callback wraps the error in `editorFinishedMsg`.
+suspends the TUI, forks `vim <file>`, and resumes on exit. the callback wraps the error in `EditorFinishedMsg`.
 
 ### 3.4 View
 
-`View()` is a pure function of `model` that produces a `tea.View`. It:
+`View()` is a pure function of `Model` that produces a string. It:
 
-1. Computes `leftWidth` (40 % of usable width) and `rightWidth` (60 %).
-2. Renders the **left pane**: path header → optional error → visible entry rows (with scroll offset, git badges, directory indicators).
-3. Renders the **right pane**: pre-computed `m.preview` string (file content or dir listing).
-4. Joins panes horizontally with `lipgloss.JoinHorizontal`.
-5. Appends a **status bar** with item count, position, and key hints.
-6. Sets `AltScreen = true` so the TUI uses the secondary terminal buffer.
+1. if `ShowHelp` is true, renders the full-screen help overlay and returns early.
+2. computes `leftWidth` (40 % or 8 chars if collapsed) and `rightWidth` (remaining space).
+3. renders the **header bar**: app name, version, current time, CPU, and memory.
+4. renders the **left pane**: path header → optional error → visible entry rows with scroll offset, git badges, and directory indicators.
+5. renders the **right pane**: pre-computed `m.Preview` string (syntax-highlighted content or dir listing).
+6. joins panes horizontally with `lipgloss.JoinHorizontal`.
+7. appends a **status bar** with item count, position, git branch (`⎇ name`), and key hints.
+
+### 3.5 Theming
+
+Seven themes are defined in a `themes` slice. Each theme carries a name and an accent color:
+
+| index | name           | accent    | auto-active hours |
+| ----- | -------------- | --------- | ----------------- |
+| 0     | Midnight       | `#875FFF` | 00:00 – 05:00     |
+| 1     | Dawn           | `#FF8787` | 05:00 – 09:00     |
+| 2     | Classic Amber  | `#FFAF00` | 09:00 – 12:00     |
+| 3     | Electric Cyan  | `#00AFFF` | 12:00 – 17:00     |
+| 4     | Safety Orange  | `#FF8700` | 17:00 – 20:00     |
+| 5     | Evening        | `#FF5FAF` | 20:00 – 24:00     |
+| 6     | Mono           | `#808080` | manual only       |
+
+`ThemeForHour(h int)` returns the correct index for the given hour. pressing `t` cycles forward through the slice with wrap-around.
 
 ---
 
 ## 4. Layout
 
 ```
-┌─────────────────────────┬────────────────────────────────┐
-│  ~/projects/scout       │  • File: main.go               │
-│  ──────────────────     │  ──────────────────────────    │
-│  ● main.go              │  Size:     16.0 KB             │
-│  ○ SPEC.md              │  Modified: 2026-04-18 17:00    │
-│  ▸ go.mod               │  Mode:     -rw-r--r--          │
-│    go.sum               │  ──────────────────────────    │
-│    README.md            │    1 │ package main            │
-│    scout                │    2 │                         │
-│                         │    3 │ import (                │
-│                         │    …                           │
-└─────────────────────────┴────────────────────────────────┘
- 5 items  1/5  │  q:quit  j/k:navigate  h:up  enter:open  g/G:top/bottom
+┌─ scout v0.1.0 ──────────────────────────── 14:32  cpu 3%  mem 12MB ─┐
+│                                                                       │
+├─────────────────────────┬─────────────────────────────────────────── ┤
+│  ~/projects/scout       │  · file: main.go                           │
+│  ──────────────────     │  ──────────────────────────                │
+│  M cmd/                 │  size:     16.0 KB                         │
+│  · internal/            │  modified: 2026-04-18 17:00                │
+│  · go.mod               │  mode:     -rw-r--r--                      │
+│  · go.sum               │  ──────────────────────────                │
+│  · README.md            │    1 │ package main                        │
+│  · SPEC.md              │    2 │                                     │
+│                         │    3 │ import (                            │
+│                         │    …                                       │
+├─────────────────────────┴─────────────────────────────────────────── ┤
+│  6/8 items  · 14.2 KB  ⎇ main  │  q:quit  ?:help  j/k:nav  t:theme  │
+└───────────────────────────────────────────────────────────────────── ┘
 ```
 
-- **Left pane** — 40 % of terminal width, rounded border, purple accent.
-- **Right pane** — 60 % of terminal width, rounded border, same accent.
-- **Status bar** — single line below the panes; dim colour.
+- **header bar** — full-width, shows app name/version, clock, CPU, and memory.
+- **left pane** — 40 % of terminal width (or 8 chars when collapsed), rounded border, theme accent.
+- **right pane** — remaining terminal width, rounded border, same accent; dimmed border when unfocused.
+- **status bar** — single line; item count, file size, git branch, and key hints.
 
 ---
 
 ## 5. Key Bindings
 
-| Key | Action |
-|---|---|
-| `j` / `↓` | Move cursor down |
-| `k` / `↑` | Move cursor up |
-| `h` / `←` | Go to parent directory |
-| `enter` | Enter directory or open file in vim |
-| `g` | Jump to top of list |
-| `G` / `shift+G` | Jump to bottom of list |
-| `q` / `ctrl+c` | Quit |
+| key              | action                                         |
+| ---------------- | ---------------------------------------------- |
+| `j` / `↓`        | move cursor down                               |
+| `k` / `↑`        | move cursor up                                 |
+| `h` / `←` / `⌫`  | go to parent directory (or unfocus preview)    |
+| `l` / `→`        | enter directory or focus preview pane          |
+| `enter`          | enter directory or open file in vim            |
+| `v`              | open file in vim                               |
+| `o`              | open file with system default application      |
+| `g`              | jump to top of list                            |
+| `G`              | jump to bottom of list                         |
+| `i`              | toggle hidden files                            |
+| `tab`            | collapse / expand file list pane               |
+| `t`              | cycle color theme                              |
+| `?`              | show / hide help overlay                       |
+| `q` / `ctrl+c`   | quit                                           |
 
 ---
 
 ## 6. Git Status Integration
 
-`getGitStatus(dir)` runs:
-```
-git status --porcelain
-```
-in `dir` and produces a `map[string]string`:
+`git.GetStatus(dir)` runs `git status --porcelain` and returns a `map[string]string`:
 
-- Output line format: `XY filename` (2-char status + space + path)
-- `??` → badge `[?]` (untracked, green)
-- Any other non-space XY → badge `[M]` (modified/staged/etc., orange)
-- Nested paths (e.g. `subdir/file.go`) attribute the change to the top-level entry (`subdir`)
-- Renamed paths (`R  old -> new`) use the new name
+| porcelain code | badge | color  | meaning                  |
+| -------------- | ----- | ------ | ------------------------ |
+| `??`           | `?`   | dim    | untracked                |
+| `A` / ` A`     | `+`   | green  | added / staged           |
+| `M` / ` M`     | `M`   | orange | modified                 |
+| other non-space| `!`   | red    | other change             |
 
-If `git` is unavailable or the directory is not a repo, the map is empty and no badges are shown.
+- nested paths (e.g. `subdir/file.go`) attribute the change to the top-level entry (`subdir`).
+- renamed paths (`R  old -> new`) use the new (destination) name.
+- if `git` is unavailable or the directory is not a repo, the map is empty and no badges are shown.
+
+`git.GetBranch(dir)` runs `git rev-parse --abbrev-ref HEAD` and returns the branch name string.
 
 ---
 
 ## 7. Preview Logic
 
-| Selected entry | Preview content |
-|---|---|
-| **Directory** | Icon, modified time, mode, child count, list of up to 20 children |
-| **Text file** | Icon, size, modified time, mode, first 40 lines with line numbers |
-| **Binary file** | Icon, metadata, `(binary file – no preview)` message |
+| selected entry  | preview content                                                             |
+| --------------- | --------------------------------------------------------------------------- |
+| **directory**   | icon, modified time, mode, child count, list of up to 20 children           |
+| **text file**   | icon, size, modified time, mode, syntax-highlighted content with line numbers (first ~1000 lines or 32 KB) |
+| **binary file** | icon, metadata, `(binary file – no preview)` message                       |
 
-Binary detection: any null byte (`0x00`) in the first 4 KB marks the file as binary.
+binary detection: any null byte (`0x00`) in the first 4 KB marks the file as binary.
 
-Preview is regenerated eagerly whenever the cursor moves, a directory is loaded, or the window is resized. It is stored in `model.preview` as a pre-rendered string to keep `View()` allocation-light.
+syntax highlighting uses Chroma with the Dracula theme. the lexer is selected by file extension; falls back to plain text if unknown.
+
+preview is regenerated whenever the cursor moves, a directory is loaded, or the window is resized. it is stored in `Model.Preview` as a pre-rendered string to keep `View()` allocation-light. when `FocusRight` is true, `j`/`k` scroll `PreviewScroll` instead of moving the cursor.
 
 ---
 
@@ -177,14 +241,15 @@ Preview is regenerated eagerly whenever the cursor moves, a directory is loaded,
 scout/
 ├── cmd/
 │   └── scout/
-│       └── main.go       # Entry point
+│       └── main.go             # entry point
 ├── internal/
-│   ├── filesystem/       # Operations, stats, utils
-│   ├── git/              # Git logic
-│   └── ui/               # MVU loop and rendering
+│   ├── filesystem/             # file ops, stats, tick, and entry types
+│   ├── git/                    # git status and branch logic
+│   └── ui/                     # MVU model, update, view, preview, themes
 ├── go.mod
 ├── go.sum
 ├── AGENT.md
+├── CLAUDE.md
 ├── README.md
 └── SPEC.md
 ```
@@ -194,18 +259,16 @@ scout/
 ## 9. Build & Run
 
 ```bash
-# Build
-go build -o scout .
+# build
+make build
+# or: go build -o scout cmd/scout/main.go
 
-# Run in current directory
+# run in current directory
 ./scout
-
-# Run in a specific directory
-cd /some/path && /path/to/scout
 ```
 
 ### Prerequisites
-- Go 1.22+ (module `go 1.26.2` toolchain)
+- Go 1.22+
 - `vim` on `$PATH` for file opening
 - `git` on `$PATH` for status badges (optional)
 
@@ -213,12 +276,14 @@ cd /some/path && /path/to/scout
 
 ## 10. Design Decisions
 
-| Decision | Rationale |
-|---|---|
-| Single `main.go` | Keeps the project approachable and easy to audit in one read |
-| Pre-computed `preview` string | Avoids re-allocating on every `View()` call; only recomputes on state changes |
-| `AltScreen = true` | Uses the secondary terminal buffer so the shell history is not polluted |
-| `tea.ExecProcess` for vim | The idiomatic Bubble Tea way to suspend the TUI, hand off stdin/stdout, and resume cleanly |
-| No `bubbles/list` component | Gives full control over git badge rendering, scrolling, and padding behaviour |
-| Directories first sort | Standard filesystem browser convention; reduces cognitive load |
-| 4 KB preview cap | Prevents large files from blocking the UI thread during preview generation |
+| decision                             | rationale                                                                                  |
+| ------------------------------------ | ------------------------------------------------------------------------------------------ |
+| pre-computed `Preview` string        | avoids re-allocating on every `View()` call; recomputes only on state changes              |
+| `AltScreen = true`                   | uses the secondary terminal buffer so shell history is not polluted                        |
+| `tea.ExecProcess` for vim            | idiomatic Bubble Tea way to suspend TUI, hand off stdin/stdout, and resume cleanly         |
+| no `bubbles/list` component          | gives full control over git badge rendering, scrolling, and padding behaviour              |
+| directories-first sort               | standard filesystem browser convention; reduces cognitive load                             |
+| 32 KB / 1000-line preview cap        | prevents large files from blocking the UI during preview generation                       |
+| time-based theme auto-selection      | reduces manual configuration; theme still switchable at runtime with `t`                  |
+| 2-second tick for stats and git      | low enough overhead to feel live; high enough to avoid hammering the filesystem            |
+| `runtime.ReadMemStats` for memory    | zero-dependency way to surface allocated heap without external tooling                     |

@@ -10,59 +10,65 @@ Set Theme "Dracula"
 # Start Scout
 Type "./scout"
 Enter
-Sleep 1.5s
+Sleep 2s
 
-# 1. Show Help
+# 1. Navigate — show git badges and file list
+Type "jj"
+Sleep 500ms
+Type "jj"
+Sleep 500ms
+Type "g"
+Sleep 500ms
+
+# 2. Help overlay
 Type "?"
 Sleep 3s
 Type "?"
 Sleep 1s
 
-# 2. Cycle Themes (Classic Amber is default)
+# 3. Cycle themes
 Type "t"
-Sleep 1.5s
+Sleep 1s
 Type "t"
-Sleep 1.5s
+Sleep 1s
 Type "t"
-Sleep 1.5s
+Sleep 1s
 Type "t"
 Sleep 1.5s
 
-# 3. Navigate & Preview
-Type "jj"
-Sleep 500ms
-Type "l"
-Enter
-Sleep 1s
-# Preview cmd/scout/main.go
+# 4. Enter cmd/ directory and preview main.go with syntax highlighting
 Type "j"
-Sleep 1.5s
-Type "h"
-Sleep 500ms
-
-# Explore internal/ui
-Type "jjj"
-Sleep 500ms
-Type "l"
-Sleep 500ms
-Type "jjj"
 Sleep 500ms
 Type "l"
 Sleep 1s
-# Preview themes.go
-Type "jjjj"
+Type "j"
 Sleep 2s
-Type "h"
+
+# 5. Focus preview pane and scroll
+Type "l"
+Sleep 500ms
+Type "jjjjj"
+Sleep 1.5s
+Type "kkk"
 Sleep 500ms
 Type "h"
 Sleep 500ms
 
-# 4. Show Status Line
-# Select the binary and use 'o' to open safely (background)
-Type "gg"
-Type "jjj"
-Type "o"
-Sleep 2.5s
+# 6. Navigate back to root
+Type "h"
+Sleep 1s
+
+# 7. Toggle hidden files
+Type "i"
+Sleep 1.5s
+Type "i"
+Sleep 1s
+
+# 8. Collapse / expand the file list pane
+Type "	"
+Sleep 2s
+Type "	"
+Sleep 1s
 
 # Exit
 Type "q"
