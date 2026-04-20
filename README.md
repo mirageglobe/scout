@@ -2,6 +2,8 @@
 
 *when you need a rapid intelligence overview of your environment, you call in a Scout.*
 
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+
 ![Scout Demo](demo.gif)
 
 Scout is a fast, elegant, terminal-native file explorer designed for immediate situational awareness. It combines a high-performance dual-pane layout with real-time Git integration and rich previews to help you navigate your codebase with speed and precision.
@@ -44,15 +46,19 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 
 ### ◆ Getting Started
 
-Ensure you have [Go](https://go.dev/) installed, then:
+**via homebrew (recommended):**
 
 ```bash
-# clone and build
+brew tap mirageglobe/tap
+brew install scout
+```
+
+**from source:**
+
+```bash
 git clone https://github.com/mirageglobe/scout.git
 cd scout
 make build
-
-# run Scout
 ./scout
 ```
 
