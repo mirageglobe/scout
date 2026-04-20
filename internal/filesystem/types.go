@@ -4,9 +4,10 @@ import "os"
 
 // Entry represents a single file or directory in the listing.
 type Entry struct {
-	Name  string
-	IsDir bool
-	Info  os.FileInfo
+	Name     string
+	IsDir    bool
+	Info     os.FileInfo
+	SubCount int // number of items inside (dirs only)
 }
 
 // Stats represents the current resource usage and directory metadata.
@@ -18,9 +19,10 @@ type Stats struct {
 
 // DirLoadedMsg carries the result of loading a directory.
 type DirLoadedMsg struct {
-	Entries   []Entry
-	GitStatus map[string]string
-	Err       error
+	Entries    []Entry
+	GitStatus  map[string]string
+	GitBranch  string
+	Err        error
 }
 
 // StatsMsg carries system statistics.

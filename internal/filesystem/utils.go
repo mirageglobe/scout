@@ -35,7 +35,7 @@ func Truncate(s string, maxLen int) string {
 	if maxLen <= 0 {
 		return ""
 	}
-	return ansi.Truncate(s, maxLen, "…")
+	return ansi.Truncate(s, maxLen, "")
 }
 
 // VisibleLen returns the approximate visible length of a string,

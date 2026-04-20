@@ -5,6 +5,17 @@ import (
 	"strings"
 )
 
+// GetBranch returns the current git branch name for dir, or "" if not a repo.
+func GetBranch(dir string) string {
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	cmd.Dir = dir
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
+}
+
 // GetStatus runs "git status --porcelain" in the given directory and
 // returns a map of filename -> status code.
 func GetStatus(dir string) map[string]string {

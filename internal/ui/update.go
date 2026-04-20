@@ -31,6 +31,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.Entries = msg.Entries
 		m.GitStatus = msg.GitStatus
+		m.GitBranch = msg.GitBranch
 		m.Err = nil
 		m.StatusMsg = ""
 		m.PreviewScroll = 0

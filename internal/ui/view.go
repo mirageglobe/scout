@@ -69,19 +69,29 @@ func (m Model) View() tea.View {
 		Background(selectedBg).
 		Bold(true).
 		Width(leftWidth - 4)
-	dirStyle := lipgloss.NewStyle().Foreground(dirColor).Bold(true).Width(leftWidth - 4)
+	dirStyle     := lipgloss.NewStyle().Foreground(dirColor).Bold(true)
+	dirCountStyle := lipgloss.NewStyle().Foreground(dimColor)
 
-	for i := scrollOffset; i < len(m.Entries) && len(listLines) < contentHeight; i++ {
+	for i := scrollOffset; i < len(m.Entries) && len(listLines) < contentHeight-1; i++ {
 		e := m.Entries[i]
 		name := e.Name
 
 		var symbol string
 		var symStyle lipgloss.Style
+		var dirBaseName, dirCountStr string
 
 		if e.IsDir {
 			symbol = "▸"
 			symStyle = lipgloss.NewStyle().Foreground(dirColor)
-			name = name + "/"
+			dirCountStr = fmt.Sprintf("%d ≡", e.SubCount)
+			dirBaseName = e.Name + "/"
+			nameWidth := leftWidth - 6 // leftWidth-4 content minus 2 for symbol+space
+			if padWidth := nameWidth - lipgloss.Width(dirCountStr); padWidth >= len(dirBaseName) {
+				name = fmt.Sprintf("%-*s%s", padWidth, dirBaseName, dirCountStr)
+			} else {
+				name = dirBaseName
+				dirCountStr = "" // no room for count
+			}
 		} else {
 			symbol = "•"
 			symStyle = lipgloss.NewStyle().Foreground(textColor)
@@ -109,7 +119,12 @@ func (m Model) View() tea.View {
 			// NORMAL: Render with themed symbol and name colors
 			symStyled := symStyle.Render(symbol)
 			var lineStyled string
-			if e.IsDir {
+			if e.IsDir && dirCountStr != "" {
+				nameWidth := leftWidth - 6
+				padWidth := nameWidth - lipgloss.Width(dirCountStr)
+				paddedBase := fmt.Sprintf("%-*s", padWidth, dirBaseName)
+				lineStyled = symStyled + " " + dirStyle.Render(paddedBase) + dirCountStyle.Render(dirCountStr)
+			} else if e.IsDir {
 				lineStyled = symStyled + " " + dirStyle.Render(name)
 			} else {
 				lineStyled = symStyled + " " + normalItem.Render(name)
@@ -118,9 +133,22 @@ func (m Model) View() tea.View {
 		}
 	}
 
-	for len(listLines) < contentHeight {
+	for len(listLines) < contentHeight-1 {
 		listLines = append(listLines, strings.Repeat(" ", leftWidth-4))
 	}
+
+	// Last line: directory stats with cursor position
+	dirStatStyle := lipgloss.NewStyle().Foreground(dimColor)
+	itemStat := fmt.Sprintf("%d items", len(m.Entries))
+	if len(m.Entries) > 0 {
+		itemStat = fmt.Sprintf("%d/%d items", m.Cursor+1, len(m.Entries))
+	}
+	curFileSize := ""
+	if len(m.Entries) > 0 && m.Entries[m.Cursor].Info != nil && !m.Entries[m.Cursor].IsDir {
+		curFileSize = filesystem.HumanSize(m.Entries[m.Cursor].Info.Size()) + " / "
+	}
+	dirStatLine := dirStatStyle.Render(fmt.Sprintf(" %s  %s%s", itemStat, curFileSize, filesystem.HumanSize(m.Stats.DirSize)))
+	listLines = append(listLines, dirStatLine)
 
 	leftContent := strings.Join(listLines, "\n")
 
@@ -171,15 +199,14 @@ func (m Model) View() tea.View {
 
 	// ── Status bar ─────────────────────────────────────────────────────
 	statusStyle := lipgloss.NewStyle().Foreground(dimColor)
-	count := fmt.Sprintf(" %d items", len(m.Entries))
-	pos := ""
-	if len(m.Entries) > 0 {
-		pos = fmt.Sprintf(" %d/%d", m.Cursor+1, len(m.Entries))
+	gitInfo := ""
+	if m.GitBranch != "" {
+		gitInfo = " ⎇ " + m.GitBranch + "  │"
 	}
-	help := " q:quit  ←/→:focus  ↑/↓:nav/scroll  v/enter:vim  t:theme  o:open ?:help"
+	help := " ↑/↓:nav  ←/→:focus  v:vim  o:open  t:theme  ?:help  q:quit"
 
 	statusBar := statusStyle.Render(
-		filesystem.Truncate(count+pos+"  │"+help, m.Width),
+		filesystem.Truncate(gitInfo+help, m.Width),
 	)
 
 	var layout string

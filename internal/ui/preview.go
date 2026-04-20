@@ -122,7 +122,8 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 	}
 	for i, l := range lines {
 		l = strings.ReplaceAll(l, "\t", "    ")
-		sb.WriteString(fmt.Sprintf("%3d │ %s\n", i+1, l))
+		gutter := dimStyle.Render(fmt.Sprintf("%3d │", i+1))
+		sb.WriteString(fmt.Sprintf("%s %s\n", gutter, l))
 	}
 
 	if len(data) > 32768 || len(lines) >= maxLines {

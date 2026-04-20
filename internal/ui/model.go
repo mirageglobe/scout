@@ -22,6 +22,7 @@ type Model struct {
 	ShowHelp      bool
 	ThemeIdx      int
 	GitStatus     map[string]string
+	GitBranch     string
 	Stats         filesystem.Stats
 	StatusMsg     string
 	Err           error
@@ -51,10 +52,12 @@ func (m Model) LoadDir(path string) tea.Cmd {
 			return filesystem.DirLoadedMsg{Err: err}
 		}
 		status := git.GetStatus(path)
+		branch := git.GetBranch(path)
 
 		return filesystem.DirLoadedMsg{
 			Entries:   entries,
 			GitStatus: status,
+			GitBranch: branch,
 		}
 	}
 }

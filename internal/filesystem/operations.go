@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -43,10 +45,17 @@ func ReadDir(path string) ([]Entry, error) {
 	var entries []Entry
 	for _, de := range dirEntries {
 		info, _ := de.Info()
+		subCount := 0
+		if de.IsDir() {
+			if subs, err := os.ReadDir(filepath.Join(path, de.Name())); err == nil {
+				subCount = len(subs)
+			}
+		}
 		entries = append(entries, Entry{
-			Name:  de.Name(),
-			IsDir: de.IsDir(),
-			Info:  info,
+			Name:     de.Name(),
+			IsDir:    de.IsDir(),
+			Info:     info,
+			SubCount: subCount,
 		})
 	}
 
@@ -78,8 +87,13 @@ func GetStats(path string) tea.Cmd {
 			}
 		}
 
+		cpu := 0.0
+		if out, err := exec.Command("ps", "-p", strconv.Itoa(os.Getpid()), "-o", "%cpu=").Output(); err == nil {
+			cpu, _ = strconv.ParseFloat(strings.TrimSpace(string(out)), 64)
+		}
+
 		return StatsMsg{
-			CPU:     0.1, // Placeholder
+			CPU:     cpu,
 			Mem:     m.Alloc,
 			DirSize: dirSize,
 		}

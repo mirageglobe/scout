@@ -1,0 +1,35 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: build
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          LDFLAGS="-X github.com/mirageglobe/scout/internal/ui.Version=${VERSION}"
+          GOOS=linux  GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o dist/scout-linux-amd64   cmd/scout/main.go
+          GOOS=darwin GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o dist/scout-darwin-amd64  cmd/scout/main.go
+          GOOS=darwin GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o dist/scout-darwin-arm64  cmd/scout/main.go
+
+      - name: release
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
