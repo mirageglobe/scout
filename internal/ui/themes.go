@@ -75,6 +75,24 @@ var Themes = []Theme{
 		SelectedBg: "#FF5FAF",
 		SelectedFg: "#000000",
 	},
+	{
+		// index 7 — Solarized Dark (Ethan Schoonover palette)
+		Name:       "Solarized Dark",
+		Accent:     "#268BD2",
+		Dim:        "#586E75",
+		Text:       "#839496",
+		SelectedBg: "#268BD2",
+		SelectedFg: "#002B36",
+	},
+	{
+		// index 8 — Solarized Light (Ethan Schoonover palette)
+		Name:       "Solarized Light",
+		Accent:     "#268BD2",
+		Dim:        "#93A1A1",
+		Text:       "#657B83",
+		SelectedBg: "#268BD2",
+		SelectedFg: "#FDF6E3",
+	},
 }
 
 // ThemeForHour returns the theme index suited to the given hour (0–23).
