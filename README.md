@@ -10,7 +10,7 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 
 ---
 
-### ◆ Key Features
+## Key Features
 
 - **▸ Navigation**: fully keyboard-driven with instant directory entry, parent-navigation, and top/bottom jumps.
 - **▸ Rich Previews**: real-time file previews with Chroma syntax highlighting, directory metadata, and intelligent binary detection.
@@ -23,7 +23,7 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 
 ---
 
-### ◆ Keybindings
+## Keybindings
 
 | key              | action                                         |
 | ---------------- | ---------------------------------------------- |
@@ -44,7 +44,7 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 
 ---
 
-### ◆ Getting Started
+## Getting Started
 
 **via homebrew (recommended):**
 
@@ -73,7 +73,7 @@ Scout uses [goreleaser](https://goreleaser.com) to build cross-platform binaries
 ### prerequisites
 
 - [`goreleaser`](https://goreleaser.com/install/) installed (`brew install goreleaser`)
-- two GitHub personal access tokens (classic or fine-grained, with repo write scope):
+- two GitHub personal access tokens (classic or fine-grained, with `contents: write` scope):
   - `GITHUB_TOKEN` — write access to this repo (scout)
   - `HOMEBREW_TAP_GITHUB_TOKEN` — write access to the homebrew-tap repo
 
@@ -88,8 +88,8 @@ export GITHUB_TOKEN=<your-scout-token>
 export HOMEBREW_TAP_GITHUB_TOKEN=<your-tap-token>
 
 # 3. tag the release (use semantic versioning)
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.3.0
+git push origin v0.3.0
 
 # 4. release (builds binaries, publishes GitHub release, updates homebrew formula)
 make release
@@ -135,7 +135,7 @@ scout/
 
 ## Roadmap
 
-### Near Term
+### near term
 - [x] ls all files in current directory
 - [x] syntax highlighting
 - [x] time-aware color themes
@@ -145,7 +145,7 @@ scout/
 - [x] collapsible file list pane
 - [ ] respect `$EDITOR` environment variable for editor handoff
 
-### Future Ideas
+### future ideas
 - [ ] preview images
 - [ ] fuzzy file search
 
