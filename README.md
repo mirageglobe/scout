@@ -10,12 +10,12 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 
 ---
 
-### ◆ Key Features
+## Key Features
 
 - **▸ Navigation**: fully keyboard-driven with instant directory entry, parent-navigation, and top/bottom jumps.
 - **▸ Rich Previews**: real-time file previews with Chroma syntax highlighting, directory metadata, and intelligent binary detection.
 - **▸ Git Integration**: integrated git status badges (`M`, `+`, `?`, `!`) and branch name in the status bar.
-- **▸ Time-Aware Themes**: seven color themes (Midnight, Dawn, Classic Amber, Electric Cyan, Safety Orange, Evening, Mono) auto-selected by time of day, manually cycled with `t`.
+- **▸ Time-Aware Themes**: seven color themes auto-selected by time of day, manually cycled with `t`.
 - **▸ Help Overlay**: full keybinding and symbol reference available at any time with `?`.
 - **▸ System Stats**: live CPU usage, memory consumption, directory size, and clock in the header bar.
 - **▸ Editor Handoff**: seamlessly launch into `vim` with a single keystroke; TUI suspends and resumes cleanly.
@@ -23,7 +23,7 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 
 ---
 
-### ◆ Keybindings
+## Keybindings
 
 | key              | action                                         |
 | ---------------- | ---------------------------------------------- |
@@ -44,7 +44,7 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 
 ---
 
-### ◆ Getting Started
+## Getting Started
 
 **via homebrew (recommended):**
 
@@ -62,80 +62,11 @@ make build
 ./scout
 ```
 
-*to regenerate the demo GIF, ensure you have [vhs](https://github.com/charmbracelet/vhs) installed and run `make demo`.*
-
----
-
-## Releasing
-
-Scout uses [goreleaser](https://goreleaser.com) to build cross-platform binaries, publish a GitHub release, and auto-update the [homebrew-tap](https://github.com/mirageglobe/homebrew-tap) formula.
-
-### prerequisites
-
-- [`goreleaser`](https://goreleaser.com/install/) installed (`brew install goreleaser`)
-- two GitHub personal access tokens (classic or fine-grained, with repo write scope):
-  - `GITHUB_TOKEN` — write access to this repo (scout)
-  - `HOMEBREW_TAP_GITHUB_TOKEN` — write access to the homebrew-tap repo
-
-### steps
-
-```bash
-# 1. ensure you are on main and everything is merged + clean
-git checkout main && git pull
-
-# 2. export tokens (add these to ~/.zshrc or ~/.bashrc to avoid repeating)
-export GITHUB_TOKEN=<your-scout-token>
-export HOMEBREW_TAP_GITHUB_TOKEN=<your-tap-token>
-
-# 3. tag the release (use semantic versioning)
-git tag v0.2.0
-git push origin v0.2.0
-
-# 4. release (builds binaries, publishes GitHub release, updates homebrew formula)
-make release
-```
-
-to test the release pipeline locally without publishing:
-
-```bash
-make release-dry
-```
-
----
-
-## Architecture
-
-Scout follows standard Go conventions for scalable, modular CLIs:
-
-```text
-scout/
-├── cmd/
-│   └── scout/
-│       └── main.go             # entry point
-│
-├── internal/
-│   ├── filesystem/             # file ops, stats, and utilities
-│   ├── git/
-│   │   └── git.go              # subprocess logic for fetching git statuses
-│   └── ui/
-│       ├── model.go            # Bubble Tea model definition, Msg structs
-│       ├── update.go           # Init() and Update() functions
-│       ├── view.go             # View() function and lipgloss styles
-│       └── preview.go          # preview text building logic
-│
-├── go.mod
-├── go.sum
-├── AGENT.md
-├── CLAUDE.md
-├── README.md
-└── SPEC.md
-```
-
 ---
 
 ## Roadmap
 
-### Near Term
+### near term
 - [x] ls all files in current directory
 - [x] syntax highlighting
 - [x] time-aware color themes
@@ -145,7 +76,7 @@ scout/
 - [x] collapsible file list pane
 - [ ] respect `$EDITOR` environment variable for editor handoff
 
-### Future Ideas
+### future ideas
 - [ ] preview images
 - [ ] fuzzy file search
 
