@@ -44,9 +44,27 @@ Sleep 1s
 Type "j"
 Sleep 2s
 
-# 5. Focus preview pane and scroll
+# 5. Search in explorer pane
+Type "h"
+Sleep 500ms
+Type "/"
+Sleep 500ms
+Type "main"
+Sleep 1.5s
+Escape
+Sleep 500ms
+
+# 6. Focus preview pane and search within file
 Type "l"
 Sleep 500ms
+Type "/"
+Sleep 500ms
+Type "func"
+Sleep 1.5s
+Escape
+Sleep 500ms
+
+# 7. Scroll preview pane
 Type "jjjjj"
 Sleep 1.5s
 Type "kkk"
@@ -54,17 +72,17 @@ Sleep 500ms
 Type "h"
 Sleep 500ms
 
-# 6. Navigate back to root
+# 8. Navigate back to root
 Type "h"
 Sleep 1s
 
-# 7. Toggle hidden files
+# 9. Toggle hidden files
 Type "i"
 Sleep 1.5s
 Type "i"
 Sleep 1s
 
-# 8. Collapse / expand the file list pane
+# 10. Collapse / expand the file list pane
 Type "	"
 Sleep 2s
 Type "	"

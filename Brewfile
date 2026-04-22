@@ -1,0 +1,2 @@
+brew "goreleaser"
+brew "vhs"
