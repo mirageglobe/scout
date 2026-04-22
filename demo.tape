@@ -36,35 +36,21 @@ Sleep 1s
 Type "t"
 Sleep 1.5s
 
-# 4. Enter cmd/ directory and preview main.go with syntax highlighting
-Type "j"
+# 4. Navigate to a root file and preview it
+Type "jjj"
 Sleep 500ms
 Type "l"
-Sleep 1s
-Type "j"
 Sleep 2s
 
-# 5. Search in explorer pane
-Type "h"
-Sleep 500ms
+# 5. Search in preview pane
 Type "/"
 Sleep 500ms
-Type "main"
+Type "make"
 Sleep 1.5s
 Escape
 Sleep 500ms
 
-# 6. Focus preview pane and search within file
-Type "l"
-Sleep 500ms
-Type "/"
-Sleep 500ms
-Type "func"
-Sleep 1.5s
-Escape
-Sleep 500ms
-
-# 7. Scroll preview pane
+# 6. Scroll preview pane
 Type "jjjjj"
 Sleep 1.5s
 Type "kkk"
@@ -72,17 +58,21 @@ Sleep 500ms
 Type "h"
 Sleep 500ms
 
-# 8. Navigate back to root
-Type "h"
-Sleep 1s
+# 7. Search in explorer pane
+Type "/"
+Sleep 500ms
+Type "go"
+Sleep 1.5s
+Escape
+Sleep 500ms
 
-# 9. Toggle hidden files
+# 8. Toggle hidden files
 Type "i"
 Sleep 1.5s
 Type "i"
 Sleep 1s
 
-# 10. Collapse / expand the file list pane
+# 9. Collapse / expand the file list pane
 Type "	"
 Sleep 2s
 Type "	"
