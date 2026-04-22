@@ -1,4 +1,4 @@
-.PHONY: help build run test fmt clean lint bump release release-dry
+.PHONY: help build run test fmt clean lint bump-patch bump-minor bump-major release release-dry
 
 # Default target
 .DEFAULT_GOAL := help
@@ -15,6 +15,25 @@ NEXT_VERSION := $(shell \
 		minor=$$(echo $$tag | sed 's/^v//' | cut -d. -f2); \
 		patch=$$(echo $$tag | sed 's/^v//' | cut -d. -f3); \
 		echo "v$$major.$$minor.$$((patch + 1))"; \
+	fi)
+
+# compute next minor version: v1.2.3 -> v1.3.0
+NEXT_MINOR_VERSION := $(shell \
+	tag=$$(git describe --tags --abbrev=0 2>/dev/null); \
+	if [ -z "$$tag" ]; then echo "v0.1.0"; \
+	else \
+		major=$$(echo $$tag | sed 's/^v//' | cut -d. -f1); \
+		minor=$$(echo $$tag | sed 's/^v//' | cut -d. -f2); \
+		echo "v$$major.$$((minor + 1)).0"; \
+	fi)
+
+# compute next major version: v1.2.3 -> v2.0.0
+NEXT_MAJOR_VERSION := $(shell \
+	tag=$$(git describe --tags --abbrev=0 2>/dev/null); \
+	if [ -z "$$tag" ]; then echo "v1.0.0"; \
+	else \
+		major=$$(echo $$tag | sed 's/^v//' | cut -d. -f1); \
+		echo "v$$((major + 1)).0.0"; \
 	fi)
 
 help: ## Display this help menu
@@ -41,10 +60,20 @@ lint: ## Run go vet (basic linting)
 demo: build ## Generate a VHS demo GIF
 	vhs < demo.tape
 
-bump: ## Tag the next patch version (e.g. v0.1.2 -> v0.1.3) on the current commit
+bump-patch: ## Tag the next patch version (e.g. v0.1.2 -> v0.1.3) on the current commit
 	@echo "current: v$(VERSION)  ->  next: $(NEXT_VERSION)"
 	@read -p "tag $(NEXT_VERSION)? [y/N] " ans && [ "$$ans" = "y" ] && \
 		git tag $(NEXT_VERSION) && echo "tagged $(NEXT_VERSION)" || echo "aborted"
+
+bump-minor: ## Tag the next minor version (e.g. v0.1.3 -> v0.2.0) on the current commit
+	@echo "current: v$(VERSION)  ->  next: $(NEXT_MINOR_VERSION)"
+	@read -p "tag $(NEXT_MINOR_VERSION)? [y/N] " ans && [ "$$ans" = "y" ] && \
+		git tag $(NEXT_MINOR_VERSION) && echo "tagged $(NEXT_MINOR_VERSION)" || echo "aborted"
+
+bump-major: ## Tag the next major version (e.g. v0.2.0 -> v1.0.0) on the current commit
+	@echo "current: v$(VERSION)  ->  next: $(NEXT_MAJOR_VERSION)"
+	@read -p "tag $(NEXT_MAJOR_VERSION)? [y/N] " ans && [ "$$ans" = "y" ] && \
+		git tag $(NEXT_MAJOR_VERSION) && echo "tagged $(NEXT_MAJOR_VERSION)" || echo "aborted"
 
 release: ## Tag and release via goreleaser (requires GITHUB_TOKEN + HOMEBREW_TAP_GITHUB_TOKEN)
 	goreleaser release --clean
