@@ -32,6 +32,8 @@ func (m Model) RenderHelp() string {
 		keyStyle.Render("i")           +descStyle.Render("toggle hidden files"),
 		keyStyle.Render("tab")         +descStyle.Render("collapse / expand explorer"),
 		keyStyle.Render("t")           +descStyle.Render("cycle color themes"),
+		keyStyle.Render("/")           +descStyle.Render("search active pane  (n / N: next / prev)"),
+		keyStyle.Render("esc")          +descStyle.Render("clear search"),
 		keyStyle.Render("?")           +descStyle.Render("show / hide help"),
 		keyStyle.Render("q, ctrl+c")   +descStyle.Render("quit"),
 	)

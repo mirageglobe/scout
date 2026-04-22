@@ -174,9 +174,38 @@ func (m Model) View() tea.View {
 
 	visiblePreview := make([]string, endIdx-startIdx)
 	copy(visiblePreview, previewLines[startIdx:endIdx])
-	for i, l := range visiblePreview {
-		visiblePreview[i] = filesystem.Truncate(l, rightWidth-4)
+
+	// build match lookup for highlighting
+	matchSet := make(map[int]bool, len(m.SearchMatches))
+	for _, idx := range m.SearchMatches {
+		matchSet[idx] = true
 	}
+	currentMatchLine := -1
+	if len(m.SearchMatches) > 0 {
+		currentMatchLine = m.SearchMatches[m.SearchMatchIdx]
+	}
+	matchStyle := lipgloss.NewStyle().
+		Background(lipgloss.Color("#44475A")).
+		Foreground(lipgloss.Color("#F1FA8C")).
+		Width(rightWidth - 4)
+	currentMatchStyle := lipgloss.NewStyle().
+		Background(lipgloss.Color("#F1FA8C")).
+		Foreground(lipgloss.Color("#282A36")).
+		Bold(true).
+		Width(rightWidth - 4)
+
+	for i, l := range visiblePreview {
+		absIdx := startIdx + i
+		truncated := filesystem.Truncate(l, rightWidth-4)
+		if absIdx == currentMatchLine {
+			visiblePreview[i] = currentMatchStyle.Render(stripANSI(truncated))
+		} else if matchSet[absIdx] {
+			visiblePreview[i] = matchStyle.Render(stripANSI(truncated))
+		} else {
+			visiblePreview[i] = truncated
+		}
+	}
+
 	for len(visiblePreview) < contentHeight {
 		visiblePreview = append(visiblePreview, "")
 	}
@@ -215,7 +244,7 @@ func (m Model) View() tea.View {
 	if m.GitBranch != "" {
 		gitInfo = " ⎇ " + m.GitBranch + "  │"
 	}
-	help := " ↑/↓:nav  ←/→:focus  v:vim  o:open  i:hidden  tab:explorer  t:theme  ?:help  q:quit"
+	help := " ↑/↓:nav  ←/→:focus  v:vim  o:open  i:hidden  tab:explorer  t:theme  /:search  ?:help  q:quit"
 
 	statusBar := statusStyle.Render(
 		filesystem.Truncate(gitInfo+help, m.Width),
@@ -238,12 +267,46 @@ func (m Model) View() tea.View {
 
 // RenderStatusLine generates the informational line between the panes and shortcuts.
 func (m Model) RenderStatusLine() string {
+	accent := lipgloss.Color(Themes[m.ThemeIdx].Accent)
+
+	dim := lipgloss.Color(Themes[m.ThemeIdx].Dim)
+	dimStyle := lipgloss.NewStyle().Foreground(dim)
+
+	if m.ExplorerSearchActive {
+		hint := dimStyle.Render("  enter:confirm  esc:clear")
+		return lipgloss.NewStyle().Foreground(accent).Padding(0, 1).
+			Render("/ "+m.ExplorerSearchInput+"█") + hint
+	}
+
+	if m.ExplorerSearchInput != "" {
+		count := len(m.explorerFiltered())
+		hint := dimStyle.Render("  n/N:next/prev  esc:clear")
+		return lipgloss.NewStyle().Foreground(accent).Padding(0, 1).
+			Render(fmt.Sprintf("/ %s  [%d matches]", m.ExplorerSearchInput, count)) + hint
+	}
+
+	if m.SearchActive {
+		hint := dimStyle.Render("  enter:confirm  esc:exit")
+		return lipgloss.NewStyle().Foreground(accent).Padding(0, 1).
+			Render("/ "+m.SearchInput+"█") + hint
+	}
+
+	if m.SearchQuery != "" {
+		if len(m.SearchMatches) == 0 {
+			return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF5555")).Bold(true).Padding(0, 1).
+				Render("/ " + m.SearchQuery + "  [no matches]  esc:clear")
+		}
+		hint := dimStyle.Render("  n/N:next/prev  esc:clear")
+		return lipgloss.NewStyle().Foreground(accent).Padding(0, 1).
+			Render(fmt.Sprintf("/ %s  [%d/%d]", m.SearchQuery, m.SearchMatchIdx+1, len(m.SearchMatches))) + hint
+	}
+
 	if m.StatusMsg == "" {
 		return ""
 	}
 
 	style := lipgloss.NewStyle().
-		Foreground(lipgloss.Color(Themes[m.ThemeIdx].Accent)).
+		Foreground(accent).
 		Italic(true).
 		Padding(0, 1)
 

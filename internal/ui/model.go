@@ -30,6 +30,13 @@ type Model struct {
 	Stats         filesystem.Stats
 	StatusMsg     string
 	Err           error
+	SearchActive   bool   // "/" mode active, user is typing a query
+	SearchQuery    string // committed search term
+	SearchInput    string // in-progress buffer while SearchActive
+	SearchMatches  []int  // preview line indices that contain the query
+	SearchMatchIdx int    // index into SearchMatches for current match
+	ExplorerSearchActive bool   // "\" mode active in file explorer
+	ExplorerSearchInput  string // current explorer search input
 }
 
 // NewModel initializes a fresh UI model with a time-based theme.
