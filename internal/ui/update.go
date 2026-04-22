@@ -21,7 +21,32 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case filesystem.TickMsg:
-		return m, tea.Batch(filesystem.DoTick(), filesystem.GetStats(m.Cwd), m.RefreshGit())
+		return m, tea.Batch(filesystem.DoTick(), filesystem.GetStats(m.Cwd), m.RefreshGit(), m.WatchDir(m.Cwd))
+
+	case filesystem.DirWatchMsg:
+		if msg.Err != nil {
+			return m, nil
+		}
+		entries := msg.Entries
+		if !m.ShowHidden {
+			filtered := entries[:0]
+			for _, e := range entries {
+				if !strings.HasPrefix(e.Name, ".") {
+					filtered = append(filtered, e)
+				}
+			}
+			entries = filtered
+		}
+		m.GitStatus = msg.GitStatus
+		m.GitBranch = msg.GitBranch
+		if dirEntriesChanged(m.Entries, entries) {
+			m.Entries = entries
+			if m.Cursor >= len(m.Entries) {
+				m.Cursor = max(0, len(m.Entries)-1)
+			}
+			m.Preview = m.BuildPreview()
+		}
+		return m, nil
 
 	case filesystem.StatsMsg:
 		m.Stats.CPU = msg.CPU
@@ -235,4 +260,17 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// dirEntriesChanged returns true if the entry list has changed by name, type, or count.
+func dirEntriesChanged(a, b []filesystem.Entry) bool {
+	if len(a) != len(b) {
+		return true
+	}
+	for i := range a {
+		if a[i].Name != b[i].Name || a[i].IsDir != b[i].IsDir || a[i].SubCount != b[i].SubCount {
+			return true
+		}
+	}
+	return false
 }

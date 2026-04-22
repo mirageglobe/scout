@@ -60,6 +60,24 @@ func (m Model) RefreshGit() tea.Cmd {
 	}
 }
 
+// WatchDir polls a directory for changes in the background, returning DirWatchMsg
+// so the handler can update entries without resetting cursor or preview scroll.
+func (m Model) WatchDir(path string) tea.Cmd {
+	return func() tea.Msg {
+		entries, err := filesystem.ReadDir(path)
+		if err != nil {
+			return filesystem.DirWatchMsg{Err: err}
+		}
+		status := git.GetStatus(path)
+		branch := git.GetBranch(path)
+		return filesystem.DirWatchMsg{
+			Entries:   entries,
+			GitStatus: status,
+			GitBranch: branch,
+		}
+	}
+}
+
 // LoadDir is a command that reads a directory and its git status.
 func (m Model) LoadDir(path string) tea.Cmd {
 	return func() tea.Msg {

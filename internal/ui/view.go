@@ -103,16 +103,16 @@ func (m Model) View() tea.View {
 			switch status {
 			case "M":
 				symbol = "M"
-				symStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FFAF00"))
+				symStyle = lipgloss.NewStyle().Foreground(accentColor)
 			case "A", "AM":
 				symbol = "+"
-				symStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#87AF5F"))
+				symStyle = lipgloss.NewStyle().Foreground(accentColor)
 			case "?":
 				symbol = "?"
 				symStyle = lipgloss.NewStyle().Foreground(dimColor)
 			default:
 				symbol = "!"
-				symStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF5F5F"))
+				symStyle = lipgloss.NewStyle().Foreground(accentColor)
 			}
 		}
 

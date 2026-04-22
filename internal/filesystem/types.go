@@ -38,5 +38,14 @@ type GitRefreshMsg struct {
 	GitBranch string
 }
 
+// DirWatchMsg carries the result of a background directory poll.
+// Unlike DirLoadedMsg, it is handled without resetting cursor or scroll state.
+type DirWatchMsg struct {
+	Entries   []Entry
+	GitStatus map[string]string
+	GitBranch string
+	Err       error
+}
+
 // TickMsg is sent periodically to refresh stats.
 type TickMsg struct{}
