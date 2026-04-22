@@ -1,10 +1,21 @@
-.PHONY: help build run test fmt clean lint release release-dry
+.PHONY: help build run test fmt clean lint bump release release-dry
 
 # Default target
 .DEFAULT_GOAL := help
 
 # derive version from latest git tag; fallback to "dev" if no tag exists
 VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "dev")
+
+# compute next patch version: v1.2.3 -> v1.2.4; falls back to v0.1.0 if no tag exists
+NEXT_VERSION := $(shell \
+	tag=$$(git describe --tags --abbrev=0 2>/dev/null); \
+	if [ -z "$$tag" ]; then echo "v0.1.0"; \
+	else \
+		major=$$(echo $$tag | sed 's/^v//' | cut -d. -f1); \
+		minor=$$(echo $$tag | sed 's/^v//' | cut -d. -f2); \
+		patch=$$(echo $$tag | sed 's/^v//' | cut -d. -f3); \
+		echo "v$$major.$$minor.$$((patch + 1))"; \
+	fi)
 
 help: ## Display this help menu
 	@echo "Usage: make <target>"
@@ -29,6 +40,11 @@ lint: ## Run go vet (basic linting)
 
 demo: build ## Generate a VHS demo GIF
 	vhs < demo.tape
+
+bump: ## Tag the next patch version (e.g. v0.1.2 -> v0.1.3) on the current commit
+	@echo "current: v$(VERSION)  ->  next: $(NEXT_VERSION)"
+	@read -p "tag $(NEXT_VERSION)? [y/N] " ans && [ "$$ans" = "y" ] && \
+		git tag $(NEXT_VERSION) && echo "tagged $(NEXT_VERSION)" || echo "aborted"
 
 release: ## Tag and release via goreleaser (requires GITHUB_TOKEN + HOMEBREW_TAP_GITHUB_TOKEN)
 	goreleaser release --clean
