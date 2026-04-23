@@ -50,6 +50,7 @@ func NewModel(cwd string) Model {
 	return Model{
 		Cwd:        cwd,
 		RootPath:   cwd,
+		RootFocus:  true,
 		ThemeIdx:   themeIdx,
 		ShowHidden: true,
 	}
