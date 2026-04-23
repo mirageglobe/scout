@@ -42,9 +42,10 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 | `?`              | show / hide help overlay                       |
 | `q` / `ctrl+c`   | quit                                           |
 
----
+## Configuration
 
-## Getting Started
+Scout stores your theme preferences in `~/.config/scout/config`. This file is automatically created and updated when you cycle through themes using `t`.
+
 
 **via homebrew (recommended):**
 
