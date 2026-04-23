@@ -192,6 +192,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "t":
 			m.ThemeIdx = (m.ThemeIdx + 1) % len(Themes)
+			filesystem.SaveConfig(filesystem.Config{ThemeIdx: m.ThemeIdx})
 			m.Preview = m.BuildPreview()
 			return m, nil
 

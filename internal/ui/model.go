@@ -39,11 +39,15 @@ type Model struct {
 	ExplorerSearchInput  string // current explorer search input
 }
 
-// NewModel initializes a fresh UI model with a time-based theme.
+// NewModel initializes a fresh UI model with a time-based theme (or saved config).
 func NewModel(cwd string) Model {
+	themeIdx := ThemeForHour(time.Now().Hour())
+	if cfg, err := filesystem.LoadConfig(); err == nil {
+		themeIdx = cfg.ThemeIdx
+	}
 	return Model{
 		Cwd:        cwd,
-		ThemeIdx:   ThemeForHour(time.Now().Hour()),
+		ThemeIdx:   themeIdx,
 		ShowHidden: true,
 	}
 }

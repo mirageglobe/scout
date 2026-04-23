@@ -77,7 +77,7 @@ make build
 - [x] identify symlinks in file list (e.g. with @ or ↳ symbol)
 - [x] respect `$EDITOR` environment variable for editor handoff
 - [x] preview auto-refresh or manual refresh key to reload files changed by external processes
-- [ ] create saved local configs to support theme save
+- [x] create saved local configs to support theme save
 
 ### future ideas
 - [ ] preview images
