@@ -52,10 +52,11 @@ func ReadDir(path string) ([]Entry, error) {
 			}
 		}
 		entries = append(entries, Entry{
-			Name:     de.Name(),
-			IsDir:    de.IsDir(),
-			Info:     info,
-			SubCount: subCount,
+			Name:      de.Name(),
+			IsDir:     de.IsDir(),
+			IsSymlink: de.Type()&os.ModeSymlink != 0,
+			Info:      info,
+			SubCount:  subCount,
 		})
 	}
 

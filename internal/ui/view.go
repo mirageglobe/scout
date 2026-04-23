@@ -94,6 +94,9 @@ func (m Model) View() tea.View {
 				name = dirBaseName
 				dirCountStr = "" // no room for count
 			}
+		} else if e.IsSymlink {
+			symbol = "↳"
+			symStyle = lipgloss.NewStyle().Foreground(accentColor)
 		} else {
 			symbol = "·"
 			symStyle = lipgloss.NewStyle().Foreground(dimColor)
@@ -244,7 +247,11 @@ func (m Model) View() tea.View {
 	if m.GitBranch != "" {
 		gitInfo = " ⎇ " + m.GitBranch + "  │"
 	}
-	help := " ↑/↓:nav  ←/→:focus  v:vim  o:open  i:hidden  tab:explorer  t:theme  /:search  ?:help  q:quit"
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = "vim"
+	}
+	help := fmt.Sprintf(" ↑/↓:nav  ←/→:focus  e:edit(%s)  o:open  i:hidden  tab:explorer  r:refresh  t:theme  /:search  ?:help  q:quit", editor)
 
 	statusBar := statusStyle.Render(
 		filesystem.Truncate(gitInfo+help, m.Width),

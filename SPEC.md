@@ -12,20 +12,20 @@
 
 | goal                                             | status |
 | ------------------------------------------------ | ------ |
-| two-pane layout (file list + preview)            | ●      |
-| keyboard navigation (j/k/h/l/g/G)               | ●      |
-| editor hand-off via `vim` + `tea.ExecProcess`    | ●      |
-| git status badges and branch display             | ●      |
-| styled borders via Lip Gloss                     | ●      |
-| modular architecture (`cmd/` + `internal/`)      | ●      |
-| chroma syntax highlighting in preview            | ●      |
-| time-aware color themes (7 themes, manual cycle) | ●      |
-| help overlay (`?`)                               | ●      |
-| live system stats (CPU, memory, clock)           | ●      |
-| hidden file toggle (`i`)                         | ●      |
-| collapsible file list pane (`tab`)               | ●      |
-| open with system default application (`o`)       | ●      |
-| scrollable preview pane (focus + j/k)            | ●      |
+| two-pane layout (file list + preview)            | [x]    |
+| keyboard navigation (j/k/h/l/g/G)                | [x]    |
+| editor hand-off via `vim` + `tea.ExecProcess`    | [x]    |
+| git status badges and branch display             | [x]    |
+| styled borders via Lip Gloss                     | [x]    |
+| modular architecture (`cmd/` + `internal/`)      | [x]    |
+| chroma syntax highlighting in preview            | [x]    |
+| time-aware color themes (7 themes, manual cycle) | [x]    |
+| help overlay (`?`)                               | [x]    |
+| live system stats (CPU, memory, clock)           | [x]    |
+| hidden file toggle (`i`)                         | [x]    |
+| collapsible file list pane (`tab`)               | [x]    |
+| open with system default application (`o`)       | [x]    |
+| scrollable preview pane (focus + j/k)            | [x]    |
 
 ---
 

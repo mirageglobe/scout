@@ -183,6 +183,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
+		case "r":
+			if m.FocusRight {
+				m.Preview = m.BuildPreview()
+				m.StatusMsg = "Preview refreshed"
+			}
+			return m, nil
+
 		case "t":
 			m.ThemeIdx = (m.ThemeIdx + 1) % len(Themes)
 			m.Preview = m.BuildPreview()
@@ -311,7 +318,40 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		// Action: open directory or file
-		case "v", "enter", "l", "right":
+		case "e":
+			if len(m.Entries) == 0 {
+				return m, nil
+			}
+			selected := m.Entries[m.Cursor]
+			fullPath := filepath.Join(m.Cwd, selected.Name)
+
+			if selected.IsDir {
+				return m, nil
+			}
+
+			// Security check before launching Editor
+			f, _ := os.Open(fullPath)
+			if f != nil {
+				buf := make([]byte, 1024)
+				n, _ := f.Read(buf)
+				f.Close()
+				if filesystem.IsBinary(buf[:n]) {
+					m.StatusMsg = fmt.Sprintf("Error: cannot open binary file: %s", selected.Name)
+					return m, nil
+				}
+			}
+
+			editor := os.Getenv("EDITOR")
+			if editor == "" {
+				editor = "vim"
+			}
+			m.StatusMsg = fmt.Sprintf("Opening with %s...", editor)
+			c := exec.Command(editor, fullPath)
+			return m, tea.ExecProcess(c, func(err error) tea.Msg {
+				return EditorFinishedMsg{Err: err}
+			})
+
+		case "enter", "l", "right":
 			if len(m.Entries) == 0 {
 				return m, nil
 			}
@@ -327,33 +367,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m = clearExplorerSearch(m)
 				return m, m.LoadDir(m.Cwd)
 			}
-
-			// Handle file selection
-			isAction := msg.String() == "v"
-			if !isAction {
-				if !m.FocusRight {
-					m.FocusRight = true
-					m = clearExplorerSearch(m)
-				}
-				return m, nil
+			if !m.FocusRight {
+				m.FocusRight = true
+				m = clearExplorerSearch(m)
 			}
-
-			// Security check before launching Vim
-			f, _ := os.Open(fullPath)
-			if f != nil {
-				buf := make([]byte, 1024)
-				n, _ := f.Read(buf)
-				f.Close()
-				if filesystem.IsBinary(buf[:n]) {
-					m.StatusMsg = fmt.Sprintf("Error: cannot open binary file: %s", selected.Name)
-					return m, nil
-				}
-			}
-
-			c := exec.Command("vim", fullPath)
-			return m, tea.ExecProcess(c, func(err error) tea.Msg {
-				return EditorFinishedMsg{Err: err}
-			})
+			return m, nil
 
 		case "g":
 			m.Cursor = 0

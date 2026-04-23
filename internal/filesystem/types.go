@@ -4,10 +4,11 @@ import "os"
 
 // Entry represents a single file or directory in the listing.
 type Entry struct {
-	Name     string
-	IsDir    bool
-	Info     os.FileInfo
-	SubCount int // number of items inside (dirs only)
+	Name      string
+	IsDir     bool
+	IsSymlink bool
+	Info      os.FileInfo
+	SubCount  int // number of items inside (dirs only)
 }
 
 // Stats represents the current resource usage and directory metadata.

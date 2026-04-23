@@ -12,14 +12,14 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 
 ## Key Features
 
-- **▸ Navigation**: fully keyboard-driven with instant directory entry, parent-navigation, and top/bottom jumps.
-- **▸ Rich Previews**: real-time file previews with Chroma syntax highlighting, directory metadata, and intelligent binary detection.
-- **▸ Git Integration**: integrated git status badges (`M`, `+`, `?`, `!`) and branch name in the status bar.
-- **▸ Time-Aware Themes**: seven color themes auto-selected by time of day, manually cycled with `t`.
-- **▸ Help Overlay**: full keybinding and symbol reference available at any time with `?`.
-- **▸ System Stats**: live CPU usage, memory consumption, directory size, and clock in the header bar.
-- **▸ Editor Handoff**: seamlessly launch into `vim` with a single keystroke; TUI suspends and resumes cleanly.
-- **▸ Collapsible Pane**: compress the file list to 8 chars with `tab` for maximum preview space.
+- **Navigation**: fully keyboard-driven with instant directory entry, parent-navigation, and top/bottom jumps.
+- **Rich Previews**: real-time file previews with Chroma syntax highlighting, directory metadata, and intelligent binary detection.
+- **Git Integration**: integrated git status badges (`M`, `+`, `?`, `!`) and branch name in the status bar.
+- **Time-Aware Themes**: seven color themes auto-selected by time of day, manually cycled with `t`.
+- **Help Overlay**: full keybinding and symbol reference available at any time with `?`.
+- **System Stats**: live CPU usage, memory consumption, directory size, and clock in the header bar.
+- **Editor Handoff**: seamlessly launch into `vim` with a single keystroke; TUI suspends and resumes cleanly.
+- **Collapsible Pane**: compress the file list to 8 chars with `tab` for maximum preview space.
 
 ---
 
@@ -31,8 +31,8 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 | `k` / `↑`        | move cursor up                                 |
 | `h` / `←` / `⌫`  | go to parent directory (or unfocus preview)    |
 | `l` / `→`        | enter directory or focus preview pane          |
-| `enter`          | enter directory or open file in vim            |
-| `v`              | open file in vim                               |
+| `enter`          | enter directory or open file in editor         |
+| `e`              | open file in editor                            |
 | `o`              | open file with system default application      |
 | `g`              | jump to top of list                            |
 | `G`              | jump to bottom of list                         |
@@ -74,11 +74,15 @@ make build
 - [x] system stats in header (CPU, memory, clock)
 - [x] git branch display in status bar
 - [x] collapsible file list pane
-- [ ] respect `$EDITOR` environment variable for editor handoff
+- [x] identify symlinks in file list (e.g. with @ or ↳ symbol)
+- [x] respect `$EDITOR` environment variable for editor handoff
+- [x] preview auto-refresh or manual refresh key to reload files changed by external processes
+- [ ] create saved local configs to support theme save
 
 ### future ideas
 - [ ] preview images
 - [ ] fuzzy file search
+- [ ] focus command: restrict navigation to root directory where scout was launched (no escaping to parent)
 
 ---
 
