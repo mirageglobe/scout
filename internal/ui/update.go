@@ -201,6 +201,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Cursor = 0
 			return m, m.LoadDir(m.Cwd)
 
+		case "f":
+			m.RootFocus = !m.RootFocus
+			if m.RootFocus {
+				m.StatusMsg = "Root focus enabled"
+			} else {
+				m.StatusMsg = "Root focus disabled"
+			}
+			return m, nil
+
 		case "tab":
 			m.ExplorerCollapsed = !m.ExplorerCollapsed
 			return m, nil
@@ -307,7 +316,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 			parent := filepath.Dir(m.Cwd)
-			if parent != m.Cwd {
+			if parent != m.Cwd && !(m.RootFocus && m.Cwd == m.RootPath) {
 				m.Cwd = parent
 				m.PreviewScroll = 0
 				m.Preview = ""
