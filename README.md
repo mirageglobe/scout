@@ -37,6 +37,7 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 | `g`              | jump to top of list                            |
 | `G`              | jump to bottom of list                         |
 | `i`              | toggle hidden files                            |
+| `f`              | toggle root-focus mode                         |
 | `tab`            | collapse / expand file list pane               |
 | `t`              | cycle color theme                              |
 | `?`              | show / hide help overlay                       |
@@ -79,11 +80,11 @@ make build
 - [x] respect `$EDITOR` environment variable for editor handoff
 - [x] preview auto-refresh or manual refresh key to reload files changed by external processes
 - [x] create saved local configs to support theme save
+- [x] focus command: restrict navigation to root directory where scout was launched (no escaping to parent)
+- [ ] fuzzy file search
 
 ### future ideas
 - [ ] preview images
-- [ ] fuzzy file search
-- [ ] focus command: restrict navigation to root directory where scout was launched (no escaping to parent)
 
 ---
 

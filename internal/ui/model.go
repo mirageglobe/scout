@@ -37,6 +37,8 @@ type Model struct {
 	SearchMatchIdx int    // index into SearchMatches for current match
 	ExplorerSearchActive bool   // "\" mode active in file explorer
 	ExplorerSearchInput  string // current explorer search input
+	RootFocus            bool   // restrict navigation to RootPath
+	RootPath             string // the starting directory path
 }
 
 // NewModel initializes a fresh UI model with a time-based theme (or saved config).
@@ -47,6 +49,7 @@ func NewModel(cwd string) Model {
 	}
 	return Model{
 		Cwd:        cwd,
+		RootPath:   cwd,
 		ThemeIdx:   themeIdx,
 		ShowHidden: true,
 	}
