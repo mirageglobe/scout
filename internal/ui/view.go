@@ -169,11 +169,8 @@ func (m Model) View() tea.View {
 
 	// ── Right pane: preview ────────────────────────────────────────────
 	previewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
-	startIdx := m.PreviewScroll
-	endIdx := startIdx + contentHeight
-	if endIdx > len(previewLines) {
-		endIdx = len(previewLines)
-	}
+	startIdx := min(m.PreviewScroll, len(previewLines))
+	endIdx := min(startIdx+contentHeight, len(previewLines))
 
 	visiblePreview := make([]string, endIdx-startIdx)
 	copy(visiblePreview, previewLines[startIdx:endIdx])
