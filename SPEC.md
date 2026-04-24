@@ -390,6 +390,7 @@ make release-dry
 ### future ideas
 
 - [ ] preview images
+- [ ] ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; investigate per-terminal detection or a layout tolerance mode
 
 ---
 
