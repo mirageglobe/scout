@@ -44,6 +44,7 @@ type Model struct {
 	RootPath             string // the starting directory path
 	Loading              bool   // true while a LoadDir command is in-flight
 	SpinnerFrame         int    // current animation frame (0-2) for the loading indicator
+	PendingCursor        string // entry name to restore cursor to after next DirLoadedMsg
 }
 
 // NewModel initializes a fresh UI model with a time-based theme (or saved config).

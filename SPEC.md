@@ -350,7 +350,7 @@ make release-dry
 - [x] focus command: restrict navigation to root directory where scout was launched (no escaping to parent)
 - [ ] fuzzy file search
 - [x] visible status/activity indicator above the hint bar (`scout ›` persistent prompt with spinner and state-aware messages)
-- [ ] navigating to parent directory should restore cursor focus to the folder you came from
+- [x] navigating to parent directory should restore cursor focus to the folder you came from
 - [ ] toggle state indicators in the hint bar (e.g. bold or accented color when hidden files or root-focus mode are active)
 - [ ] add context.Context with timeout to WatchDir and GetStats to prevent goroutine pile-up on slow or hung mounts
 

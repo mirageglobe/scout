@@ -84,7 +84,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Err = nil
 		m.StatusMsg = ""
 		m.PreviewScroll = 0
-		if m.Cursor >= len(m.Entries) {
+		if m.PendingCursor != "" {
+			m.Cursor = 0
+			for i, e := range m.Entries {
+				if e.Name == m.PendingCursor {
+					m.Cursor = i
+					break
+				}
+			}
+			m.PendingCursor = ""
+		} else if m.Cursor >= len(m.Entries) {
 			m.Cursor = max(0, len(m.Entries)-1)
 		}
 		m.Preview = m.BuildPreview()
@@ -326,6 +335,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			parent := filepath.Dir(m.Cwd)
 			if parent != m.Cwd && !(m.RootFocus && m.Cwd == m.RootPath) {
+				m.PendingCursor = filepath.Base(m.Cwd)
 				m.Cwd = parent
 				m.PreviewScroll = 0
 				m.Preview = ""
