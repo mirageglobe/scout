@@ -135,17 +135,19 @@ suspends the TUI, forks `vim <file>`, and resumes on exit. the callback wraps th
 
 ### 3.5 Theming
 
-Seven themes are defined in a `themes` slice. Each theme carries a name and an accent color:
+Nine themes are defined in a `Themes` slice. Each theme carries a name, accent, dim, text, and selected colours:
 
-| index | name           | accent    | auto-active hours |
-| ----- | -------------- | --------- | ----------------- |
-| 0     | Midnight       | `#875FFF` | 00:00 – 05:00     |
-| 1     | Dawn           | `#FF8787` | 05:00 – 09:00     |
-| 2     | Classic Amber  | `#FFAF00` | 09:00 – 12:00     |
-| 3     | Electric Cyan  | `#00AFFF` | 12:00 – 17:00     |
-| 4     | Safety Orange  | `#FF8700` | 17:00 – 20:00     |
-| 5     | Evening        | `#FF5FAF` | 20:00 – 24:00     |
-| 6     | Mono           | `#808080` | manual only       |
+| index | name            | accent    | auto-active hours |
+| ----- | --------------- | --------- | ----------------- |
+| 0     | Classic Amber   | `#FFAF00` | 09:00 – 12:00     |
+| 1     | Safety Orange   | `#FF8700` | 17:00 – 20:00     |
+| 2     | Mono            | `#FFFFFF` | manual only       |
+| 3     | Electric Cyan   | `#00AFFF` | 12:00 – 17:00     |
+| 4     | Dawn            | `#FF8787` | 05:00 – 09:00     |
+| 5     | Midnight        | `#875FFF` | 00:00 – 05:00     |
+| 6     | Evening         | `#FF5FAF` | 20:00 – 24:00     |
+| 7     | Solarized Dark  | `#268BD2` | manual only       |
+| 8     | Solarized Light | `#268BD2` | manual only       |
 
 `ThemeForHour(h int)` returns the correct index for the given hour. pressing `t` cycles forward through the slice with wrap-around.
 
@@ -242,15 +244,31 @@ preview is regenerated whenever the cursor moves, a directory is loaded, or the 
 scout/
 ├── cmd/
 │   └── scout/
-│       └── main.go             # entry point
+│       └── main.go                    # entry point
 ├── internal/
-│   ├── filesystem/             # file ops, stats, tick, and entry types
-│   ├── git/                    # git status and branch logic
-│   └── ui/                     # MVU model, update, view, preview, themes
+│   ├── filesystem/                    # file I/O, config, stats, tick, entry types
+│   │   ├── config.go                  # theme config load/save (~/.config/scout/config)
+│   │   ├── operations.go              # ReadDir, GetStats, DoTick, OpenWithSystem
+│   │   ├── types.go                   # Entry, Stats, and Msg types
+│   │   └── utils.go                   # IsBinary, HumanSize, Truncate, VisibleLen
+│   ├── git/
+│   │   └── status.go                  # GetStatus (porcelain parser), GetBranch
+│   └── ui/                            # MVU model, update, view, preview, themes
+│       ├── header.go                  # RenderHeader
+│       ├── help.go                    # RenderHelp overlay
+│       ├── model.go                   # Model, Init, LoadDir, RefreshGit, DoSpinnerTick
+│       ├── preview.go                 # BuildPreview (syntax highlight, dir listing)
+│       ├── themes.go                  # Theme type, Themes slice, ThemeForHour
+│       ├── update.go                  # Update (all state transitions)
+│       ├── version.go                 # Version constant (injected at build time)
+│       └── view.go                    # View, RenderStatusLine
+├── .github/workflows/
+│   └── release.yml                    # goreleaser CI trigger on tag push
+├── .goreleaser.yaml                   # cross-platform build + homebrew-tap config
 ├── go.mod
 ├── go.sum
-├── AGENT.md
-├── CLAUDE.md
+├── AGENT.md                           # AI assistant guidelines (CLAUDE.md symlinks here)
+├── Makefile
 ├── README.md
 └── SPEC.md
 ```
