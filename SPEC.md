@@ -334,10 +334,18 @@ Scout uses [goreleaser](https://goreleaser.com) to build cross-platform binaries
   - `GITHUB_TOKEN` — write access to this repo (scout)
   - `HOMEBREW_TAP_GITHUB_TOKEN` — write access to the homebrew-tap repo
 
+### version bump guide
+
+| change type                                      | bump    | example         |
+| ------------------------------------------------ | ------- | --------------- |
+| bug fixes only                                   | patch   | v0.3.0 → v0.3.1 |
+| new user-facing features, no breaking changes    | minor   | v0.3.0 → v0.4.0 |
+| breaking changes to behaviour or config format   | major   | v0.3.0 → v1.0.0 |
+
 ### steps
 
 ```bash
-# 1. ensure you are on main and everything is merged + clean
+# 1. merge the release branch into main via PR, then pull
 git checkout main && git pull
 
 # 2. export tokens (add these to ~/.zshrc or ~/.bashrc to avoid repeating)
@@ -346,14 +354,18 @@ export HOMEBREW_TAP_GITHUB_TOKEN=<your-tap-token>
 
 # 3. update CHANGELOG.md — move [unreleased] items under the new version heading
 #    e.g. ## [v0.4.0] — 2026-05-01
+#    add a fresh empty [unreleased] section at the top for the next cycle
 
-# 4. tag the next version (choose patch / minor / major as appropriate)
-make bump-patch
+# 4. commit the changelog update
+git add CHANGELOG.md && git commit -m "docs: update changelog for vX.Y.Z"
 
-# 5. push the tag to origin
+# 5. tag the next version (patch / minor / major — see guide above)
+make bump-minor
+
+# 6. push the tag to origin
 make push-tags
 
-# 6. build binaries, publish github release, and update homebrew formula
+# 7. build binaries, publish github release, and update homebrew formula
 make release
 ```
 
