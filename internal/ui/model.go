@@ -8,6 +8,9 @@ import (
 	"github.com/mirageglobe/scout/internal/git"
 )
 
+// SpinnerTickMsg drives the loading animation frame.
+type SpinnerTickMsg struct{}
+
 // EditorFinishedMsg is sent when the external editor (vim) exits.
 type EditorFinishedMsg struct{ Err error }
 
@@ -39,6 +42,8 @@ type Model struct {
 	ExplorerSearchInput  string // current explorer search input
 	RootFocus            bool   // restrict navigation to RootPath
 	RootPath             string // the starting directory path
+	Loading              bool   // true while a LoadDir command is in-flight
+	SpinnerFrame         int    // current animation frame (0-2) for the loading indicator
 }
 
 // NewModel initializes a fresh UI model with a time-based theme (or saved config).
@@ -63,6 +68,13 @@ func (m Model) Init() tea.Cmd {
 		filesystem.DoTick(),
 		filesystem.GetStats(m.Cwd),
 	)
+}
+
+// DoSpinnerTick returns a command that fires SpinnerTickMsg after 200ms.
+func DoSpinnerTick() tea.Cmd {
+	return tea.Tick(200*time.Millisecond, func(time.Time) tea.Msg {
+		return SpinnerTickMsg{}
+	})
 }
 
 // RefreshGit is a command that re-fetches git status and branch for the current directory.

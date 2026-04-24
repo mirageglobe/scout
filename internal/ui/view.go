@@ -305,18 +305,19 @@ func (m Model) RenderStatusLine() string {
 			Render(fmt.Sprintf("/ %s  [%d/%d]", m.SearchQuery, m.SearchMatchIdx+1, len(m.SearchMatches))) + hint
 	}
 
+	if m.Loading {
+		dots := [3]string{"·", "··", "···"}
+		label := "scout: " + dots[m.SpinnerFrame]
+		return lipgloss.NewStyle().Foreground(accent).Bold(true).Padding(0, 1).Render(label)
+	}
+
 	if m.StatusMsg == "" {
 		return ""
 	}
 
-	style := lipgloss.NewStyle().
-		Foreground(accent).
-		Italic(true).
-		Padding(0, 1)
-
-	if strings.HasPrefix(m.StatusMsg, "Error:") {
+	style := lipgloss.NewStyle().Foreground(accent).Italic(true).Padding(0, 1)
+	if strings.HasPrefix(m.StatusMsg, "scout: error:") {
 		style = style.Foreground(lipgloss.Color("#FF5555")).Bold(true)
 	}
-
 	return style.Render(filesystem.Truncate(m.StatusMsg, m.Width-2))
 }

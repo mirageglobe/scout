@@ -55,9 +55,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Stats.DirSize = msg.DirSize
 		return m, nil
 
+	case SpinnerTickMsg:
+		if m.Loading {
+			m.SpinnerFrame = (m.SpinnerFrame + 1) % 3
+			return m, DoSpinnerTick()
+		}
+		return m, nil
+
 	case filesystem.DirLoadedMsg:
+		m.Loading = false
 		if msg.Err != nil {
-			m.StatusMsg = fmt.Sprintf("Error: %v", msg.Err)
+			m.StatusMsg = fmt.Sprintf("scout: error: %v", msg.Err)
 			return m, nil
 		}
 		entries := msg.Entries
@@ -199,7 +207,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "i":
 			m.ShowHidden = !m.ShowHidden
 			m.Cursor = 0
-			return m, m.LoadDir(m.Cwd)
+			m, cmd := startLoading(m)
+			return m, tea.Batch(m.LoadDir(m.Cwd), cmd)
 
 		case "f":
 			m.RootFocus = !m.RootFocus
@@ -320,10 +329,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Cwd = parent
 				m.PreviewScroll = 0
 				m.Preview = ""
-				m.StatusMsg = ""
 				m = clearSearch(m)
 				m = clearExplorerSearch(m)
-				return m, m.LoadDir(m.Cwd)
+				m, cmd := startLoading(m)
+				return m, tea.Batch(m.LoadDir(m.Cwd), cmd)
 			}
 			return m, nil
 
@@ -375,7 +384,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.FocusRight = false
 				m = clearSearch(m)
 				m = clearExplorerSearch(m)
-				return m, m.LoadDir(m.Cwd)
+				m, cmd := startLoading(m)
+				return m, tea.Batch(m.LoadDir(m.Cwd), cmd)
 			}
 			if !m.FocusRight {
 				m.FocusRight = true
@@ -404,19 +414,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case EditorFinishedMsg:
 		if msg.Err != nil {
-			m.StatusMsg = fmt.Sprintf("Error: %v", msg.Err)
+			m.StatusMsg = fmt.Sprintf("scout: error: %v", msg.Err)
 		}
-		return m, m.LoadDir(m.Cwd)
+		m, cmd := startLoading(m)
+		return m, tea.Batch(m.LoadDir(m.Cwd), cmd)
 	}
 
 	return m, nil
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
 }
 
 // stripANSI removes ANSI/CSI escape sequences for plain-text matching.
@@ -509,6 +513,14 @@ func clearSearch(m Model) Model {
 	m.SearchMatches = nil
 	m.SearchMatchIdx = 0
 	return m
+}
+
+// startLoading sets Loading state and returns the spinner tick command.
+func startLoading(m Model) (Model, tea.Cmd) {
+	m.Loading = true
+	m.SpinnerFrame = 0
+	m.StatusMsg = ""
+	return m, DoSpinnerTick()
 }
 
 // dirEntriesChanged returns true if the entry list has changed by name, type, or count.
