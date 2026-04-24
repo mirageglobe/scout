@@ -276,8 +276,8 @@ func (m Model) RenderStatusLine() string {
 	dimStyle := lipgloss.NewStyle().Foreground(dim)
 	accentStyle := lipgloss.NewStyle().Foreground(accent)
 
-	// "scout: " prefix is always rendered bold+accent, followed by state-specific content.
-	prefix := " " + lipgloss.NewStyle().Foreground(accent).Bold(true).Render("scout:") + " "
+	// "scout ›" prefix is always rendered bold+accent, followed by state-specific content.
+	prefix := " " + lipgloss.NewStyle().Foreground(accent).Bold(true).Render("scout ›") + " "
 
 	if m.Loading {
 		dots := [3]string{"·", "··", "···"}
@@ -318,5 +318,5 @@ func (m Model) RenderStatusLine() string {
 	}
 
 	// idle: dim prompt awaiting input
-	return dimStyle.Render(" scout: ")
+	return dimStyle.Render(" scout › ")
 }
