@@ -269,55 +269,54 @@ func (m Model) View() tea.View {
 	return v
 }
 
-// RenderStatusLine generates the informational line between the panes and shortcuts.
+// RenderStatusLine generates the persistent "scout: " prompt line between panes and the hint bar.
 func (m Model) RenderStatusLine() string {
 	accent := lipgloss.Color(Themes[m.ThemeIdx].Accent)
-
 	dim := lipgloss.Color(Themes[m.ThemeIdx].Dim)
 	dimStyle := lipgloss.NewStyle().Foreground(dim)
+	accentStyle := lipgloss.NewStyle().Foreground(accent)
+
+	// "scout: " prefix is always rendered bold+accent, followed by state-specific content.
+	prefix := " " + lipgloss.NewStyle().Foreground(accent).Bold(true).Render("scout:") + " "
+
+	if m.Loading {
+		dots := [3]string{"·", "··", "···"}
+		return prefix + accentStyle.Render(dots[m.SpinnerFrame])
+	}
 
 	if m.ExplorerSearchActive {
-		hint := dimStyle.Render("  enter:confirm  esc:clear")
-		return lipgloss.NewStyle().Foreground(accent).Padding(0, 1).
-			Render("/ "+m.ExplorerSearchInput+"█") + hint
+		return prefix + accentStyle.Render("/"+m.ExplorerSearchInput+"█") +
+			dimStyle.Render("  enter:confirm  esc:clear")
 	}
 
 	if m.ExplorerSearchInput != "" {
 		count := len(m.explorerFiltered())
-		hint := dimStyle.Render("  n/N:next/prev  esc:clear")
-		return lipgloss.NewStyle().Foreground(accent).Padding(0, 1).
-			Render(fmt.Sprintf("/ %s  [%d matches]", m.ExplorerSearchInput, count)) + hint
+		return prefix + accentStyle.Render(fmt.Sprintf("/%s  [%d matches]", m.ExplorerSearchInput, count)) +
+			dimStyle.Render("  n/N:next/prev  esc:clear")
 	}
 
 	if m.SearchActive {
-		hint := dimStyle.Render("  enter:confirm  esc:exit")
-		return lipgloss.NewStyle().Foreground(accent).Padding(0, 1).
-			Render("/ "+m.SearchInput+"█") + hint
+		return prefix + accentStyle.Render("/"+m.SearchInput+"█") +
+			dimStyle.Render("  enter:confirm  esc:exit")
 	}
 
 	if m.SearchQuery != "" {
 		if len(m.SearchMatches) == 0 {
-			return lipgloss.NewStyle().Foreground(lipgloss.Color("#FF5555")).Bold(true).Padding(0, 1).
-				Render("/ " + m.SearchQuery + "  [no matches]  esc:clear")
+			return prefix + lipgloss.NewStyle().Foreground(lipgloss.Color("#FF5555")).
+				Render("/"+m.SearchQuery+"  [no matches]") + dimStyle.Render("  esc:clear")
 		}
-		hint := dimStyle.Render("  n/N:next/prev  esc:clear")
-		return lipgloss.NewStyle().Foreground(accent).Padding(0, 1).
-			Render(fmt.Sprintf("/ %s  [%d/%d]", m.SearchQuery, m.SearchMatchIdx+1, len(m.SearchMatches))) + hint
+		return prefix + accentStyle.Render(fmt.Sprintf("/%s  [%d/%d]", m.SearchQuery, m.SearchMatchIdx+1, len(m.SearchMatches))) +
+			dimStyle.Render("  n/N:next/prev  esc:clear")
 	}
 
-	if m.Loading {
-		dots := [3]string{"·", "··", "···"}
-		label := "scout: " + dots[m.SpinnerFrame]
-		return lipgloss.NewStyle().Foreground(accent).Bold(true).Padding(0, 1).Render(label)
+	if m.StatusMsg != "" {
+		msgStyle := accentStyle.Italic(true)
+		if strings.HasPrefix(m.StatusMsg, "error:") {
+			msgStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF5555"))
+		}
+		return prefix + msgStyle.Render(filesystem.Truncate(m.StatusMsg, m.Width-10))
 	}
 
-	if m.StatusMsg == "" {
-		return ""
-	}
-
-	style := lipgloss.NewStyle().Foreground(accent).Italic(true).Padding(0, 1)
-	if strings.HasPrefix(m.StatusMsg, "scout: error:") {
-		style = style.Foreground(lipgloss.Color("#FF5555")).Bold(true)
-	}
-	return style.Render(filesystem.Truncate(m.StatusMsg, m.Width-2))
+	// idle: dim prompt awaiting input
+	return dimStyle.Render(" scout: ")
 }

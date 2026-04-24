@@ -65,7 +65,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case filesystem.DirLoadedMsg:
 		m.Loading = false
 		if msg.Err != nil {
-			m.StatusMsg = fmt.Sprintf("scout: error: %v", msg.Err)
+			m.StatusMsg = fmt.Sprintf("error: %v", msg.Err)
 			return m, nil
 		}
 		entries := msg.Entries
@@ -414,7 +414,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case EditorFinishedMsg:
 		if msg.Err != nil {
-			m.StatusMsg = fmt.Sprintf("scout: error: %v", msg.Err)
+			m.StatusMsg = fmt.Sprintf("error: %v", msg.Err)
 		}
 		m, cmd := startLoading(m)
 		return m, tea.Batch(m.LoadDir(m.Cwd), cmd)
