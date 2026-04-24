@@ -355,7 +355,7 @@ make release-dry
 - [x] visible status/activity indicator above the hint bar (`scout ›` persistent prompt with spinner and state-aware messages)
 - [x] navigating to parent directory should restore cursor focus to the folder you came from
 - [x] toggle state indicators in the hint bar (bold accent on i:hidden, f:root-focus, tab:explorer when active)
-- [ ] add context.Context with timeout to WatchDir and GetStats to prevent goroutine pile-up on slow or hung mounts
+- [x] add context.Context with timeout to WatchDir, LoadDir, RefreshGit, and GetStats to prevent goroutine pile-up on slow or hung mounts
 
 ### future ideas
 

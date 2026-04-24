@@ -1,13 +1,14 @@
 package git
 
 import (
+	"context"
 	"os/exec"
 	"strings"
 )
 
 // GetBranch returns the current git branch name for dir, or "" if not a repo.
-func GetBranch(dir string) string {
-	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+func GetBranch(ctx context.Context, dir string) string {
+	cmd := exec.CommandContext(ctx, "git", "rev-parse", "--abbrev-ref", "HEAD")
 	cmd.Dir = dir
 	out, err := cmd.Output()
 	if err != nil {
@@ -18,12 +19,12 @@ func GetBranch(dir string) string {
 
 // GetStatus runs "git status --porcelain" in the given directory and
 // returns a map of filename -> status code, relative to dir.
-func GetStatus(dir string) map[string]string {
+func GetStatus(ctx context.Context, dir string) map[string]string {
 	result := make(map[string]string)
 
 	// git reports paths relative to the repo root regardless of cmd.Dir,
 	// so we need the prefix of dir within the repo to strip it.
-	prefixCmd := exec.Command("git", "rev-parse", "--show-prefix")
+	prefixCmd := exec.CommandContext(ctx, "git", "rev-parse", "--show-prefix")
 	prefixCmd.Dir = dir
 	prefixOut, err := prefixCmd.Output()
 	if err != nil {
@@ -31,7 +32,7 @@ func GetStatus(dir string) map[string]string {
 	}
 	prefix := strings.TrimSpace(string(prefixOut)) // e.g. "internal/filesystem/"
 
-	cmd := exec.Command("git", "status", "--porcelain")
+	cmd := exec.CommandContext(ctx, "git", "status", "--porcelain")
 	cmd.Dir = dir
 	out, err := cmd.Output()
 	if err != nil {

@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
@@ -79,47 +80,51 @@ func DoSpinnerTick() tea.Cmd {
 }
 
 // RefreshGit is a command that re-fetches git status and branch for the current directory.
+// bounded by a 5-second timeout to avoid blocking on slow or hung git repos.
 func (m Model) RefreshGit() tea.Cmd {
 	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 		return filesystem.GitRefreshMsg{
-			GitStatus: git.GetStatus(m.Cwd),
-			GitBranch: git.GetBranch(m.Cwd),
+			GitStatus: git.GetStatus(ctx, m.Cwd),
+			GitBranch: git.GetBranch(ctx, m.Cwd),
 		}
 	}
 }
 
 // WatchDir polls a directory for changes in the background, returning DirWatchMsg
 // so the handler can update entries without resetting cursor or preview scroll.
+// bounded by a 5-second timeout to avoid goroutine pile-up on slow mounts.
 func (m Model) WatchDir(path string) tea.Cmd {
 	return func() tea.Msg {
-		entries, err := filesystem.ReadDir(path)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		entries, err := filesystem.ReadDirContext(ctx, path)
 		if err != nil {
 			return filesystem.DirWatchMsg{Err: err}
 		}
-		status := git.GetStatus(path)
-		branch := git.GetBranch(path)
 		return filesystem.DirWatchMsg{
 			Entries:   entries,
-			GitStatus: status,
-			GitBranch: branch,
+			GitStatus: git.GetStatus(ctx, path),
+			GitBranch: git.GetBranch(ctx, path),
 		}
 	}
 }
 
 // LoadDir is a command that reads a directory and its git status.
+// bounded by a 10-second timeout to surface errors on unresponsive paths.
 func (m Model) LoadDir(path string) tea.Cmd {
 	return func() tea.Msg {
-		entries, err := filesystem.ReadDir(path)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		entries, err := filesystem.ReadDirContext(ctx, path)
 		if err != nil {
 			return filesystem.DirLoadedMsg{Err: err}
 		}
-		status := git.GetStatus(path)
-		branch := git.GetBranch(path)
-
 		return filesystem.DirLoadedMsg{
 			Entries:   entries,
-			GitStatus: status,
-			GitBranch: branch,
+			GitStatus: git.GetStatus(ctx, path),
+			GitBranch: git.GetBranch(ctx, path),
 		}
 	}
 }

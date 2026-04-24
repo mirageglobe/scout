@@ -1,6 +1,7 @@
 package filesystem
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -33,6 +34,26 @@ func OpenWithSystem(path string) error {
 	}
 
 	return cmd.Start()
+}
+
+// ReadDirContext runs ReadDir in a goroutine and returns early if ctx is cancelled.
+// the underlying goroutine may outlive the context but its result is discarded on timeout.
+func ReadDirContext(ctx context.Context, path string) ([]Entry, error) {
+	type result struct {
+		entries []Entry
+		err     error
+	}
+	ch := make(chan result, 1)
+	go func() {
+		e, err := ReadDir(path)
+		ch <- result{e, err}
+	}()
+	select {
+	case r := <-ch:
+		return r.entries, r.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
 // ReadDir reads the directory at path and returns a slice of sorted entries.
@@ -72,30 +93,32 @@ func ReadDir(path string) ([]Entry, error) {
 }
 
 // GetStats returns a command that fetches memory and directory size stats.
+// operations are bounded by a 5-second timeout to avoid blocking on slow mounts.
 func GetStats(path string) tea.Cmd {
 	return func() tea.Msg {
-		var m runtime.MemStats
-		runtime.ReadMemStats(&m)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		var mem runtime.MemStats
+		runtime.ReadMemStats(&mem)
 
 		dirSize := int64(0)
-		entries, _ := os.ReadDir(path)
-		for _, e := range entries {
-			if !e.IsDir() {
-				info, _ := e.Info()
-				if info != nil {
-					dirSize += info.Size()
+		if entries, err := ReadDirContext(ctx, path); err == nil {
+			for _, e := range entries {
+				if !e.IsDir && e.Info != nil {
+					dirSize += e.Info.Size()
 				}
 			}
 		}
 
 		cpu := 0.0
-		if out, err := exec.Command("ps", "-p", strconv.Itoa(os.Getpid()), "-o", "%cpu=").Output(); err == nil {
+		if out, err := exec.CommandContext(ctx, "ps", "-p", strconv.Itoa(os.Getpid()), "-o", "%cpu=").Output(); err == nil {
 			cpu, _ = strconv.ParseFloat(strings.TrimSpace(string(out)), 64)
 		}
 
 		return StatsMsg{
 			CPU:     cpu,
-			Mem:     m.Alloc,
+			Mem:     mem.Alloc,
 			DirSize: dirSize,
 		}
 	}
