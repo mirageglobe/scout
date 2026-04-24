@@ -239,20 +239,40 @@ func (m Model) View() tea.View {
 	panes := lipgloss.JoinHorizontal(lipgloss.Top, leftPane, rightPane)
 
 	// ── Status bar ─────────────────────────────────────────────────────
-	statusStyle := lipgloss.NewStyle().Foreground(dimColor)
-	gitInfo := ""
-	if m.GitBranch != "" {
-		gitInfo = " ⎇ " + m.GitBranch + "  │"
-	}
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
 		editor = "vim"
 	}
-	help := fmt.Sprintf(" ↑/↓:nav  ←/→:nav  e:edit(%s)  o:open  i:hidden  f:root-focus  tab:explorer  r:refresh  t:theme  /:search  ?:help  q:quit", editor)
 
-	statusBar := statusStyle.Render(
-		filesystem.Truncate(gitInfo+help, m.Width),
-	)
+	dimHint := lipgloss.NewStyle().Foreground(dimColor)
+	activeHint := lipgloss.NewStyle().Foreground(accentColor).Bold(true)
+
+	hint := func(key, label string, on bool) string {
+		text := key + ":" + label
+		if on {
+			return activeHint.Render(text)
+		}
+		return dimHint.Render(text)
+	}
+
+	var statusBar string
+	if m.GitBranch != "" {
+		statusBar = dimHint.Render(" ⎇ " + m.GitBranch + "  │")
+	}
+	sep := "  "
+	statusBar += " " + hint("↑/↓", "nav", false) +
+		sep + hint("←/→", "nav", false) +
+		sep + hint("e", "edit("+editor+")", false) +
+		sep + hint("o", "open", false) +
+		sep + hint("i", "hidden", !m.ShowHidden) +
+		sep + hint("f", "root-focus", m.RootFocus) +
+		sep + hint("tab", "explorer", m.ExplorerCollapsed) +
+		sep + hint("r", "refresh", false) +
+		sep + hint("t", "theme", false) +
+		sep + hint("/", "search", false) +
+		sep + hint("?", "help", false) +
+		sep + hint("q", "quit", false)
+	statusBar = filesystem.Truncate(statusBar, m.Width)
 
 	var layout string
 	if m.ShowHelp {
