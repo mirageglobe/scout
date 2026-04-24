@@ -10,22 +10,27 @@
 
 ### Goals
 
-| goal                                             | status |
-| ------------------------------------------------ | ------ |
-| two-pane layout (file list + preview)            | [x]    |
-| keyboard navigation (j/k/h/l/g/G)                | [x]    |
-| editor hand-off via `vim` + `tea.ExecProcess`    | [x]    |
-| git status badges and branch display             | [x]    |
-| styled borders via Lip Gloss                     | [x]    |
-| modular architecture (`cmd/` + `internal/`)      | [x]    |
-| chroma syntax highlighting in preview            | [x]    |
-| time-aware color themes (7 themes, manual cycle) | [x]    |
-| help overlay (`?`)                               | [x]    |
-| live system stats (CPU, memory, clock)           | [x]    |
-| hidden file toggle (`i`)                         | [x]    |
-| collapsible file list pane (`tab`)               | [x]    |
-| open with system default application (`o`)       | [x]    |
-| scrollable preview pane (focus + j/k)            | [x]    |
+| goal                                                        | status |
+| ----------------------------------------------------------- | ------ |
+| two-pane layout (file list + preview)                       | [x]    |
+| keyboard navigation (j/k/h/l/g/G)                          | [x]    |
+| editor hand-off via `$EDITOR` + `tea.ExecProcess`           | [x]    |
+| git status badges and branch display                        | [x]    |
+| styled borders via Lip Gloss                                | [x]    |
+| modular architecture (`cmd/` + `internal/`)                 | [x]    |
+| chroma syntax highlighting in preview                       | [x]    |
+| time-aware color themes (9 themes, manual cycle with `t`)   | [x]    |
+| help overlay (`?`)                                          | [x]    |
+| live system stats (CPU, memory, clock)                      | [x]    |
+| hidden file toggle (`i`)                                    | [x]    |
+| collapsible file list pane (`tab`)                          | [x]    |
+| open with system default application (`o`)                  | [x]    |
+| scrollable preview pane (nav with `l`, scroll with `j`/`k`) | [x]    |
+| search in explorer and preview pane (`/`, `n`/`N`)          | [x]    |
+| root-focus mode: lock navigation to launch directory (`f`)  | [x]    |
+| persistent `scout ›` status prompt with loading spinner     | [x]    |
+| cursor restores to previous folder on parent navigation     | [x]    |
+| context-bounded async commands (no goroutine pile-up)       | [x]    |
 
 ---
 
@@ -70,27 +75,39 @@ Scout follows the **Model-Update-View (MVU)** pattern enforced by Bubble Tea.
 
 ```go
 type Model struct {
-    Cwd               string            // current working directory (absolute)
-    Entries           []filesystem.Entry // sorted list of directory entries
-    Cursor            int               // index of selected entry
-    Width             int               // terminal width (from WindowSizeMsg)
-    Height            int               // terminal height (from WindowSizeMsg)
-    Preview           string            // pre-computed preview string for right pane
-    PreviewScroll     int               // scroll offset for preview pane
-    FocusRight        bool              // true when preview pane has keyboard focus
-    ShowHelp          bool              // true when help overlay is visible
-    ThemeIdx          int               // index into themes slice
-    GitStatus         map[string]string // filename → git status code ("M", "+", "?", "!")
-    GitBranch         string            // current git branch name
-    ShowHidden        bool              // whether hidden (dot) files are shown
-    ExplorerCollapsed bool              // whether file list pane is collapsed to 8 chars
-    Stats             filesystem.Stats  // live CPU, memory, and directory size
-    StatusMsg         string            // transient status or error message
-    Err               error             // last error to display in-pane
+    Cwd                  string            // current working directory (absolute)
+    Entries              []filesystem.Entry // sorted list of directory entries
+    Cursor               int               // index of selected entry
+    Width                int               // terminal width (from WindowSizeMsg)
+    Height               int               // terminal height (from WindowSizeMsg)
+    Preview              string            // pre-computed preview string for right pane
+    PreviewScroll        int               // scroll offset for preview pane
+    FocusRight           bool              // true when preview pane has keyboard focus
+    ShowHelp             bool              // true when help overlay is visible
+    ThemeIdx             int               // index into Themes slice
+    GitStatus            map[string]string // filename → git status code ("M", "+", "?", "!")
+    GitBranch            string            // current git branch name
+    ShowHidden           bool              // whether hidden (dot) files are shown
+    ExplorerCollapsed    bool              // whether file list pane is collapsed to 8 chars
+    Stats                filesystem.Stats  // live CPU, memory, and directory size
+    StatusMsg            string            // transient status message shown in scout › prompt
+    Err                  error             // last error to display in-pane
+    SearchActive         bool              // true while user is typing a preview search query
+    SearchQuery          string            // committed preview search term
+    SearchInput          string            // in-progress buffer while SearchActive
+    SearchMatches        []int             // preview line indices containing the query
+    SearchMatchIdx       int               // current match index within SearchMatches
+    ExplorerSearchActive bool              // true while user is typing an explorer search query
+    ExplorerSearchInput  string            // current explorer search input
+    RootFocus            bool              // restrict navigation to RootPath
+    RootPath             string            // the directory scout was launched from
+    Loading              bool              // true while a LoadDir command is in-flight
+    SpinnerFrame         int               // animation frame (0–2) for the scout › spinner
+    PendingCursor        string            // entry name to restore cursor to after next load
 }
 ```
 
-`NewModel` sets the initial `ThemeIdx` by calling `ThemeForHour(time.Now().Hour())` so the theme is automatically chosen based on time of day.
+`NewModel` sets `ThemeIdx` via `ThemeForHour(time.Now().Hour())` (or the saved config), and enables `RootFocus` by default so navigation is locked to the launch directory until toggled with `f`.
 
 ### 3.2 Messages (Msg)
 
@@ -99,27 +116,35 @@ type Model struct {
 | `tea.WindowSizeMsg`          | Bubble Tea runtime    | captures terminal dimensions for layout              |
 | `tea.KeyPressMsg`            | keyboard              | all navigation, actions, and quit signals            |
 | `filesystem.DirLoadedMsg`    | `LoadDir` cmd         | delivers fresh entry list, git status, and branch    |
+| `filesystem.DirWatchMsg`     | `WatchDir` cmd        | background poll result; updates entries without resetting cursor or scroll |
 | `filesystem.GitRefreshMsg`   | `RefreshGit` cmd      | periodic git status and branch refresh               |
-| `filesystem.TickMsg`         | `DoTick` cmd          | 2-second heartbeat; triggers stats and git refresh   |
+| `filesystem.TickMsg`         | `DoTick` cmd          | 2-second heartbeat; triggers stats, git, and watch   |
 | `filesystem.StatsMsg`        | `GetStats` cmd        | delivers live CPU, memory, and directory size        |
-| `ui.EditorFinishedMsg`       | `tea.ExecProcess` cb  | signals vim has exited; triggers directory reload    |
+| `ui.EditorFinishedMsg`       | `tea.ExecProcess` cb  | signals editor has exited; triggers directory reload |
+| `ui.SpinnerTickMsg`          | `DoSpinnerTick` cmd   | 200ms tick that advances the scout › loading animation |
 
 ### 3.3 Commands (Cmd)
 
 #### `LoadDir(path string) tea.Cmd`
-runs asynchronously. reads the directory with `os.ReadDir`, sorts entries (directories first, then alphabetical), fetches git status and branch in the same goroutine. returns `DirLoadedMsg`.
+runs asynchronously with a 10-second context timeout. reads the directory via `ReadDirContext`, sorts entries (directories first, then alphabetical), fetches git status and branch. stores the current directory name in `PendingCursor` before navigating to parent so the cursor is restored on load. returns `DirLoadedMsg`.
+
+#### `WatchDir(path string) tea.Cmd`
+background directory poll with a 5-second timeout. like `LoadDir` but returns `DirWatchMsg`, which is handled without resetting cursor or scroll — used by the 2-second tick to detect external filesystem changes.
 
 #### `RefreshGit() tea.Cmd`
-re-fetches git status and branch for the current directory without reloading entries. returns `GitRefreshMsg`.
+re-fetches git status and branch with a 5-second timeout. returns `GitRefreshMsg`.
 
 #### `GetStats(path string) tea.Cmd`
-reads CPU usage via `runtime.ReadMemStats`, allocated memory, and directory size by walking the tree. returns `StatsMsg`.
+reads allocated memory via `runtime.ReadMemStats`, directory size via `ReadDirContext`, and CPU via `ps`, all within a 5-second timeout. returns `StatsMsg`.
 
 #### `DoTick() tea.Cmd`
-fires a `TickMsg` after a 2-second delay to drive the heartbeat for stats and git refresh.
+fires a `TickMsg` after a 2-second delay to drive the heartbeat for stats, git refresh, and directory watch.
+
+#### `DoSpinnerTick() tea.Cmd`
+fires a `SpinnerTickMsg` after 200ms. only scheduled while `Loading` is true; each tick advances `SpinnerFrame` and reschedules itself.
 
 #### `tea.ExecProcess(cmd, callback)`
-suspends the TUI, forks `vim <file>`, and resumes on exit. the callback wraps the error in `EditorFinishedMsg`.
+suspends the TUI, forks `$EDITOR <file>`, and resumes on exit. the callback wraps the error in `EditorFinishedMsg`.
 
 ### 3.4 View
 
@@ -128,10 +153,11 @@ suspends the TUI, forks `vim <file>`, and resumes on exit. the callback wraps th
 1. if `ShowHelp` is true, renders the full-screen help overlay and returns early.
 2. computes `leftWidth` (40 % or 8 chars if collapsed) and `rightWidth` (remaining space).
 3. renders the **header bar**: app name, version, current time, CPU, and memory.
-4. renders the **left pane**: path header → optional error → visible entry rows with scroll offset, git badges, and directory indicators.
+4. renders the **left pane**: path header → visible entry rows with scroll offset, git badges, and directory indicators.
 5. renders the **right pane**: pre-computed `m.Preview` string (syntax-highlighted content or dir listing).
 6. joins panes horizontally with `lipgloss.JoinHorizontal`.
-7. appends a **status bar** with item count, position, git branch (`⎇ name`), and key hints.
+7. renders the **`scout ›` status line** (always visible): shows loading spinner, search input/results, status messages, or a dim idle prompt.
+8. renders the **hint bar**: git branch (`⎇ name`) and keybinding hints; active toggles (`i:hidden`, `f:root-focus`, `tab:explorer`) render bold+accent.
 
 ### 3.5 Theming
 
@@ -248,18 +274,21 @@ scout/
 ├── internal/
 │   ├── filesystem/                    # file I/O, config, stats, tick, entry types
 │   │   ├── config.go                  # theme config load/save (~/.config/scout/config)
-│   │   ├── operations.go              # ReadDir, GetStats, DoTick, OpenWithSystem
+│   │   ├── operations.go              # ReadDir, ReadDirContext, GetStats, DoTick, OpenWithSystem
 │   │   ├── types.go                   # Entry, Stats, and Msg types
-│   │   └── utils.go                   # IsBinary, HumanSize, Truncate, VisibleLen
+│   │   ├── utils.go                   # IsBinary, HumanSize, Truncate, VisibleLen
+│   │   └── utils_test.go              # unit tests: IsBinary, HumanSize, Truncate
 │   ├── git/
-│   │   └── status.go                  # GetStatus (porcelain parser), GetBranch
+│   │   └── status.go                  # GetStatus (porcelain parser), GetBranch (context-aware)
 │   └── ui/                            # MVU model, update, view, preview, themes
 │       ├── header.go                  # RenderHeader
 │       ├── help.go                    # RenderHelp overlay
-│       ├── model.go                   # Model, Init, LoadDir, RefreshGit, DoSpinnerTick
+│       ├── model.go                   # Model, Init, LoadDir, WatchDir, RefreshGit, DoSpinnerTick
 │       ├── preview.go                 # BuildPreview (syntax highlight, dir listing)
 │       ├── themes.go                  # Theme type, Themes slice, ThemeForHour
+│       ├── themes_test.go             # unit tests: ThemeForHour
 │       ├── update.go                  # Update (all state transitions)
+│       ├── update_test.go             # unit tests: computeSearchMatches, dirEntriesChanged, clampedScrollFor
 │       ├── version.go                 # Version constant (injected at build time)
 │       └── view.go                    # View, RenderStatusLine
 ├── .github/workflows/
@@ -268,6 +297,7 @@ scout/
 ├── go.mod
 ├── go.sum
 ├── AGENT.md                           # AI assistant guidelines (CLAUDE.md symlinks here)
+├── CHANGELOG.md                       # hand-curated release history (keep-a-changelog format)
 ├── Makefile
 ├── README.md
 └── SPEC.md
