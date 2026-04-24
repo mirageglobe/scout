@@ -48,7 +48,7 @@ Scout follows the **Model-Update-View (MVU)** pattern enforced by Bubble Tea.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                          tea.Program                          │
+│                          tea.Program                         │
 │  ┌───────────┐   Msg   ┌──────────────┐   string   ┌───────┐ │
 │  │   Init()  │────────▶│   Update()   │───────────▶│View() │ │
 │  └───────────┘         └──────────────┘            └───────┘ │
@@ -185,8 +185,8 @@ Seven themes are defined in a `themes` slice. Each theme carries a name and an a
 | ---------------- | ---------------------------------------------- |
 | `j` / `↓`        | move cursor down                               |
 | `k` / `↑`        | move cursor up                                 |
-| `h` / `←` / `⌫`  | go to parent directory (or unfocus preview)    |
-| `l` / `→`        | enter directory or focus preview pane          |
+| `h` / `←` / `⌫`  | nav to parent directory (or nav back from preview) |
+| `l` / `→`        | enter directory or nav to preview pane             |
 | `enter`          | enter directory or open file in vim            |
 | `v`              | open file in vim                               |
 | `o`              | open file with system default application      |

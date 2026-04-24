@@ -29,8 +29,8 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 | ---------------- | ---------------------------------------------- |
 | `j` / `↓`        | move cursor down                               |
 | `k` / `↑`        | move cursor up                                 |
-| `h` / `←` / `⌫`  | go to parent directory (or unfocus preview)    |
-| `l` / `→`        | enter directory or focus preview pane          |
+| `h` / `←` / `⌫`  | nav to parent directory (or nav back from preview) |
+| `l` / `→`        | enter directory or nav to preview pane             |
 | `enter`          | enter directory or open file in editor         |
 | `e`              | open file in editor                            |
 | `o`              | open file with system default application      |
@@ -103,6 +103,9 @@ make release
 - [x] create saved local configs to support theme save
 - [x] focus command: restrict navigation to root directory where scout was launched (no escaping to parent)
 - [ ] fuzzy file search
+- [ ] visible status/activity indicator above the hint bar (e.g. spinner or `scout: ...` message) for async operations and errors
+- [ ] navigating to parent directory should restore cursor focus to the folder you came from
+- [ ] toggle state indicators in the hint bar (e.g. bold or accented color when hidden files or root-focus mode are active)
 
 ### future ideas
 - [ ] preview images

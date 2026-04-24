@@ -251,7 +251,7 @@ func (m Model) View() tea.View {
 	if editor == "" {
 		editor = "vim"
 	}
-	help := fmt.Sprintf(" ↑/↓:nav  ←/→:focus  e:edit(%s)  o:open  i:hidden  f:focus  tab:explorer  r:refresh  t:theme  /:search  ?:help  q:quit", editor)
+	help := fmt.Sprintf(" ↑/↓:nav  ←/→:nav  e:edit(%s)  o:open  i:hidden  f:root-focus  tab:explorer  r:refresh  t:theme  /:search  ?:help  q:quit", editor)
 
 	statusBar := statusStyle.Render(
 		filesystem.Truncate(gitInfo+help, m.Width),
