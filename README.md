@@ -23,30 +23,7 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 
 ---
 
-## Keybindings
-
-| key              | action                                         |
-| ---------------- | ---------------------------------------------- |
-| `j` / `↓`        | move cursor down                               |
-| `k` / `↑`        | move cursor up                                 |
-| `h` / `←` / `⌫`  | nav to parent directory (or nav back from preview) |
-| `l` / `→`        | enter directory or nav to preview pane             |
-| `enter`          | enter directory or open file in editor         |
-| `e`              | open file in editor                            |
-| `o`              | open file with system default application      |
-| `g`              | jump to top of list                            |
-| `G`              | jump to bottom of list                         |
-| `i`              | toggle hidden files                            |
-| `f`              | toggle root-focus mode                         |
-| `tab`            | collapse / expand file list pane               |
-| `t`              | cycle color theme                              |
-| `?`              | show / hide help overlay                       |
-| `q` / `ctrl+c`   | quit                                           |
-
-## Configuration
-
-Scout stores your theme preferences in `~/.config/scout/config`. This file is automatically created and updated when you cycle through themes using `t`.
-
+## Installation
 
 **via homebrew (recommended):**
 
@@ -66,49 +43,32 @@ make build
 
 ---
 
-## Releasing
+## Configuration
 
-scout is distributed via [homebrew](https://brew.sh) through the [mirageglobe/homebrew-tap](https://github.com/mirageglobe/homebrew-tap). releases are built and published using [goreleaser](https://goreleaser.com), which compiles cross-platform binaries and auto-updates the homebrew formula.
-
-condensed release flow:
-
-```bash
-# 1. tag the next version
-make bump-patch        # or bump-minor / bump-major
-
-# 2. push the tag to origin
-make push-tags
-
-# 3. build, publish github release, and update homebrew formula
-make release
-```
-
-> see [SPEC.md §10](SPEC.md#10-releasing) for full prerequisites and details.
+Scout stores your theme preferences in `~/.config/scout/config`. This file is automatically created and updated when you cycle through themes using `t`.
 
 ---
 
-## Roadmap
+## Keybindings
 
-### near term
-- [x] ls all files in current directory
-- [x] syntax highlighting
-- [x] time-aware color themes
-- [x] help overlay
-- [x] system stats in header (CPU, memory, clock)
-- [x] git branch display in status bar
-- [x] collapsible file list pane
-- [x] identify symlinks in file list (e.g. with @ or ↳ symbol)
-- [x] respect `$EDITOR` environment variable for editor handoff
-- [x] preview auto-refresh or manual refresh key to reload files changed by external processes
-- [x] create saved local configs to support theme save
-- [x] focus command: restrict navigation to root directory where scout was launched (no escaping to parent)
-- [ ] fuzzy file search
-- [ ] visible status/activity indicator above the hint bar (e.g. spinner or `scout: ...` message) for async operations and errors
-- [ ] navigating to parent directory should restore cursor focus to the folder you came from
-- [ ] toggle state indicators in the hint bar (e.g. bold or accented color when hidden files or root-focus mode are active)
-
-### future ideas
-- [ ] preview images
+| key              | action                                             |
+| ---------------- | -------------------------------------------------- |
+| `j` / `↓`        | move cursor down                                   |
+| `k` / `↑`        | move cursor up                                     |
+| `h` / `←` / `⌫`  | nav to parent directory (or nav back from preview) |
+| `l` / `→`        | enter directory or nav to preview pane             |
+| `enter`          | enter directory or open file in editor             |
+| `e`              | open file in editor                                |
+| `o`              | open file with system default application          |
+| `g`              | jump to top of list                                |
+| `G`              | jump to bottom of list                             |
+| `i`              | toggle hidden files                                |
+| `f`              | toggle root-focus mode                             |
+| `tab`            | collapse / expand file list pane                   |
+| `t`              | cycle color theme                                  |
+| `?`              | show / hide help overlay                           |
+| `q` / `ctrl+c`   | quit                                               |
 
 ---
 
+> for architecture, design decisions, roadmap, and release process see [SPEC.md](SPEC.md).

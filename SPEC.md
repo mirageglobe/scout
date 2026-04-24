@@ -181,22 +181,23 @@ Seven themes are defined in a `themes` slice. Each theme carries a name and an a
 
 ## 5. Key Bindings
 
-| key              | action                                         |
-| ---------------- | ---------------------------------------------- |
-| `j` / `↓`        | move cursor down                               |
-| `k` / `↑`        | move cursor up                                 |
+| key              | action                                             |
+| ---------------- | -------------------------------------------------- |
+| `j` / `↓`        | move cursor down                                   |
+| `k` / `↑`        | move cursor up                                     |
 | `h` / `←` / `⌫`  | nav to parent directory (or nav back from preview) |
 | `l` / `→`        | enter directory or nav to preview pane             |
-| `enter`          | enter directory or open file in vim            |
-| `v`              | open file in vim                               |
-| `o`              | open file with system default application      |
-| `g`              | jump to top of list                            |
-| `G`              | jump to bottom of list                         |
-| `i`              | toggle hidden files                            |
-| `tab`            | collapse / expand file list pane               |
-| `t`              | cycle color theme                              |
-| `?`              | show / hide help overlay                       |
-| `q` / `ctrl+c`   | quit                                           |
+| `enter`          | enter directory or open file in editor             |
+| `e`              | open file in editor                                |
+| `o`              | open file with system default application          |
+| `g`              | jump to top of list                                |
+| `G`              | jump to bottom of list                             |
+| `i`              | toggle hidden files                                |
+| `f`              | toggle root-focus mode                             |
+| `tab`            | collapse / expand file list pane                   |
+| `t`              | cycle color theme                                  |
+| `?`              | show / hide help overlay                           |
+| `q` / `ctrl+c`   | quit                                               |
 
 ---
 
@@ -295,11 +296,13 @@ git checkout main && git pull
 export GITHUB_TOKEN=<your-scout-token>
 export HOMEBREW_TAP_GITHUB_TOKEN=<your-tap-token>
 
-# 3. tag the release (use semantic versioning)
-git tag v0.3.0
-git push origin v0.3.0
+# 3. tag the next version (choose patch / minor / major as appropriate)
+make bump-patch
 
-# 4. release (builds binaries, publishes GitHub release, updates homebrew formula)
+# 4. push the tag to origin
+make push-tags
+
+# 5. build binaries, publish github release, and update homebrew formula
 make release
 ```
 
@@ -311,7 +314,34 @@ make release-dry
 
 ---
 
-## 11. Design Decisions
+## 11. Roadmap
+
+### near term
+
+- [x] ls all files in current directory
+- [x] syntax highlighting
+- [x] time-aware color themes
+- [x] help overlay
+- [x] system stats in header (CPU, memory, clock)
+- [x] git branch display in status bar
+- [x] collapsible file list pane
+- [x] identify symlinks in file list (e.g. with @ or ↳ symbol)
+- [x] respect `$EDITOR` environment variable for editor handoff
+- [x] preview auto-refresh or manual refresh key to reload files changed by external processes
+- [x] create saved local configs to support theme save
+- [x] focus command: restrict navigation to root directory where scout was launched (no escaping to parent)
+- [ ] fuzzy file search
+- [ ] visible status/activity indicator above the hint bar (e.g. spinner or `scout: ...` message) for async operations and errors
+- [ ] navigating to parent directory should restore cursor focus to the folder you came from
+- [ ] toggle state indicators in the hint bar (e.g. bold or accented color when hidden files or root-focus mode are active)
+
+### future ideas
+
+- [ ] preview images
+
+---
+
+## 12. Design Decisions
 
 | decision                             | rationale                                                                                  |
 | ------------------------------------ | ------------------------------------------------------------------------------------------ |
