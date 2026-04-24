@@ -66,6 +66,27 @@ make build
 
 ---
 
+## Releasing
+
+scout is distributed via [homebrew](https://brew.sh) through the [mirageglobe/homebrew-tap](https://github.com/mirageglobe/homebrew-tap). releases are built and published using [goreleaser](https://goreleaser.com), which compiles cross-platform binaries and auto-updates the homebrew formula.
+
+condensed release flow:
+
+```bash
+# 1. tag the next version
+make bump-patch        # or bump-minor / bump-major
+
+# 2. push the tag to origin
+make push-tags
+
+# 3. build, publish github release, and update homebrew formula
+make release
+```
+
+> see [SPEC.md §10](SPEC.md#10-releasing) for full prerequisites and details.
+
+---
+
 ## Roadmap
 
 ### near term

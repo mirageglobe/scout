@@ -75,6 +75,9 @@ bump-major: ## Tag the next major version (e.g. v0.2.0 -> v1.0.0) on the current
 	@read -p "tag $(NEXT_MAJOR_VERSION)? [y/N] " ans && [ "$$ans" = "y" ] && \
 		git tag $(NEXT_MAJOR_VERSION) && echo "tagged $(NEXT_MAJOR_VERSION)" || echo "aborted"
 
+push-tags: ## Push local tags to origin (run after bump-patch/minor/major, before release)
+	git push origin --tags
+
 release: ## Tag and release via goreleaser (requires GITHUB_TOKEN + HOMEBREW_TAP_GITHUB_TOKEN)
 	goreleaser release --clean
 
