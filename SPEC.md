@@ -314,13 +314,16 @@ git checkout main && git pull
 export GITHUB_TOKEN=<your-scout-token>
 export HOMEBREW_TAP_GITHUB_TOKEN=<your-tap-token>
 
-# 3. tag the next version (choose patch / minor / major as appropriate)
+# 3. update CHANGELOG.md — move [unreleased] items under the new version heading
+#    e.g. ## [v0.4.0] — 2026-05-01
+
+# 4. tag the next version (choose patch / minor / major as appropriate)
 make bump-patch
 
-# 4. push the tag to origin
+# 5. push the tag to origin
 make push-tags
 
-# 5. build binaries, publish github release, and update homebrew formula
+# 6. build binaries, publish github release, and update homebrew formula
 make release
 ```
 
