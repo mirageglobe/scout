@@ -12,6 +12,9 @@ import (
 // SpinnerTickMsg drives the loading animation frame.
 type SpinnerTickMsg struct{}
 
+// HintTipTickMsg advances the rotating hint bar tip.
+type HintTipTickMsg struct{}
+
 // EditorFinishedMsg is sent when the external editor (vim) exits.
 type EditorFinishedMsg struct{ Err error }
 
@@ -46,6 +49,7 @@ type Model struct {
 	Loading              bool   // true while a LoadDir command is in-flight
 	SpinnerFrame         int    // current animation frame (0-2) for the loading indicator
 	PendingCursor        string // entry name to restore cursor to after next DirLoadedMsg
+	HintTipIdx           int    // index into the rotating hint tips slice
 }
 
 // NewModel initializes a fresh UI model with a time-based theme (or saved config).
@@ -69,6 +73,7 @@ func (m Model) Init() tea.Cmd {
 		m.LoadDir(m.Cwd),
 		filesystem.DoTick(),
 		filesystem.GetStats(m.Cwd),
+		DoHintTipTick(),
 	)
 }
 
@@ -76,6 +81,13 @@ func (m Model) Init() tea.Cmd {
 func DoSpinnerTick() tea.Cmd {
 	return tea.Tick(200*time.Millisecond, func(time.Time) tea.Msg {
 		return SpinnerTickMsg{}
+	})
+}
+
+// DoHintTipTick returns a command that fires HintTipTickMsg after 5s.
+func DoHintTipTick() tea.Cmd {
+	return tea.Tick(5*time.Second, func(time.Time) tea.Msg {
+		return HintTipTickMsg{}
 	})
 }
 

@@ -416,7 +416,7 @@ make release
 - [x] add context.Context with timeout to WatchDir, LoadDir, RefreshGit, and GetStats to prevent goroutine pile-up on slow or hung mounts
 - [x] preview pane text wrapping — long lines truncated at pane boundary with a dim-styled `…` indicator; horizontal scroll deferred (use `e` to open in `$EDITOR`)
 - [ ] stale preview notification — when the previewed file is modified on disk, display an inline prompt asking the user to refresh rather than silently showing stale content
-- [ ] rotating hint bar tips — cycle through short, command-focused tips in the hint bar to educate users on available keybindings and features
+- [x] rotating hint bar tips — hint bar now shows one tip at a time (`key · description`), cycling every 5s via HintTipTickMsg; 12 tips covering all major keybindings
 - [ ] consistent message bar styling — remove highlight/colour emphasis from messages; use a uniform text style with a leading icon or Unicode glyph to distinguish message types (e.g. `!` error, `i` hint, `·` status)
 - [ ] ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; investigate per-terminal detection or a layout tolerance mode
 

@@ -10,6 +10,22 @@ import (
 	"github.com/mirageglobe/scout/internal/filesystem"
 )
 
+// HintTips is the rotating set of [key, description] pairs shown in the hint bar.
+var HintTips = [][2]string{
+	{"↑ / ↓", "navigate files"},
+	{"← / →", "switch panes"},
+	{"e", "open in $EDITOR"},
+	{"o", "open with default app"},
+	{"tab", "collapse / expand explorer"},
+	{"i", "toggle hidden files"},
+	{"f", "toggle root-focus (stay in launch dir)"},
+	{"r", "refresh directory"},
+	{"t", "cycle colour theme"},
+	{"/", "search in preview"},
+	{"?", "show help overlay"},
+	{"q", "quit"},
+}
+
 // View renders the entire application UI.
 func (m Model) View() tea.View {
 	if m.Width == 0 {
@@ -246,33 +262,16 @@ func (m Model) View() tea.View {
 	}
 
 	dimHint := lipgloss.NewStyle().Foreground(dimColor)
-	activeHint := lipgloss.NewStyle().Foreground(accentColor).Bold(true)
+	accentHint := lipgloss.NewStyle().Foreground(accentColor).Bold(true)
 
-	hint := func(key, label string, on bool) string {
-		text := key + ":" + label
-		if on {
-			return activeHint.Render(text)
-		}
-		return dimHint.Render(text)
-	}
-
+	tip := HintTips[m.HintTipIdx]
 	var statusBar string
 	if m.GitBranch != "" {
-		statusBar = dimHint.Render(" ⎇ " + m.GitBranch + "  │")
+		statusBar = dimHint.Render(" ⎇ "+m.GitBranch) + dimHint.Render("  │  ")
+	} else {
+		statusBar = dimHint.Render(" ")
 	}
-	sep := "  "
-	statusBar += " " + hint("↑/↓", "nav", false) +
-		sep + hint("←/→", "nav", false) +
-		sep + hint("e", "edit("+editor+")", false) +
-		sep + hint("o", "open", false) +
-		sep + hint("i", "hidden", !m.ShowHidden) +
-		sep + hint("f", "root-focus", m.RootFocus) +
-		sep + hint("tab", "explorer", m.ExplorerCollapsed) +
-		sep + hint("r", "refresh", false) +
-		sep + hint("t", "theme", false) +
-		sep + hint("/", "search", false) +
-		sep + hint("?", "help", false) +
-		sep + hint("q", "quit", false)
+	statusBar += accentHint.Render(tip[0]) + dimHint.Render(" · "+tip[1])
 	statusBar = filesystem.Truncate(statusBar, m.Width)
 
 	var layout string

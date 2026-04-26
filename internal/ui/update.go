@@ -62,6 +62,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case HintTipTickMsg:
+		m.HintTipIdx = (m.HintTipIdx + 1) % len(HintTips)
+		return m, DoHintTipTick()
+
 	case filesystem.DirLoadedMsg:
 		m.Loading = false
 		if msg.Err != nil {
