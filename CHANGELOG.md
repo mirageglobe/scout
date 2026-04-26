@@ -8,6 +8,12 @@ versions follow [semantic versioning](https://semver.org/).
 
 ## [unreleased]
 
+### fixed
+- `[explorer]` auto-refresh not working — file changes on disk are not reflected in the file list or preview pane without manual navigation
+
+### docs
+- adjust roadmap for file size column in `SPEC.md`
+
 ---
 
 ## [v0.4.0] — 2026-04-24
