@@ -415,7 +415,7 @@ make release
 - [x] toggle state indicators in the hint bar (bold accent on i:hidden, f:root-focus, tab:explorer when active)
 - [x] add context.Context with timeout to WatchDir, LoadDir, RefreshGit, and GetStats to prevent goroutine pile-up on slow or hung mounts
 - [x] preview pane text wrapping — long lines truncated at pane boundary with a dim-styled `…` indicator; horizontal scroll deferred (use `e` to open in `$EDITOR`)
-- [x] stale preview notification — when the previewed file's ModTime changes on a watch tick, status bar shows `[info] file changed on disk — press r to refresh`
+- [x] stale preview notification — preview auto-refreshes on file change via dirEntriesChanged ModTime check; no separate notification needed
 - [x] rotating hint bar tips — normal bar shown at rest; after 10s idle, cycles once through 12 friendly tips (5s each) then returns to normal; any keypress cancels and resets
 - [x] consistent message bar styling — uniform dim style for all messages; bracketed tag prefix `[error]`, `[ok]`, `[info]` distinguishes type; no colour emphasis on body or tag
 - [ ] ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; investigate per-terminal detection or a layout tolerance mode
