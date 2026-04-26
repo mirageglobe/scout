@@ -416,8 +416,10 @@ make release
 - [x] toggle state indicators in the hint bar (bold accent on i:hidden, f:root-focus, tab:explorer when active)
 - [x] add context.Context with timeout to WatchDir, LoadDir, RefreshGit, and GetStats to prevent goroutine pile-up on slow or hung mounts
 
-### future ideas
+### ideas
 
+- [ ] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
+- [ ] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
 - [ ] preview images
 - [ ] preview pane text wrapping — long lines currently bleed past the pane boundary and are not wrapped; implement soft-wrap capped to pane width
 - [ ] stale preview notification — when the previewed file is modified on disk, display an inline prompt asking the user to refresh rather than silently showing stale content
