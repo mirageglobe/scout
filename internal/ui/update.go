@@ -51,6 +51,18 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.GitStatus = msg.GitStatus
 		m.GitBranch = msg.GitBranch
+
+		// detect content change in the currently selected file
+		if m.Cursor < len(m.Entries) && m.Cursor < len(entries) {
+			old := m.Entries[m.Cursor]
+			cur := entries[m.Cursor]
+			if old.Name == cur.Name && !old.IsDir &&
+				old.Info != nil && cur.Info != nil &&
+				!cur.Info.ModTime().Equal(old.Info.ModTime()) {
+				m.StatusMsg = "[info] file changed on disk — press r to refresh"
+			}
+		}
+
 		if dirEntriesChanged(m.Entries, entries) {
 			m.Entries = entries
 			if m.Cursor >= len(m.Entries) {
