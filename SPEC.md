@@ -235,10 +235,10 @@ Nine themes are defined in a `Themes` slice. Each theme carries a name, accent, 
 
 | porcelain code | badge | color  | meaning                  |
 | -------------- | ----- | ------ | ------------------------ |
-| `??`           | `?`   | dim    | untracked                |
-| `A` / ` A`     | `+`   | green  | added / staged           |
-| `M` / ` M`     | `M`   | orange | modified                 |
-| other non-space| `!`   | red    | other change             |
+| `??`           | `?`   | accent | untracked                |
+| `A` / ` A`     | `+`   | accent | added / staged           |
+| `M` / ` M`     | `M`   | accent | modified                 |
+| other non-space| `!`   | accent | other change             |
 
 - nested paths (e.g. `subdir/file.go`) attribute the change to the top-level entry (`subdir`).
 - renamed paths (`R  old -> new`) use the new (destination) name.

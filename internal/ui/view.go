@@ -112,7 +112,7 @@ func (m Model) View() tea.View {
 				symStyle = lipgloss.NewStyle().Foreground(accentColor)
 			case "?":
 				symbol = "?"
-				symStyle = lipgloss.NewStyle().Foreground(dimColor)
+				symStyle = lipgloss.NewStyle().Foreground(accentColor)
 			default:
 				symbol = "!"
 				symStyle = lipgloss.NewStyle().Foreground(accentColor)
