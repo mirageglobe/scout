@@ -415,6 +415,10 @@ make release
 ### future ideas
 
 - [ ] preview images
+- [ ] preview pane text wrapping — long lines currently bleed past the pane boundary and are not wrapped; implement soft-wrap capped to pane width
+- [ ] stale preview notification — when the previewed file is modified on disk, display an inline prompt asking the user to refresh rather than silently showing stale content
+- [ ] rotating hint bar tips — cycle through short, command-focused tips in the hint bar to educate users on available keybindings and features
+- [ ] consistent message bar styling — remove highlight/colour emphasis from messages; use a uniform text style with a leading icon or Unicode glyph to distinguish message types (e.g. `!` error, `i` hint, `·` status)
 - [ ] ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; investigate per-terminal detection or a layout tolerance mode
 
 ---
