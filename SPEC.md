@@ -410,22 +410,22 @@ make release
 - [x] preview auto-refresh or manual refresh key to reload files changed by external processes
 - [x] create saved local configs to support theme save
 - [x] focus command: restrict navigation to root directory where scout was launched (no escaping to parent)
-- [ ] fuzzy file search
 - [x] visible status/activity indicator above the hint bar (`scout ›` persistent prompt with spinner and state-aware messages)
 - [x] navigating to parent directory should restore cursor focus to the folder you came from
 - [x] toggle state indicators in the hint bar (bold accent on i:hidden, f:root-focus, tab:explorer when active)
 - [x] add context.Context with timeout to WatchDir, LoadDir, RefreshGit, and GetStats to prevent goroutine pile-up on slow or hung mounts
+- [x] preview pane text wrapping — long lines truncated at pane boundary with a dim-styled `…` indicator; horizontal scroll deferred (use `e` to open in `$EDITOR`)
+- [ ] stale preview notification — when the previewed file is modified on disk, display an inline prompt asking the user to refresh rather than silently showing stale content
+- [ ] rotating hint bar tips — cycle through short, command-focused tips in the hint bar to educate users on available keybindings and features
+- [ ] consistent message bar styling — remove highlight/colour emphasis from messages; use a uniform text style with a leading icon or Unicode glyph to distinguish message types (e.g. `!` error, `i` hint, `·` status)
+- [ ] ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; investigate per-terminal detection or a layout tolerance mode
 
 ### ideas
 
 - [ ] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
 - [ ] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
+- [ ] fuzzy file search
 - [ ] preview images
-- [ ] preview pane text wrapping — long lines currently bleed past the pane boundary and are not wrapped; implement soft-wrap capped to pane width
-- [ ] stale preview notification — when the previewed file is modified on disk, display an inline prompt asking the user to refresh rather than silently showing stale content
-- [ ] rotating hint bar tips — cycle through short, command-focused tips in the hint bar to educate users on available keybindings and features
-- [ ] consistent message bar styling — remove highlight/colour emphasis from messages; use a uniform text style with a leading icon or Unicode glyph to distinguish message types (e.g. `!` error, `i` hint, `·` status)
-- [ ] ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; investigate per-terminal detection or a layout tolerance mode
 
 ---
 

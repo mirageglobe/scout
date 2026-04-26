@@ -33,7 +33,7 @@ func (m Model) View() tea.View {
 
 	leftWidth := 40
 	if m.ExplorerCollapsed {
-		leftWidth = 8
+		leftWidth = 10
 	} else if leftWidth > usableWidth*2/5 {
 		leftWidth = usableWidth * 2 / 5
 	}
@@ -194,9 +194,10 @@ func (m Model) View() tea.View {
 		Bold(true).
 		Width(rightWidth - 4)
 
+	dimEllipsis := lipgloss.NewStyle().Foreground(dimColor).Render("…")
 	for i, l := range visiblePreview {
 		absIdx := startIdx + i
-		truncated := filesystem.Truncate(l, rightWidth-4)
+		truncated := filesystem.TruncateWithTail(l, rightWidth-4, dimEllipsis)
 		if absIdx == currentMatchLine {
 			visiblePreview[i] = currentMatchStyle.Render(stripANSI(truncated))
 		} else if matchSet[absIdx] {

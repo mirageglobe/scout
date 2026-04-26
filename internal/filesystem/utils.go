@@ -38,6 +38,24 @@ func Truncate(s string, maxLen int) string {
 	return ansi.Truncate(s, maxLen, "")
 }
 
+// TruncateWithTail cuts s to maxLen visual columns. If truncated, tail (which
+// may contain ANSI styling) is appended in place of the removed characters.
+// tail's visual width is subtracted from maxLen before cutting.
+func TruncateWithTail(s string, maxLen int, tail string) string {
+	if maxLen <= 0 {
+		return ""
+	}
+	if lipgloss.Width(s) <= maxLen {
+		return s
+	}
+	tailWidth := lipgloss.Width(tail)
+	cut := maxLen - tailWidth
+	if cut < 0 {
+		cut = 0
+	}
+	return ansi.Truncate(s, cut, "") + tail
+}
+
 // VisibleLen returns the approximate visible length of a string,
 // stripping ANSI escape sequences.
 func VisibleLen(s string) int {
