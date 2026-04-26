@@ -418,14 +418,13 @@ make release
 - [x] stale preview notification — preview auto-refreshes on file change via dirEntriesChanged ModTime check; no separate notification needed
 - [x] rotating hint bar tips — normal bar shown at rest; after 10s idle, cycles once through 12 friendly tips (5s each) then returns to normal; any keypress cancels and resets
 - [x] consistent message bar styling — uniform dim style for all messages; bracketed tag prefix `[error]`, `[ok]`, `[info]` distinguishes type; no colour emphasis on body or tag
-- [ ] ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; investigate per-terminal detection or a layout tolerance mode
-
 ### ideas
 
 - [ ] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
 - [ ] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
 - [ ] fuzzy file search
 - [ ] preview images
+- [ ] ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; investigate per-terminal detection or a layout tolerance mode  [hard]
 
 ---
 
