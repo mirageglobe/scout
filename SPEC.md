@@ -394,7 +394,7 @@ make release
 
 ### bugs
 
-- [ ] `[explorer]` auto-refresh not working — file changes on disk are not reflected in the file list or preview pane without manual navigation  [medium]
+- [x] `[explorer]` auto-refresh not working — file changes on disk are not reflected in the file list or preview pane without manual navigation  [medium]
 
 ### near term
 
