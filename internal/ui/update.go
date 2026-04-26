@@ -97,7 +97,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case filesystem.DirLoadedMsg:
 		m.Loading = false
 		if msg.Err != nil {
-			m.StatusMsg = fmt.Sprintf("error: %v", msg.Err)
+			m.StatusMsg = fmt.Sprintf("[error] %v", msg.Err)
 			return m, nil
 		}
 		entries := msg.Entries
@@ -229,9 +229,9 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				fullPath := filepath.Join(m.Cwd, selected.Name)
 				if !selected.IsDir {
 					if err := filesystem.OpenWithSystem(fullPath); err != nil {
-						m.StatusMsg = fmt.Sprintf("Error: %v", err)
+						m.StatusMsg = fmt.Sprintf("[error] %v", err)
 					} else {
-						m.StatusMsg = fmt.Sprintf("Opened: %s", selected.Name)
+						m.StatusMsg = fmt.Sprintf("[ok] opened: %s", selected.Name)
 					}
 				}
 			}
@@ -240,7 +240,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "r":
 			if m.FocusRight {
 				m.Preview = m.BuildPreview()
-				m.StatusMsg = "Preview refreshed"
+				m.StatusMsg = "[ok] preview refreshed"
 			}
 			return m, nil
 
@@ -259,9 +259,9 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "f":
 			m.RootFocus = !m.RootFocus
 			if m.RootFocus {
-				m.StatusMsg = "Root focus enabled"
+				m.StatusMsg = "[info] root focus enabled"
 			} else {
-				m.StatusMsg = "Root focus disabled"
+				m.StatusMsg = "[info] root focus disabled"
 			}
 			return m, nil
 
@@ -402,7 +402,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				n, _ := f.Read(buf)
 				f.Close()
 				if filesystem.IsBinary(buf[:n]) {
-					m.StatusMsg = fmt.Sprintf("Error: cannot open binary file: %s", selected.Name)
+					m.StatusMsg = fmt.Sprintf("[error] cannot open binary file: %s", selected.Name)
 					return m, nil
 				}
 			}
@@ -411,7 +411,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if editor == "" {
 				editor = "vim"
 			}
-			m.StatusMsg = fmt.Sprintf("Opening with %s...", editor)
+			m.StatusMsg = fmt.Sprintf("[info] opening with %s", editor)
 			c := exec.Command(editor, fullPath)
 			return m, tea.ExecProcess(c, func(err error) tea.Msg {
 				return EditorFinishedMsg{Err: err}
@@ -461,7 +461,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case EditorFinishedMsg:
 		if msg.Err != nil {
-			m.StatusMsg = fmt.Sprintf("error: %v", msg.Err)
+			m.StatusMsg = fmt.Sprintf("[error] %v", msg.Err)
 		}
 		m, cmd := startLoading(m)
 		return m, tea.Batch(m.LoadDir(m.Cwd), cmd)

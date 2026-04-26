@@ -352,11 +352,7 @@ func (m Model) RenderStatusLine() string {
 	}
 
 	if m.StatusMsg != "" {
-		msgStyle := accentStyle.Italic(true)
-		if strings.HasPrefix(m.StatusMsg, "error:") {
-			msgStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF5555"))
-		}
-		return prefix + msgStyle.Render(filesystem.Truncate(m.StatusMsg, m.Width-10))
+		return prefix + dimStyle.Render(filesystem.Truncate(m.StatusMsg, m.Width-10))
 	}
 
 	// idle: dim prompt awaiting input
