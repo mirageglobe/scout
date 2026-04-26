@@ -92,7 +92,7 @@ func DoSpinnerTick() tea.Cmd {
 // DoHintIdleTick fires HintIdleTickMsg after 10s of inactivity.
 // Seq is compared on arrival; a mismatched seq means a keypress cancelled this timer.
 func DoHintIdleTick(seq int) tea.Cmd {
-	return tea.Tick(10*time.Second, func(time.Time) tea.Msg {
+	return tea.Tick(60*time.Second, func(time.Time) tea.Msg {
 		return HintIdleTickMsg{Seq: seq}
 	})
 }
