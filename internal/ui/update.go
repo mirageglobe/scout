@@ -533,13 +533,16 @@ func startLoading(m Model) (Model, tea.Cmd) {
 	return m, DoSpinnerTick()
 }
 
-// dirEntriesChanged returns true if the entry list has changed by name, type, or count.
+// dirEntriesChanged returns true if the entry list has changed by name, type, count, or modification time.
 func dirEntriesChanged(a, b []filesystem.Entry) bool {
 	if len(a) != len(b) {
 		return true
 	}
 	for i := range a {
 		if a[i].Name != b[i].Name || a[i].IsDir != b[i].IsDir || a[i].SubCount != b[i].SubCount {
+			return true
+		}
+		if a[i].Info != nil && b[i].Info != nil && !a[i].Info.ModTime().Equal(b[i].Info.ModTime()) {
 			return true
 		}
 	}

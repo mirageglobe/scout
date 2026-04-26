@@ -1,11 +1,23 @@
 package ui
 
 import (
+	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mirageglobe/scout/internal/filesystem"
 )
+
+// mockFileInfo satisfies os.FileInfo with a configurable ModTime.
+type mockFileInfo struct{ modTime time.Time }
+
+func (f mockFileInfo) Name() string      { return "" }
+func (f mockFileInfo) Size() int64       { return 0 }
+func (f mockFileInfo) Mode() os.FileMode { return 0 }
+func (f mockFileInfo) ModTime() time.Time { return f.modTime }
+func (f mockFileInfo) IsDir() bool       { return false }
+func (f mockFileInfo) Sys() any          { return nil }
 
 func TestComputeSearchMatches(t *testing.T) {
 	preview := "hello world\nfoo bar\nHELLO again"
@@ -63,6 +75,47 @@ func TestDirEntriesChanged(t *testing.T) {
 	}
 	if !dirEntriesChanged(base, base[:1]) {
 		t.Error("different lengths not detected as changed")
+	}
+
+	t0 := time.Now().Add(-time.Minute)
+	t1 := time.Now()
+	withModtime := []filesystem.Entry{
+		{Name: "foo", IsDir: true, Info: mockFileInfo{modTime: t0}},
+		{Name: "bar.txt", Info: mockFileInfo{modTime: t0}},
+	}
+	modtimeChanged := []filesystem.Entry{
+		{Name: "foo", IsDir: true, Info: mockFileInfo{modTime: t0}},
+		{Name: "bar.txt", Info: mockFileInfo{modTime: t1}},
+	}
+	if dirEntriesChanged(withModtime, withModtime) {
+		t.Error("same modtimes reported as changed")
+	}
+	if !dirEntriesChanged(withModtime, modtimeChanged) {
+		t.Error("modtime change not detected")
+	}
+}
+
+func TestDirWatchMsgRebuildsPreviewOnModtimeChange(t *testing.T) {
+	t0 := time.Now().Add(-time.Minute)
+	t1 := time.Now()
+
+	m := Model{
+		Entries: []filesystem.Entry{
+			{Name: "file.txt", Info: mockFileInfo{modTime: t0}},
+		},
+		Preview: "stale",
+	}
+
+	msg := filesystem.DirWatchMsg{
+		Entries: []filesystem.Entry{
+			{Name: "file.txt", Info: mockFileInfo{modTime: t1}},
+		},
+	}
+	updated, _ := m.Update(msg)
+	um := updated.(Model)
+
+	if um.Preview == "stale" {
+		t.Error("preview was not rebuilt after modtime change in DirWatchMsg")
 	}
 }
 
