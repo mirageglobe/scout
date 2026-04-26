@@ -60,31 +60,31 @@ lint: ## Run go vet (basic linting)
 demo: build ## Generate a VHS demo GIF
 	vhs < demo.tape
 
-bump-patch: ## Tag the next patch version (e.g. v0.1.2 -> v0.1.3) on the current commit
+bump-patch: ## [main only] Tag the next patch version (e.g. v0.1.2 -> v0.1.3) on the current commit
 	@echo "current: v$(VERSION)  ->  next: $(NEXT_VERSION)"
 	@read -p "tag $(NEXT_VERSION)? [y/N] " ans && [ "$$ans" = "y" ] && \
 		git tag $(NEXT_VERSION) && echo "tagged $(NEXT_VERSION)" || echo "aborted"
 
-bump-minor: ## Tag the next minor version (e.g. v0.1.3 -> v0.2.0) on the current commit
+bump-minor: ## [main only] Tag the next minor version (e.g. v0.1.3 -> v0.2.0) on the current commit
 	@echo "current: v$(VERSION)  ->  next: $(NEXT_MINOR_VERSION)"
 	@read -p "tag $(NEXT_MINOR_VERSION)? [y/N] " ans && [ "$$ans" = "y" ] && \
 		git tag $(NEXT_MINOR_VERSION) && echo "tagged $(NEXT_MINOR_VERSION)" || echo "aborted"
 
-bump-major: ## Tag the next major version (e.g. v0.2.0 -> v1.0.0) on the current commit
+bump-major: ## [main only] Tag the next major version (e.g. v0.2.0 -> v1.0.0) on the current commit
 	@echo "current: v$(VERSION)  ->  next: $(NEXT_MAJOR_VERSION)"
 	@read -p "tag $(NEXT_MAJOR_VERSION)? [y/N] " ans && [ "$$ans" = "y" ] && \
 		git tag $(NEXT_MAJOR_VERSION) && echo "tagged $(NEXT_MAJOR_VERSION)" || echo "aborted"
 
-push-tags: ## Push local tags to origin (run after bump-patch/minor/major, before release)
+push-tags: ## [main only] Push local tags to origin (run after bump-*, before release)
 	git push origin --tags
 
-release: ## Tag and release via goreleaser (requires GITHUB_TOKEN + HOMEBREW_TAP_GITHUB_TOKEN)
+release: ## [main only] Build and publish via goreleaser (requires GITHUB_TOKEN + HOMEBREW_TAP_GITHUB_TOKEN)
 	goreleaser release --clean
 
-release-reset: ## Delete existing GitHub release for current tag (use before re-running a failed release)
+release-reset: ## [main only] Delete existing GitHub release for current tag (use before re-running a failed release)
 	gh release delete v$(VERSION) --yes 2>/dev/null || true
 
-release-dry: ## Dry-run goreleaser release (no publish, no tag)
+release-dry: ## Dry-run goreleaser locally without publishing (safe on any branch)
 	goreleaser release --snapshot --clean
 
 clean: ## Remove the compiled binary and demo assets
