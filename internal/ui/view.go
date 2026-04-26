@@ -10,20 +10,20 @@ import (
 	"github.com/mirageglobe/scout/internal/filesystem"
 )
 
-// HintTips is the rotating set of [key, description] pairs shown in the hint bar.
+// HintTips is the rotating set of [key, description] pairs shown after 10s idle.
 var HintTips = [][2]string{
-	{"↑ / ↓", "navigate files"},
-	{"← / →", "switch panes"},
-	{"e", "open in $EDITOR"},
-	{"o", "open with default app"},
-	{"tab", "collapse / expand explorer"},
-	{"i", "toggle hidden files"},
-	{"f", "toggle root-focus (stay in launch dir)"},
-	{"r", "refresh directory"},
-	{"t", "cycle colour theme"},
-	{"/", "search in preview"},
-	{"?", "show help overlay"},
-	{"q", "quit"},
+	{"↑ / ↓", "move up and down through files"},
+	{"← / →", "jump between the explorer and preview panes"},
+	{"e", "open the selected file in your $EDITOR"},
+	{"o", "open the file with your system default app"},
+	{"tab", "collapse the explorer into a sliver to maximise the preview"},
+	{"i", "show or hide dotfiles and hidden entries"},
+	{"f", "lock navigation to the folder you launched scout from"},
+	{"r", "force a refresh of the current directory"},
+	{"t", "switch to the next colour theme"},
+	{"/", "search for text inside the preview pane"},
+	{"?", "open the full help overlay"},
+	{"q", "quit scout"},
 }
 
 // View renders the entire application UI.
@@ -262,16 +262,38 @@ func (m Model) View() tea.View {
 	}
 
 	dimHint := lipgloss.NewStyle().Foreground(dimColor)
-	accentHint := lipgloss.NewStyle().Foreground(accentColor).Bold(true)
+	activeHint := lipgloss.NewStyle().Foreground(accentColor).Bold(true)
 
-	tip := HintTips[m.HintTipIdx]
 	var statusBar string
 	if m.GitBranch != "" {
-		statusBar = dimHint.Render(" ⎇ "+m.GitBranch) + dimHint.Render("  │  ")
-	} else {
-		statusBar = dimHint.Render(" ")
+		statusBar = dimHint.Render(" ⎇ " + m.GitBranch + "  │")
 	}
-	statusBar += accentHint.Render(tip[0]) + dimHint.Render(" · "+tip[1])
+	sep := "  "
+
+	if m.HintCycling {
+		tip := HintTips[m.HintTipIdx]
+		statusBar += " " + activeHint.Render(tip[0]) + dimHint.Render("  ·  "+tip[1])
+	} else {
+		hint := func(key, label string, on bool) string {
+			text := key + ":" + label
+			if on {
+				return activeHint.Render(text)
+			}
+			return dimHint.Render(text)
+		}
+		statusBar += " " + hint("↑/↓", "nav", false) +
+			sep + hint("←/→", "nav", false) +
+			sep + hint("e", "edit("+editor+")", false) +
+			sep + hint("o", "open", false) +
+			sep + hint("i", "hidden", !m.ShowHidden) +
+			sep + hint("f", "root-focus", m.RootFocus) +
+			sep + hint("tab", "explorer", m.ExplorerCollapsed) +
+			sep + hint("r", "refresh", false) +
+			sep + hint("t", "theme", false) +
+			sep + hint("/", "search", false) +
+			sep + hint("?", "help", false) +
+			sep + hint("q", "quit", false)
+	}
 	statusBar = filesystem.Truncate(statusBar, m.Width)
 
 	var layout string

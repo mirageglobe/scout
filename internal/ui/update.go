@@ -12,8 +12,19 @@ import (
 	"github.com/mirageglobe/scout/internal/filesystem"
 )
 
-// Update handles all state transitions in response to messages.
+// Update is the bubbletea entry point. It delegates to handleMsg and ensures
+// the hint idle timer is always reset after a keypress.
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	newModel, cmd := m.handleMsg(msg)
+	if _, ok := msg.(tea.KeyPressMsg); ok {
+		nm := newModel.(Model)
+		return nm, tea.Batch(cmd, DoHintIdleTick(nm.HintIdleSeq))
+	}
+	return newModel, cmd
+}
+
+// handleMsg handles all state transitions in response to messages.
+func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case filesystem.GitRefreshMsg:
@@ -62,8 +73,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case HintIdleTickMsg:
+		if msg.Seq != m.HintIdleSeq {
+			return m, nil // stale tick, a keypress already cancelled it
+		}
+		m.HintCycling = true
+		m.HintTipIdx = 0
+		return m, DoHintTipTick()
+
 	case HintTipTickMsg:
-		m.HintTipIdx = (m.HintTipIdx + 1) % len(HintTips)
+		if !m.HintCycling {
+			return m, nil
+		}
+		m.HintTipIdx++
+		if m.HintTipIdx >= len(HintTips) {
+			// one full cycle complete — return to normal bar
+			m.HintCycling = false
+			m.HintTipIdx = 0
+			return m, nil
+		}
 		return m, DoHintTipTick()
 
 	case filesystem.DirLoadedMsg:
@@ -110,6 +138,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyPressMsg:
+		// cancel any active tip cycling; wrapper re-arms the idle timer
+		m.HintCycling = false
+		m.HintTipIdx = 0
+		m.HintIdleSeq++
+
 		if m.ShowHelp {
 			if msg.String() == "q" || msg.String() == "ctrl+c" {
 				return m, tea.Quit

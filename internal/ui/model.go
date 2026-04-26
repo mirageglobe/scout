@@ -12,7 +12,10 @@ import (
 // SpinnerTickMsg drives the loading animation frame.
 type SpinnerTickMsg struct{}
 
-// HintTipTickMsg advances the rotating hint bar tip.
+// HintIdleTickMsg fires after the idle timeout; Seq guards against stale ticks.
+type HintIdleTickMsg struct{ Seq int }
+
+// HintTipTickMsg advances the rotating hint bar tip during a cycling run.
 type HintTipTickMsg struct{}
 
 // EditorFinishedMsg is sent when the external editor (vim) exits.
@@ -49,7 +52,9 @@ type Model struct {
 	Loading              bool   // true while a LoadDir command is in-flight
 	SpinnerFrame         int    // current animation frame (0-2) for the loading indicator
 	PendingCursor        string // entry name to restore cursor to after next DirLoadedMsg
-	HintTipIdx           int    // index into the rotating hint tips slice
+	HintCycling          bool   // true while hint bar is cycling through tips
+	HintTipIdx           int    // current tip index during a cycling run
+	HintIdleSeq          int    // incremented on every keypress to cancel stale idle ticks
 }
 
 // NewModel initializes a fresh UI model with a time-based theme (or saved config).
@@ -73,7 +78,7 @@ func (m Model) Init() tea.Cmd {
 		m.LoadDir(m.Cwd),
 		filesystem.DoTick(),
 		filesystem.GetStats(m.Cwd),
-		DoHintTipTick(),
+		DoHintIdleTick(0),
 	)
 }
 
@@ -84,7 +89,15 @@ func DoSpinnerTick() tea.Cmd {
 	})
 }
 
-// DoHintTipTick returns a command that fires HintTipTickMsg after 5s.
+// DoHintIdleTick fires HintIdleTickMsg after 10s of inactivity.
+// Seq is compared on arrival; a mismatched seq means a keypress cancelled this timer.
+func DoHintIdleTick(seq int) tea.Cmd {
+	return tea.Tick(10*time.Second, func(time.Time) tea.Msg {
+		return HintIdleTickMsg{Seq: seq}
+	})
+}
+
+// DoHintTipTick fires HintTipTickMsg after 5s, advancing the cycling tip.
 func DoHintTipTick() tea.Cmd {
 	return tea.Tick(5*time.Second, func(time.Time) tea.Msg {
 		return HintTipTickMsg{}
