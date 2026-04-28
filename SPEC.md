@@ -424,6 +424,7 @@ make release
 - [x] stale preview notification — preview auto-refreshes on file change via dirEntriesChanged ModTime check; no separate notification needed
 - [x] rotating hint bar tips — normal bar shown at rest; after 10s idle, cycles once through 12 friendly tips (5s each) then returns to normal; any keypress cancels and resets
 - [x] consistent message bar styling — uniform dim style for all messages; bracketed tag prefix `[error]`, `[ok]`, `[info]` distinguishes type; no colour emphasis on body or tag
+- [ ] `[explorer]` consider showing in file pane, the number of changed files  [easy]
 
 ### ideas
 
