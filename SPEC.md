@@ -8,6 +8,10 @@
 
 **Scout** is a two-pane terminal UI (TUI) file manager that lets you browse the filesystem, preview file contents, check git status at a glance, and hand off to an editor — all without leaving the terminal.
 
+### Design Philosophy
+
+**non-blocking, read-only by default.** scout never locks, writes to, or modifies the filesystem it browses. all directory reads and git queries are issued as async `tea.Cmd` values — they complete in the background and deliver results as messages, leaving the UI responsive at all times. this constraint keeps the codebase simple: no mutexes, no write paths, no risk of data loss.
+
 ### Goals
 
 | goal                                                        | status |
@@ -345,27 +349,29 @@ Scout uses [goreleaser](https://goreleaser.com) to build cross-platform binaries
 ### steps
 
 ```bash
-# 1. merge the release branch into main via PR, then pull
-git checkout main && git pull
-
-# 2. export tokens (add these to ~/.zshrc or ~/.bashrc to avoid repeating)
+# 1. export tokens (add these to ~/.zshrc or ~/.bashrc to avoid repeating)
 export GITHUB_TOKEN=<your-scout-token>
 export HOMEBREW_TAP_GITHUB_TOKEN=<your-tap-token>
 
-# 3. update CHANGELOG.md — move [unreleased] items under the new version heading
-#    e.g. ## [v0.4.0] — 2026-05-01
+# 2. update CHANGELOG.md in the branch — move [unreleased] items under the new version heading
+#    e.g. ## [v0.5.0] — 2026-04-26
 #    add a fresh empty [unreleased] section at the top for the next cycle
 
-# 4. commit the changelog update
-git add CHANGELOG.md && git commit -m "docs: update changelog for vX.Y.Z"
+# 3. commit and push the changelog update
+git add CHANGELOG.md && git commit -m "docs: finalize changelog for vX.Y.Z" && git push
 
-# 5. tag the next version (patch / minor / major — see guide above)
+# 4. merge the release branch into main via PR
+
+# 5. sync local main
+git checkout main && git pull
+
+# 6. tag the next version (patch / minor / major — see guide above)
 make bump-minor
 
-# 6. push the tag to origin
+# 7. push the tag to origin
 make push-tags
 
-# 7. build binaries, publish github release, and update homebrew formula
+# 8. build binaries, publish github release, and update homebrew formula
 make release
 ```
 

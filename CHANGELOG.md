@@ -8,8 +8,18 @@ versions follow [semantic versioning](https://semver.org/).
 
 ## [unreleased]
 
+### added
+- status message notification when the selected file or previewed file changes on disk
+- rotating hint bar tips that cycle through helpful shortcuts during idle periods
+- horizontal truncation for long preview lines with a dim ellipsis indicator
+- widened collapsed explorer view for better visibility
+
+### changed
+- increased hint bar idle timeout from 10s to 60s for better readability
+- consistent message bar styling with bracketed status tags (`[ok]`, `[error]`, `[info]`)
+
 ### fixed
-- `[explorer]` auto-refresh not working — file changes on disk are not reflected in the file list or preview pane without manual navigation
+- `[explorer]` auto-refresh not working — file changes on disk are now reflected in real-time in the file list and preview pane
 
 ### docs
 - adjust roadmap for file size column in `SPEC.md`
