@@ -17,7 +17,7 @@
 | goal                                                        | status |
 | ----------------------------------------------------------- | ------ |
 | two-pane layout (file list + preview)                       | [x]    |
-| keyboard navigation (j/k/h/l/g/G)                          | [x]    |
+| keyboard navigation (j/k/h/l/g/G)                           | [x]    |
 | editor hand-off via `$EDITOR` + `tea.ExecProcess`           | [x]    |
 | git status badges and branch display                        | [x]    |
 | styled borders via Lip Gloss                                | [x]    |
@@ -115,16 +115,16 @@ type Model struct {
 
 ### 3.2 Messages (Msg)
 
-| message                      | source                | purpose                                              |
-| ---------------------------- | --------------------- | ---------------------------------------------------- |
-| `tea.WindowSizeMsg`          | Bubble Tea runtime    | captures terminal dimensions for layout              |
-| `tea.KeyPressMsg`            | keyboard              | all navigation, actions, and quit signals            |
-| `filesystem.DirLoadedMsg`    | `LoadDir` cmd         | delivers fresh entry list, git status, and branch    |
+| message                      | source                | purpose                                                |
+| ---------------------------- | --------------------- | ------------------------------------------------------ |
+| `tea.WindowSizeMsg`          | Bubble Tea runtime    | captures terminal dimensions for layout                |
+| `tea.KeyPressMsg`            | keyboard              | all navigation, actions, and quit signals              |
+| `filesystem.DirLoadedMsg`    | `LoadDir` cmd         | delivers fresh entry list, git status, and branch      |
 | `filesystem.DirWatchMsg`     | `WatchDir` cmd        | background poll result; updates entries without resetting cursor or scroll |
-| `filesystem.GitRefreshMsg`   | `RefreshGit` cmd      | periodic git status and branch refresh               |
-| `filesystem.TickMsg`         | `DoTick` cmd          | 2-second heartbeat; triggers stats, git, and watch   |
-| `filesystem.StatsMsg`        | `GetStats` cmd        | delivers live CPU, memory, and directory size        |
-| `ui.EditorFinishedMsg`       | `tea.ExecProcess` cb  | signals editor has exited; triggers directory reload |
+| `filesystem.GitRefreshMsg`   | `RefreshGit` cmd      | periodic git status and branch refresh                 |
+| `filesystem.TickMsg`         | `DoTick` cmd          | 2-second heartbeat; triggers stats, git, and watch     |
+| `filesystem.StatsMsg`        | `GetStats` cmd        | delivers live CPU, memory, and directory size          |
+| `ui.EditorFinishedMsg`       | `tea.ExecProcess` cb  | signals editor has exited; triggers directory reload   |
 | `ui.SpinnerTickMsg`          | `DoSpinnerTick` cmd   | 200ms tick that advances the scout › loading animation |
 
 ### 3.3 Commands (Cmd)
@@ -187,21 +187,21 @@ Nine themes are defined in a `Themes` slice. Each theme carries a name, accent, 
 
 ```
 ┌─ scout v0.1.0 ──────────────────────────── 14:32  cpu 3%  mem 12MB ─┐
-│                                                                       │
-├─────────────────────────┬─────────────────────────────────────────── ┤
-│  ~/projects/scout       │  · file: main.go                           │
-│  ──────────────────     │  ──────────────────────────                │
-│  M cmd/                 │  size:     16.0 KB                         │
-│  · internal/            │  modified: 2026-04-18 17:00                │
-│  · go.mod               │  mode:     -rw-r--r--                      │
-│  · go.sum               │  ──────────────────────────                │
-│  · README.md            │    1 │ package main                        │
-│  · SPEC.md              │    2 │                                     │
-│                         │    3 │ import (                            │
-│                         │    …                                       │
-├─────────────────────────┴─────────────────────────────────────────── ┤
+│                                                                     │
+├─────────────────────────┬───────────────────────────────────────────┤
+│  ~/projects/scout       │  · file: main.go                          │
+│  ──────────────────     │  ──────────────────────────               │
+│  M cmd/                 │  size:     16.0 KB                        │
+│  · internal/            │  modified: 2026-04-18 17:00               │
+│  · go.mod               │  mode:     -rw-r--r--                     │
+│  · go.sum               │  ──────────────────────────               │
+│  · README.md            │    1 │ package main                       │
+│  · SPEC.md              │    2 │                                    │
+│                         │    3 │ import (                           │
+│                         │    …                                      │
+├─────────────────────────┴───────────────────────────────────────────┤
 │  6/8 items  · 14.2 KB  ⎇ main  │  q:quit  ?:help  j/k:nav  t:theme  │
-└───────────────────────────────────────────────────────────────────── ┘
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 - **header bar** — full-width, shows app name/version, clock, CPU, and memory.
@@ -213,23 +213,23 @@ Nine themes are defined in a `Themes` slice. Each theme carries a name, accent, 
 
 ## 5. Key Bindings
 
-| key              | action                                             |
-| ---------------- | -------------------------------------------------- |
-| `j` / `↓`        | move cursor down                                   |
-| `k` / `↑`        | move cursor up                                     |
-| `h` / `←` / `⌫`  | nav to parent directory (or nav back from preview) |
-| `l` / `→`        | enter directory or nav to preview pane             |
-| `enter`          | enter directory or open file in editor             |
-| `e`              | open file in editor                                |
-| `o`              | open file with system default application          |
-| `g`              | jump to top of list                                |
-| `G`              | jump to bottom of list                             |
-| `i`              | toggle hidden files                                |
-| `f`              | toggle root-focus mode                             |
-| `tab`            | collapse / expand file list pane                   |
-| `t`              | cycle color theme                                  |
-| `?`              | show / hide help overlay                           |
-| `q` / `ctrl+c`   | quit                                               |
+| key              | action                                            |
+| ---------------- | --------------------------------------------------|
+| `j` / `↓`        | move cursor down                                  |
+| `k` / `↑`        | move cursor up                                    |
+| `h` / `←` / `⌫`  | nav to parent directory (or nav back from preview)|
+| `l` / `→`        | enter directory or nav to preview pane            |
+| `enter`          | enter directory or open file in editor            |
+| `e`              | open file in editor                               |
+| `o`              | open file with system default application         |
+| `g`              | jump to top of list                               |
+| `G`              | jump to bottom of list                            |
+| `i`              | toggle hidden files                               |
+| `f`              | toggle root-focus mode                            |
+| `tab`            | collapse / expand file list pane                  |
+| `t`              | cycle color theme                                 |
+| `?`              | show / hide help overlay                          |
+| `q` / `ctrl+c`   | quit                                              |
 
 ---
 
@@ -404,36 +404,36 @@ make release
 
 ### near term
 
-- [x] ls all files in current directory
-- [x] syntax highlighting
-- [x] time-aware color themes
-- [x] help overlay
-- [x] system stats in header (CPU, memory, clock)
-- [x] git branch display in status bar
-- [x] collapsible file list pane
-- [x] identify symlinks in file list (e.g. with @ or ↳ symbol)
-- [x] respect `$EDITOR` environment variable for editor handoff
-- [x] preview auto-refresh or manual refresh key to reload files changed by external processes
-- [x] create saved local configs to support theme save
-- [x] focus command: restrict navigation to root directory where scout was launched (no escaping to parent)
-- [x] visible status/activity indicator above the hint bar (`scout ›` persistent prompt with spinner and state-aware messages)
-- [x] navigating to parent directory should restore cursor focus to the folder you came from
-- [x] toggle state indicators in the hint bar (bold accent on i:hidden, f:root-focus, tab:explorer when active)
-- [x] add context.Context with timeout to WatchDir, LoadDir, RefreshGit, and GetStats to prevent goroutine pile-up on slow or hung mounts
-- [x] preview pane text wrapping — long lines truncated at pane boundary with a dim-styled `…` indicator; horizontal scroll deferred (use `e` to open in `$EDITOR`)
-- [x] stale preview notification — preview auto-refreshes on file change via dirEntriesChanged ModTime check; no separate notification needed
-- [x] rotating hint bar tips — normal bar shown at rest; after 10s idle, cycles once through 12 friendly tips (5s each) then returns to normal; any keypress cancels and resets
-- [x] consistent message bar styling — uniform dim style for all messages; bracketed tag prefix `[error]`, `[ok]`, `[info]` distinguishes type; no colour emphasis on body or tag
 - [ ] `[explorer]` consider showing in file pane, the number of changed files  [easy]
 - [ ] `[explorer]` update naming of command `root-focus` to `root-lock`  [easy]
+- [x] `[explorer]` ls all files in current directory  [easy]
+- [x] `[preview]` syntax highlighting  [medium]
+- [x] `[ui]` time-aware color themes  [medium]
+- [x] `[ui]` help overlay  [easy]
+- [x] `[ui]` system stats in header (CPU, memory, clock)  [medium]
+- [x] `[git]` git branch display in status bar  [easy]
+- [x] `[explorer]` collapsible file list pane  [medium]
+- [x] `[explorer]` identify symlinks in file list (e.g. with @ or ↳ symbol)  [easy]
+- [x] `[explorer]` respect `$EDITOR` environment variable for editor handoff  [easy]
+- [x] `[preview]` preview auto-refresh or manual refresh key to reload files changed by external processes  [medium]
+- [x] `[config]` create saved local configs to support theme save  [medium]
+- [x] `[explorer]` focus command: restrict navigation to root directory where scout was launched (no escaping to parent)  [medium]
+- [x] `[ui]` visible status/activity indicator above the hint bar (`scout ›` persistent prompt with spinner and state-aware messages)  [medium]
+- [x] `[explorer]` navigating to parent directory should restore cursor focus to the folder you came from  [medium]
+- [x] `[ui]` toggle state indicators in the hint bar (bold accent on i:hidden, f:root-focus, tab:explorer when active)  [easy]
+- [x] `[explorer]` add context.Context with timeout to WatchDir, LoadDir, RefreshGit, and GetStats to prevent goroutine pile-up on slow or hung mounts  [medium]
+- [x] `[preview]` preview pane text wrapping — long lines truncated at pane boundary with a dim-styled `…` indicator; horizontal scroll deferred (use `e` to open in `$EDITOR`)  [easy]
+- [x] `[preview]` stale preview notification — preview auto-refreshes on file change via dirEntriesChanged ModTime check; no separate notification needed  [easy]
+- [x] `[ui]` rotating hint bar tips — normal bar shown at rest; after 10s idle, cycles once through 12 friendly tips (5s each) then returns to normal; any keypress cancels and resets  [medium]
+- [x] `[ui]` consistent message bar styling — uniform dim style for all messages; bracketed tag prefix `[error]`, `[ok]`, `[info]` distinguishes type; no colour emphasis on body or tag  [easy]
 
 ### ideas
 
 - [ ] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
 - [ ] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
-- [ ] fuzzy file search
-- [ ] preview images
-- [ ] ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; investigate per-terminal detection or a layout tolerance mode  [hard]
+- [ ] `[explorer]` fuzzy file search  [hard]
+- [ ] `[preview]` preview images  [hard]
+- [ ] `[ui]` ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; investigate per-terminal detection or a layout tolerance mode  [hard]
 
 ---
 
