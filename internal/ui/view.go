@@ -177,7 +177,18 @@ func (m Model) View() tea.View {
 		if len(m.Entries) > 0 && m.Entries[m.Cursor].Info != nil && !m.Entries[m.Cursor].IsDir {
 			curFileSize = filesystem.HumanSize(m.Entries[m.Cursor].Info.Size()) + " / "
 		}
-		dirStatLine := dirStatStyle.Render(fmt.Sprintf(" %s  %s%s", itemStat, curFileSize, filesystem.HumanSize(m.Stats.DirSize)))
+		changeStat := ""
+		if n := changedFileCount(m.GitStatus); n > 0 {
+			changeStat = fmt.Sprintf(" ± %d", n)
+		}
+		leftStat := fmt.Sprintf("%s%s", itemStat, changeStat)
+		rightStat := fmt.Sprintf("%s%s", curFileSize, filesystem.HumanSize(m.Stats.DirSize))
+		paneWidth := leftWidth - 4
+		gap := paneWidth - len(leftStat) - len(rightStat)
+		if gap < 1 {
+			gap = 1
+		}
+		dirStatLine := dirStatStyle.Render(leftStat + strings.Repeat(" ", gap) + rightStat)
 		listLines = append(listLines, dirStatLine)
 	}
 
@@ -286,7 +297,7 @@ func (m Model) View() tea.View {
 			sep + hint("e", "edit("+editor+")", false) +
 			sep + hint("o", "open", false) +
 			sep + hint("i", "hidden", !m.ShowHidden) +
-			sep + hint("f", "root-focus", m.RootFocus) +
+			sep + hint("l", "root-lock", m.RootLock) +
 			sep + hint("tab", "explorer", m.ExplorerCollapsed) +
 			sep + hint("r", "refresh", false) +
 			sep + hint("t", "theme", false) +
@@ -309,6 +320,11 @@ func (m Model) View() tea.View {
 	v := tea.NewView(layout)
 	v.AltScreen = true
 	return v
+}
+
+// changedFileCount returns the number of entries with a git status.
+func changedFileCount(status map[string]string) int {
+	return len(status)
 }
 
 // RenderStatusLine generates the persistent "scout: " prompt line between panes and the hint bar.

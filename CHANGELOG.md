@@ -31,9 +31,9 @@ versions follow [semantic versioning](https://semver.org/).
 ### added
 - persistent `scout ›` prompt in status line with state-aware messages (idle, loading, search, errors)
 - animated loading spinner (`scout › ·/··/···`) during directory navigation
-- toggle state indicators in hint bar — `i:hidden`, `f:root-focus`, `tab:explorer` render bold+accent when active
+- toggle state indicators in hint bar — `i:hidden`, `f:root-lock`, `tab:explorer` render bold+accent when active
 - cursor restores to previous folder when navigating to parent directory
-- root-focus mode: restricts navigation to the launch directory (`f` to toggle)
+- root-lock mode: restricts navigation to the launch directory (`f` to toggle)
 - theme preference persisted to `~/.config/scout/config`
 - homebrew release workflow via goreleaser (`make bump-patch`, `make push-tags`, `make release`)
 - `context.Context` with timeout on all blocking operations (WatchDir 5s, LoadDir 10s, RefreshGit 5s, GetStats 5s)

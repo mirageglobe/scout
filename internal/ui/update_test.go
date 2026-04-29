@@ -46,6 +46,25 @@ func TestComputeSearchMatches(t *testing.T) {
 	}
 }
 
+func TestChangedFileCount(t *testing.T) {
+	tests := []struct {
+		name      string
+		gitStatus map[string]string
+		want      int
+	}{
+		{"empty", map[string]string{}, 0},
+		{"one modified", map[string]string{"foo.go": "M"}, 1},
+		{"two changes", map[string]string{"a.go": "M", "b.go": "?"}, 2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := changedFileCount(tt.gitStatus); got != tt.want {
+				t.Errorf("changedFileCount() = %d, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestDirEntriesChanged(t *testing.T) {
 	base := []filesystem.Entry{
 		{Name: "foo", IsDir: true},

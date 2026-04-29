@@ -19,18 +19,18 @@ func (m Model) RenderHelp() string {
 	sectionStyle := lipgloss.NewStyle().Foreground(dimColor).MarginBottom(1)
 	colStyle := lipgloss.NewStyle().PaddingRight(4)
 
-	header := titleStyle.Render(fmt.Sprintf("scout help  -  %s theme  (press any key to dismiss)", t.Name))
+	header := titleStyle.Render(fmt.Sprintf("scout help  -  %s theme  (press ? to dismiss)", t.Name))
 
 	hotkeys := lipgloss.JoinVertical(lipgloss.Left,
 		sectionStyle.Render("─ keys ─"),
-		keyStyle.Render("↑/↓, j/k")   +descStyle.Render("navigate / scroll preview"),
-		keyStyle.Render("←/→, h/l")   +descStyle.Render("nav to parent / nav into directory or preview"),
+		keyStyle.Render("↑/↓")         +descStyle.Render("navigate / scroll preview"),
+		keyStyle.Render("←/→")         +descStyle.Render("nav to parent / enter directory or preview"),
 		keyStyle.Render("backspace")   +descStyle.Render("nav to parent directory"),
 		keyStyle.Render("enter")       +descStyle.Render("enter directory / nav to preview"),
 		keyStyle.Render("e")           +descStyle.Render("open file in editor"),
 		keyStyle.Render("o")           +descStyle.Render("open with system default"),
 		keyStyle.Render("i")           +descStyle.Render("toggle hidden files"),
-		keyStyle.Render("f")           +descStyle.Render("toggle root-focus mode"),
+		keyStyle.Render("l")           +descStyle.Render("toggle root-lock mode"),
 		keyStyle.Render("tab")         +descStyle.Render("collapse / expand explorer"),
 		keyStyle.Render("r")           +descStyle.Render("refresh preview"),
 		keyStyle.Render("t")           +descStyle.Render("cycle color themes"),

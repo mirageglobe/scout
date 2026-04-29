@@ -54,17 +54,15 @@ Scout stores your theme preferences in `~/.config/scout/config`. This file is au
 
 | key              | action                                             |
 | ---------------- | -------------------------------------------------- |
-| `j` / `↓`        | move cursor down                                   |
-| `k` / `↑`        | move cursor up                                     |
-| `h` / `←` / `⌫`  | nav to parent directory (or nav back from preview) |
-| `l` / `→`        | enter directory or nav to preview pane             |
-| `enter`          | enter directory or open file in editor             |
+| `↓` / `↑`        | move cursor down / up                              |
+| `←` / `⌫`        | nav to parent directory (or nav back from preview) |
+| `→` / `enter`    | enter directory or nav to preview pane             |
 | `e`              | open file in editor                                |
 | `o`              | open file with system default application          |
 | `g`              | jump to top of list                                |
 | `G`              | jump to bottom of list                             |
 | `i`              | toggle hidden files                                |
-| `f`              | toggle root-focus mode                             |
+| `l`              | toggle root-lock mode                              |
 | `tab`            | collapse / expand file list pane                   |
 | `t`              | cycle color theme                                  |
 | `?`              | show / hide help overlay                           |

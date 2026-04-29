@@ -154,10 +154,12 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.HintIdleSeq++
 
 		if m.ShowHelp {
-			if msg.String() == "q" || msg.String() == "ctrl+c" {
+			switch msg.String() {
+			case "q", "ctrl+c":
 				return m, tea.Quit
+			case "?":
+				m.ShowHelp = false
 			}
-			m.ShowHelp = false
 			return m, nil
 		}
 
@@ -266,12 +268,12 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m, cmd := startLoading(m)
 			return m, tea.Batch(m.LoadDir(m.Cwd), cmd)
 
-		case "f":
-			m.RootFocus = !m.RootFocus
-			if m.RootFocus {
-				m.StatusMsg = "[info] root focus enabled"
+		case "l":
+			m.RootLock = !m.RootLock
+			if m.RootLock {
+				m.StatusMsg = "[info] root lock enabled"
 			} else {
-				m.StatusMsg = "[info] root focus disabled"
+				m.StatusMsg = "[info] root lock disabled"
 			}
 			return m, nil
 
@@ -334,7 +336,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		// Navigation: move cursor down
-		case "j", "down":
+		case "down":
 			if m.FocusRight {
 				previewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
 				contentHeight := m.Height - 5
@@ -357,7 +359,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		// Navigation: move cursor up
-		case "k", "up":
+		case "up":
 			if m.FocusRight {
 				if m.PreviewScroll > 0 {
 					m.PreviewScroll--
@@ -374,14 +376,14 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		// Navigation: go to parent directory or unfocus right pane
-		case "h", "left", "backspace":
+		case "left", "backspace":
 			if m.FocusRight {
 				m.FocusRight = false
 				m = clearSearch(m)
 				return m, nil
 			}
 			parent := filepath.Dir(m.Cwd)
-			if parent != m.Cwd && !(m.RootFocus && m.Cwd == m.RootPath) {
+			if parent != m.Cwd && !(m.RootLock && m.Cwd == m.RootPath) {
 				m.PendingCursor = filepath.Base(m.Cwd)
 				m.Cwd = parent
 				m.PreviewScroll = 0
@@ -427,7 +429,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return EditorFinishedMsg{Err: err}
 			})
 
-		case "enter", "l", "right":
+		case "enter", "right":
 			if len(m.Entries) == 0 {
 				return m, nil
 			}

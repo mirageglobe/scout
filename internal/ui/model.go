@@ -47,7 +47,7 @@ type Model struct {
 	SearchMatchIdx int    // index into SearchMatches for current match
 	ExplorerSearchActive bool   // "\" mode active in file explorer
 	ExplorerSearchInput  string // current explorer search input
-	RootFocus            bool   // restrict navigation to RootPath
+	RootLock             bool   // restrict navigation to RootPath
 	RootPath             string // the starting directory path
 	Loading              bool   // true while a LoadDir command is in-flight
 	SpinnerFrame         int    // current animation frame (0-2) for the loading indicator
@@ -66,7 +66,7 @@ func NewModel(cwd string) Model {
 	return Model{
 		Cwd:        cwd,
 		RootPath:   cwd,
-		RootFocus:  true,
+		RootLock:   true,
 		ThemeIdx:   themeIdx,
 		ShowHidden: true,
 	}
