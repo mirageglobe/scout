@@ -327,14 +327,11 @@ make build
 
 ## 10. Releasing
 
-Scout uses [goreleaser](https://goreleaser.com) to build cross-platform binaries, publish a GitHub release, and auto-update the [homebrew-tap](https://github.com/mirageglobe/homebrew-tap) formula.
+pushing a `v*` tag triggers the GitHub Actions release workflow (`.github/workflows/release.yml`), which builds cross-platform binaries and publishes the GitHub release automatically. no local tooling required.
 
 ### prerequisites
 
-- [`goreleaser`](https://goreleaser.com/install/) installed (`brew install goreleaser`)
-- two GitHub personal access tokens (classic or fine-grained, with `contents: write` scope):
-  - `GITHUB_TOKEN` — write access to this repo (scout)
-  - `HOMEBREW_TAP_GITHUB_TOKEN` — write access to the homebrew-tap repo
+- `GITHUB_TOKEN` available in repo secrets (GitHub provides this automatically for Actions)
 
 ### version bump guide
 
@@ -347,40 +344,38 @@ Scout uses [goreleaser](https://goreleaser.com) to build cross-platform binaries
 ### steps
 
 ```bash
-# 1. export tokens (add these to ~/.zshrc or ~/.bashrc to avoid repeating)
-export GITHUB_TOKEN=<your-scout-token>
-export HOMEBREW_TAP_GITHUB_TOKEN=<your-tap-token>
-
-# 2. decide the target version using the bump guide above (e.g. v0.5.0)
+# 1. decide the target version using the bump guide above (e.g. v0.5.0)
 #    this determines what you write in the changelog — decide before editing
 
-# 3. update CHANGELOG.md in the branch — move [unreleased] items under the new version heading
+# 2. update CHANGELOG.md in the branch — move [unreleased] items under the new version heading
 #    e.g. ## [v0.5.0] — 2026-04-26
 #    add a fresh empty [unreleased] section at the top for the next cycle
 
-# 4. commit and push the changelog update
+# 3. commit and push the changelog update
 git add CHANGELOG.md && git commit -m "docs: finalize changelog for vX.Y.Z" && git push
 
-# 5. merge the release branch into main via PR
+# 4. merge the release branch into main via PR
 
-# 6. sync local main
+# 5. sync local main
 git checkout main && git pull
 
-# 7. tag the next version (patch / minor / major — see guide above)
+# 6. tag the next version (patch / minor / major — see guide above)
 make bump-minor
 
-# 8. push the tag to origin
+# 7. push the tag to origin — this triggers CI to build and publish the GitHub release
 make push-tags
-
-# 9. build binaries, publish github release, and update homebrew formula
-make release
 ```
 
-to test the release pipeline locally without publishing:
+### local testing (optional)
+
+to simulate the release pipeline locally without publishing, use goreleaser directly:
 
 ```bash
-make release-dry
+make release-dry   # dry-run: builds binaries locally, no publish
+make release       # full run: builds and publishes (requires GITHUB_TOKEN + HOMEBREW_TAP_GITHUB_TOKEN)
 ```
+
+> note: `make release` will conflict with CI if the tag already has a GitHub release. use `make release-reset` first to clear it.
 
 ### troubleshooting
 
