@@ -351,25 +351,28 @@ Scout uses [goreleaser](https://goreleaser.com) to build cross-platform binaries
 export GITHUB_TOKEN=<your-scout-token>
 export HOMEBREW_TAP_GITHUB_TOKEN=<your-tap-token>
 
-# 2. update CHANGELOG.md in the branch — move [unreleased] items under the new version heading
+# 2. decide the target version using the bump guide above (e.g. v0.5.0)
+#    this determines what you write in the changelog — decide before editing
+
+# 3. update CHANGELOG.md in the branch — move [unreleased] items under the new version heading
 #    e.g. ## [v0.5.0] — 2026-04-26
 #    add a fresh empty [unreleased] section at the top for the next cycle
 
-# 3. commit and push the changelog update
+# 4. commit and push the changelog update
 git add CHANGELOG.md && git commit -m "docs: finalize changelog for vX.Y.Z" && git push
 
-# 4. merge the release branch into main via PR
+# 5. merge the release branch into main via PR
 
-# 5. sync local main
+# 6. sync local main
 git checkout main && git pull
 
-# 6. tag the next version (patch / minor / major — see guide above)
+# 7. tag the next version (patch / minor / major — see guide above)
 make bump-minor
 
-# 7. push the tag to origin
+# 8. push the tag to origin
 make push-tags
 
-# 8. build binaries, publish github release, and update homebrew formula
+# 9. build binaries, publish github release, and update homebrew formula
 make release
 ```
 
