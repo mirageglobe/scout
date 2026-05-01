@@ -332,6 +332,7 @@ pushing a `v*` tag triggers the GitHub Actions release workflow (`.github/workfl
 ### prerequisites
 
 - `GITHUB_TOKEN` available in repo secrets (GitHub provides this automatically for Actions)
+- `HOMEBREW_TAP_GITHUB_TOKEN` required for goreleaser to push the formula update to `homebrew-tap`
 
 ### version bump guide
 
@@ -343,32 +344,54 @@ pushing a `v*` tag triggers the GitHub Actions release workflow (`.github/workfl
 
 ### steps
 
+#### phase 1 — prepare changelog (on feature branch)
+
 ```bash
 # 1. decide the target version using the bump guide above (e.g. v0.5.0)
-#    this determines what you write in the changelog — decide before editing
+#    decide before editing — the version determines the changelog heading
 
-# 2. update CHANGELOG.md in the branch — move [unreleased] items under the new version heading
-#    e.g. ## [v0.5.0] — 2026-04-26
+# 2. update CHANGELOG.md — move [unreleased] items under the new version heading
+#    e.g. ## [v0.5.0] — 2026-05-01
 #    add a fresh empty [unreleased] section at the top for the next cycle
 
 # 3. commit and push the changelog update
 git add CHANGELOG.md && git commit -m "docs: finalize changelog for vX.Y.Z" && git push
 
-# 4. merge the release branch into main via PR
+# 4. open a PR and merge into main
+```
 
-# 5. sync local main
+#### phase 2 — tag and publish (on main)
+
+```bash
+# 5. sync local main after merge
 git checkout main && git pull
 
-# 6. tag the next version (patch / minor / major — see guide above)
-make bump-minor
+# 6. tag the next version — pick one based on the bump guide above
+make bump-patch   # bug fixes only         e.g. v0.3.0 -> v0.3.1
+make bump-minor   # new features           e.g. v0.3.0 -> v0.4.0
+make bump-major   # breaking changes       e.g. v0.3.0 -> v1.0.0
 
-# 7. push the tag to origin — this triggers CI to build and publish the GitHub release
+# 7. push the tag to origin — triggers CI to build and publish the GitHub release
 make push-tags
 ```
 
-### local testing (optional)
+#### phase 3 — update homebrew tap (after CI completes)
 
-to simulate the release pipeline locally without publishing, use goreleaser directly:
+```bash
+# 8. open the GitHub release page and copy the sha256 for each platform asset
+#    assets are listed under the release — download .tar.gz files and run:
+shasum -a 256 <asset>.tar.gz
+
+# 9. update homebrew-tap/Formula/scout.rb with new url, sha256, and version
+
+# 10. audit the formula locally
+brew audit --new Formula/scout.rb
+
+# 11. commit and push the tap update
+git add Formula/scout.rb && git commit -m "feat: update scout to vX.Y.Z" && git push
+```
+
+### local testing (optional)
 
 ```bash
 make release-dry   # dry-run: builds binaries locally, no publish
