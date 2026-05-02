@@ -2,7 +2,7 @@
 
 *when you need a rapid intelligence overview of your environment, you call in a Scout.*
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE.md)
+[![License](https://img.shields.io/badge/license-BUSL--1.1-blue.svg)](LICENSE.md)
 
 ![Scout Demo](demo.gif)
 
