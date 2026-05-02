@@ -45,18 +45,3 @@ release:
   prerelease: auto
   name_template: "v{{ .Version }}"
 
-brews:
-  - name: scout
-    repository:
-      owner: mirageglobe
-      name: homebrew-tap
-      branch: main
-      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    directory: Formula
-    homepage: "https://github.com/mirageglobe/scout"
-    description: "terminal-native dual-pane file explorer"
-    license: "MIT"
-    test: |
-      system "#{bin}/scout", "--version"
-    install: |
-      bin.install "scout"
