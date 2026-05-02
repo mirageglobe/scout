@@ -96,7 +96,7 @@ func (m Model) View() tea.View {
 
 		var symbol string
 		var symStyle lipgloss.Style
-		var dirBaseName, dirCountStr string
+		var dirBaseName, dirCountStr, fileSizeStr string
 
 		if e.IsDir {
 			symbol = "▸"
@@ -116,6 +116,16 @@ func (m Model) View() tea.View {
 		} else {
 			symbol = "·"
 			symStyle = lipgloss.NewStyle().Foreground(dimColor)
+		}
+
+		if !e.IsDir && e.Info != nil {
+			fileSizeStr = filesystem.HumanSize(e.Info.Size())
+			nameWidth := leftWidth - 6
+			if padWidth := nameWidth - lipgloss.Width(fileSizeStr); padWidth >= len(e.Name) {
+				name = fmt.Sprintf("%-*s%s", padWidth, e.Name, fileSizeStr)
+			} else {
+				fileSizeStr = ""
+			}
 		}
 
 		if status, ok := m.GitStatus[e.Name]; ok {
@@ -153,6 +163,12 @@ func (m Model) View() tea.View {
 				lineStyled = symStyled + " " + dirStyle.Render(paddedBase) + dirCountStyle.Render(dirCountStr)
 			} else if e.IsDir {
 				lineStyled = symStyled + " " + dirStyle.Render(name)
+			} else if fileSizeStr != "" {
+				nameWidth := leftWidth - 6
+				padWidth := nameWidth - lipgloss.Width(fileSizeStr)
+				paddedBase := fmt.Sprintf("%-*s", padWidth, e.Name)
+				normalStyle := lipgloss.NewStyle().Foreground(textColor)
+				lineStyled = symStyled + " " + normalStyle.Render(paddedBase) + dirCountStyle.Render(fileSizeStr)
 			} else {
 				lineStyled = symStyled + " " + normalItem.Render(name)
 			}
