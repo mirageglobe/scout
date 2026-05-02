@@ -8,10 +8,15 @@ versions follow [semantic versioning](https://semver.org/).
 
 ## [unreleased]
 
+---
+
+## [v0.6.0] — 2026-05-02
+
 ### added
 - `± N` changed-file count badge in explorer stat line when git status is dirty
 - renamed `root-focus` to `root-lock`; toggle key remapped from `f` → `l`
 - removed vim-style navigation keys `j`/`k`/`h`/`l` — arrow keys are now the sole navigation bindings
+- right-aligned human-readable file size column in file list (e.g. `1.2 KB`), matching dir child-count layout
 
 ### fixed
 - `?` help overlay now dismisses on `?` keypress (previously any keypress dismissed it)
