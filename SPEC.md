@@ -327,12 +327,11 @@ make build
 
 ## 10. Releasing
 
-pushing a `v*` tag triggers the GitHub Actions release workflow (`.github/workflows/release.yml`), which builds cross-platform binaries and publishes the GitHub release automatically. no local tooling required.
+pushing a `v*` tag triggers the GitHub Actions release workflow (`.github/workflows/release.yml`), which builds cross-platform binaries and publishes the GitHub release automatically. the homebrew tap is updated manually after each release.
 
 ### prerequisites
 
 - `GITHUB_TOKEN` available in repo secrets (GitHub provides this automatically for Actions)
-- `HOMEBREW_TAP_GITHUB_TOKEN` required for goreleaser to push the formula update to `homebrew-tap`
 
 ### version bump guide
 
@@ -378,27 +377,21 @@ make push-tags
 #### phase 3 — update homebrew tap (after CI completes)
 
 ```bash
-# 8. open the GitHub release page and copy the sha256 for each platform asset
-#    assets are listed under the release — download .tar.gz files and run:
-shasum -a 256 <asset>.tar.gz
+# 8. download release assets and compute sha256
+gh release download vX.Y.Z --repo mirageglobe/scout --dir /tmp/scout-vX.Y.Z --clobber
+shasum -a 256 /tmp/scout-vX.Y.Z/*
 
-# 9. update homebrew-tap/Formula/scout.rb with new url, sha256, and version
+# 9. update homebrew-tap/Formula/scout.rb with new version, urls, and sha256 values
 
-# 10. audit the formula locally
-brew audit --new Formula/scout.rb
-
-# 11. commit and push the tap update
+# 10. commit and push the tap update
 git add Formula/scout.rb && git commit -m "feat: update scout to vX.Y.Z" && git push
 ```
 
-### local testing (optional)
+### local validation (optional)
 
 ```bash
-make release-dry   # dry-run: builds binaries locally, no publish
-make release       # full run: builds and publishes (requires GITHUB_TOKEN + HOMEBREW_TAP_GITHUB_TOKEN)
+make release-dry   # dry-run via goreleaser: builds binaries and archives locally, no publish
 ```
-
-> note: `make release` will conflict with CI if the tag already has a GitHub release. use `make release-reset` first to clear it.
 
 ### troubleshooting
 
