@@ -438,6 +438,9 @@ make release
 - [x] `[preview]` stale preview notification — preview auto-refreshes on file change via dirEntriesChanged ModTime check; no separate notification needed  [easy]
 - [x] `[ui]` rotating hint bar tips — normal bar shown at rest; after 10s idle, cycles once through 12 friendly tips (5s each) then returns to normal; any keypress cancels and resets  [medium]
 - [x] `[ui]` consistent message bar styling — uniform dim style for all messages; bracketed tag prefix `[error]`, `[ok]`, `[info]` distinguishes type; no colour emphasis on body or tag  [easy]
+- [ ] `[preview]` increase truncation for text files to 1200 lines (currently ~1000 lines or 32 KB) [easy]
+- [ ] `[explorer]` mouse click to select and navigate files in the explorer pane  [medium]
+- [ ] `[preview]` scrollbar indicator in the preview pane showing scroll position  [easy]
 
 ### ideas
 
