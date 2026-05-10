@@ -10,6 +10,29 @@ versions follow [semantic versioning](https://semver.org/).
 
 ---
 
+## [v0.7.0] — 2026-05-10
+
+### added
+- dark / light mode auto-detection via OSC 11 terminal query; auto-selects an appropriate theme on first launch; `t` cycles within the detected mode (dark or light themes only)
+- three light themes: Solarized Light, Github Light, Paper, Light Mono
+- word-wrap toggle (`w`) in preview pane — wraps long lines to fit pane width instead of truncating; scrollbar and scroll position update accordingly
+- scrollbar indicator in preview pane showing scroll position
+- scrollbar indicator in explorer pane showing scroll position
+- mouse click to select files in the explorer pane
+- mouse wheel scroll in the explorer pane
+- mouse wheel scroll in the preview pane
+- mouse click on preview pane shifts focus to preview
+- page scroll (`pgup` / `pgdn`) in both explorer and preview panes
+- `g` / `G` jump to top / bottom of the active pane (explorer or preview depending on focus)
+- theme name notification shown in status bar when theme changes
+- space character now accepted in explorer and preview search input
+
+### fixed
+- `g` / `G` previously always acted on the explorer; now context-aware (explorer or preview)
+- space key silently dropped in search input due to bubbletea v2 representing space as `"space"` not `" "`
+
+---
+
 ## [v0.6.0] — 2026-05-02
 
 ### added
