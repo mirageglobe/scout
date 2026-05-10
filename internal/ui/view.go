@@ -76,10 +76,7 @@ func (m Model) View() tea.View {
 		visibleRows = 1
 	}
 
-	scrollOffset := 0
-	if m.Cursor >= visibleRows {
-		scrollOffset = m.Cursor - visibleRows + 1
-	}
+	scrollOffset := m.ExplorerScroll
 
 	normalItem := lipgloss.NewStyle().Foreground(textColor).Width(leftWidth - 4)
 	selectedItem := lipgloss.NewStyle().
