@@ -345,6 +345,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ThemeIdx = (m.ThemeIdx + 1) % len(Themes)
 			filesystem.SaveConfig(filesystem.Config{ThemeIdx: m.ThemeIdx})
 			m.Preview = m.BuildPreview()
+			m.StatusMsg = fmt.Sprintf("[info] theme: %s", Themes[m.ThemeIdx].Name)
 			return m, nil
 
 		case "i":
