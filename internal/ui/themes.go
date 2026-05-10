@@ -93,6 +93,33 @@ var Themes = []Theme{
 		SelectedBg: "#268BD2",
 		SelectedFg: "#FDF6E3",
 	},
+	{
+		// index 9 — Github Light
+		Name:       "Github Light",
+		Accent:     "#0550AE",
+		Dim:        "#57606A",
+		Text:       "#1F2328",
+		SelectedBg: "#0550AE",
+		SelectedFg: "#FFFFFF",
+	},
+	{
+		// index 10 — Paper (warm sepia)
+		Name:       "Paper",
+		Accent:     "#B45309",
+		Dim:        "#92817A",
+		Text:       "#292524",
+		SelectedBg: "#B45309",
+		SelectedFg: "#FFFBEB",
+	},
+	{
+		// index 11 — Light Mono
+		Name:       "Light Mono",
+		Accent:     "#1A1A1A",
+		Dim:        "#888888",
+		Text:       "#2A2A2A",
+		SelectedBg: "#1A1A1A",
+		SelectedFg: "#F5F5F5",
+	},
 }
 
 // ThemeForHour returns the theme index suited to the given hour (0–23).
