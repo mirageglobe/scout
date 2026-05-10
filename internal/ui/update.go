@@ -147,6 +147,43 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Preview = m.BuildPreview()
 		return m, nil
 
+	case tea.MouseClickMsg:
+		if msg.Button != tea.MouseLeft {
+			return m, nil
+		}
+		leftWidth := 40
+		if m.ExplorerCollapsed {
+			leftWidth = 10
+		} else if leftWidth > m.Width*2/5 {
+			leftWidth = m.Width * 2 / 5
+		}
+		// click must be within the left pane (border width = leftWidth + 2)
+		if msg.X > leftWidth+1 {
+			return m, nil
+		}
+		contentHeight := m.Height - 5
+		if contentHeight < 1 {
+			contentHeight = 1
+		}
+		// visibleRows: contentHeight minus cwd header and stats line
+		visibleRows := contentHeight - 2
+		scrollOffset := 0
+		if m.Cursor >= visibleRows {
+			scrollOffset = m.Cursor - visibleRows + 1
+		}
+		// Y=0 header, Y=1 top border, Y=2 cwd header, Y=3+ entries
+		entryIdx := scrollOffset + msg.Y - 3
+		if entryIdx < 0 || entryIdx >= len(m.Entries) || msg.Y > contentHeight {
+			return m, nil
+		}
+		m.FocusRight = false
+		m.Cursor = entryIdx
+		m.PreviewScroll = 0
+		m.Preview = m.BuildPreview()
+		m.StatusMsg = ""
+		m = clearSearch(m)
+		return m, nil
+
 	case tea.KeyPressMsg:
 		// cancel any active tip cycling; wrapper re-arms the idle timer
 		m.HintCycling = false
