@@ -55,6 +55,7 @@ type Model struct {
 	HintCycling          bool   // true while hint bar is cycling through tips
 	HintTipIdx           int    // current tip index during a cycling run
 	HintIdleSeq          int    // incremented on every keypress to cancel stale idle ticks
+	ExplorerScroll       int    // top-row offset of the explorer viewport (independent of cursor)
 	TermBgDark           bool   // true when terminal background is detected as dark
 	ThemeAutoSet         bool   // true when theme was set by hour (no saved config); allows bg detection to override
 	PreviewWrap          bool   // true when preview pane wraps long lines instead of truncating

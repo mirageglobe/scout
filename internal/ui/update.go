@@ -127,6 +127,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Err = nil
 		m.StatusMsg = ""
 		m.PreviewScroll = 0
+		m.ExplorerScroll = 0
 		if m.PendingCursor != "" {
 			m.Cursor = 0
 			for i, e := range m.Entries {
@@ -136,6 +137,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			m.PendingCursor = ""
+			m = clampExplorerScroll(m)
 		} else if m.Cursor >= len(m.Entries) {
 			m.Cursor = max(0, len(m.Entries)-1)
 		}
@@ -179,14 +181,8 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if contentHeight < 1 {
 			contentHeight = 1
 		}
-		// visibleRows: contentHeight minus cwd header and stats line
-		visibleRows := contentHeight - 2
-		scrollOffset := 0
-		if m.Cursor >= visibleRows {
-			scrollOffset = m.Cursor - visibleRows + 1
-		}
 		// Y=0 header, Y=1 top border, Y=2 cwd header, Y=3+ entries
-		entryIdx := scrollOffset + msg.Y - 3
+		entryIdx := m.ExplorerScroll + msg.Y - 3
 		if entryIdx < 0 || entryIdx >= len(m.Entries) || msg.Y > contentHeight {
 			return m, nil
 		}
@@ -206,22 +202,19 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			leftWidth = m.Width * 2 / 5
 		}
 		if msg.X <= leftWidth+1 {
-			// explorer pane: move cursor
+			// explorer pane: scroll viewport only, cursor stays
+			visible := explorerVisibleRows(m)
+			maxScroll := len(m.Entries) - visible
+			if maxScroll < 0 {
+				maxScroll = 0
+			}
 			if msg.Button == tea.MouseWheelDown {
-				if m.Cursor < len(m.Entries)-1 {
-					m.Cursor++
-					m.PreviewScroll = 0
-					m.Preview = m.BuildPreview()
-					m.StatusMsg = ""
-					m = clearSearch(m)
+				if m.ExplorerScroll < maxScroll {
+					m.ExplorerScroll++
 				}
 			} else if msg.Button == tea.MouseWheelUp {
-				if m.Cursor > 0 {
-					m.Cursor--
-					m.PreviewScroll = 0
-					m.Preview = m.BuildPreview()
-					m.StatusMsg = ""
-					m = clearSearch(m)
+				if m.ExplorerScroll > 0 {
+					m.ExplorerScroll--
 				}
 			}
 			return m, nil
@@ -491,6 +484,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Cursor < len(m.Entries)-1 {
 					m.Cursor++
 				}
+				m = clampExplorerScroll(m)
 				m.PreviewScroll = 0
 				m.Preview = m.BuildPreview()
 				m.StatusMsg = ""
@@ -508,6 +502,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Cursor > 0 {
 					m.Cursor--
 				}
+				m = clampExplorerScroll(m)
 				m.PreviewScroll = 0
 				m.Preview = m.BuildPreview()
 				m.StatusMsg = ""
@@ -537,6 +532,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Cursor >= len(m.Entries) {
 					m.Cursor = len(m.Entries) - 1
 				}
+				m = clampExplorerScroll(m)
 				m.PreviewScroll = 0
 				m.Preview = m.BuildPreview()
 				m.StatusMsg = ""
@@ -560,6 +556,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.Cursor < 0 {
 					m.Cursor = 0
 				}
+				m = clampExplorerScroll(m)
 				m.PreviewScroll = 0
 				m.Preview = m.BuildPreview()
 				m.StatusMsg = ""
@@ -649,6 +646,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.PreviewScroll = 0
 			} else {
 				m.Cursor = 0
+				m.ExplorerScroll = 0
 				m.Preview = m.BuildPreview()
 			}
 			m.StatusMsg = ""
@@ -664,6 +662,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if len(m.Entries) > 0 {
 					m.Cursor = len(m.Entries) - 1
 				}
+				m = clampExplorerScroll(m)
 				m.Preview = m.BuildPreview()
 			}
 			m.StatusMsg = ""
@@ -718,6 +717,36 @@ func computeSearchMatches(preview, query string) []int {
 		}
 	}
 	return matches
+}
+
+// explorerVisibleRows returns how many file rows fit in the explorer pane.
+func explorerVisibleRows(m Model) int {
+	rows := m.Height - 5 - 2 // contentHeight minus cwd header and stats line
+	if rows < 1 {
+		rows = 1
+	}
+	return rows
+}
+
+// clampExplorerScroll adjusts m.ExplorerScroll so the cursor stays within the viewport.
+func clampExplorerScroll(m Model) Model {
+	visible := explorerVisibleRows(m)
+	maxScroll := len(m.Entries) - visible
+	if maxScroll < 0 {
+		maxScroll = 0
+	}
+	if m.Cursor < m.ExplorerScroll {
+		m.ExplorerScroll = m.Cursor
+	} else if m.Cursor >= m.ExplorerScroll+visible {
+		m.ExplorerScroll = m.Cursor - visible + 1
+	}
+	if m.ExplorerScroll > maxScroll {
+		m.ExplorerScroll = maxScroll
+	}
+	if m.ExplorerScroll < 0 {
+		m.ExplorerScroll = 0
+	}
+	return m
 }
 
 // clampedScrollFor returns a PreviewScroll value that centres lineIdx in the viewport.
