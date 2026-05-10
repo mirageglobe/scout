@@ -211,12 +211,7 @@ func (m Model) View() tea.View {
 	leftContent := strings.Join(listLines, "\n")
 
 	// ── Right pane: preview ────────────────────────────────────────────
-	previewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
-	startIdx := min(m.PreviewScroll, len(previewLines))
-	endIdx := min(startIdx+contentHeight, len(previewLines))
-
-	visiblePreview := make([]string, endIdx-startIdx)
-	copy(visiblePreview, previewLines[startIdx:endIdx])
+	rawPreviewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
 
 	// build match lookup for highlighting
 	matchSet := make(map[int]bool, len(m.SearchMatches))
@@ -237,16 +232,38 @@ func (m Model) View() tea.View {
 		Bold(true).
 		Width(rightWidth - 4)
 
+	// expand lines: wrap or truncate depending on mode
+	type displayLine struct {
+		text    string
+		origIdx int
+	}
+	var displayLines []displayLine
+	wrapWidth := rightWidth - 4
 	dimEllipsis := lipgloss.NewStyle().Foreground(dimColor).Render("…")
-	for i, l := range visiblePreview {
-		absIdx := startIdx + i
-		truncated := filesystem.TruncateWithTail(l, rightWidth-4, dimEllipsis)
-		if absIdx == currentMatchLine {
-			visiblePreview[i] = currentMatchStyle.Render(stripANSI(truncated))
-		} else if matchSet[absIdx] {
-			visiblePreview[i] = matchStyle.Render(stripANSI(truncated))
+	for origIdx, l := range rawPreviewLines {
+		if m.PreviewWrap {
+			wrapped := lipgloss.Wrap(l, wrapWidth, " ")
+			for _, sub := range strings.Split(wrapped, "\n") {
+				displayLines = append(displayLines, displayLine{sub, origIdx})
+			}
 		} else {
-			visiblePreview[i] = truncated
+			displayLines = append(displayLines, displayLine{
+				filesystem.TruncateWithTail(l, wrapWidth, dimEllipsis), origIdx,
+			})
+		}
+	}
+
+	startIdx := min(m.PreviewScroll, len(displayLines))
+	endIdx := min(startIdx+contentHeight, len(displayLines))
+	visiblePreview := make([]string, endIdx-startIdx)
+	for i, dl := range displayLines[startIdx:endIdx] {
+		switch {
+		case dl.origIdx == currentMatchLine:
+			visiblePreview[i] = currentMatchStyle.Render(stripANSI(dl.text))
+		case matchSet[dl.origIdx]:
+			visiblePreview[i] = matchStyle.Render(stripANSI(dl.text))
+		default:
+			visiblePreview[i] = dl.text
 		}
 	}
 
@@ -254,6 +271,7 @@ func (m Model) View() tea.View {
 		visiblePreview = append(visiblePreview, "")
 	}
 	rightContent := strings.Join(visiblePreview, "\n")
+	previewLines := displayLines // alias for scrollbar math below
 
 	// ── Pane styles ────────────────────────────────────────────────────
 	leftBorderColor := dimColor
@@ -348,6 +366,7 @@ func (m Model) View() tea.View {
 			sep + hint("l", "root-lock", m.RootLock) +
 			sep + hint("tab", "explorer", m.ExplorerCollapsed) +
 			sep + hint("r", "refresh", false) +
+			sep + hint("w", "wrap", m.PreviewWrap) +
 			sep + hint("t", "theme", false) +
 			sep + hint("/", "search", false) +
 			sep + hint("?", "help", false) +

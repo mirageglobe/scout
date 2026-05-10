@@ -55,20 +55,27 @@ type Model struct {
 	HintCycling          bool   // true while hint bar is cycling through tips
 	HintTipIdx           int    // current tip index during a cycling run
 	HintIdleSeq          int    // incremented on every keypress to cancel stale idle ticks
+	TermBgDark           bool   // true when terminal background is detected as dark
+	ThemeAutoSet         bool   // true when theme was set by hour (no saved config); allows bg detection to override
+	PreviewWrap          bool   // true when preview pane wraps long lines instead of truncating
 }
 
 // NewModel initializes a fresh UI model with a time-based theme (or saved config).
 func NewModel(cwd string) Model {
 	themeIdx := ThemeForHour(time.Now().Hour())
+	autoSet := true
 	if cfg, err := filesystem.LoadConfig(); err == nil {
 		themeIdx = cfg.ThemeIdx
+		autoSet = false
 	}
 	return Model{
-		Cwd:        cwd,
-		RootPath:   cwd,
-		RootLock:   true,
-		ThemeIdx:   themeIdx,
-		ShowHidden: true,
+		Cwd:         cwd,
+		RootPath:    cwd,
+		RootLock:    true,
+		ThemeIdx:    themeIdx,
+		ShowHidden:  true,
+		TermBgDark:  true,
+		ThemeAutoSet: autoSet,
 	}
 }
 
@@ -79,6 +86,7 @@ func (m Model) Init() tea.Cmd {
 		filesystem.DoTick(),
 		filesystem.GetStats(m.Cwd),
 		DoHintIdleTick(0),
+		tea.RequestBackgroundColor,
 	)
 }
 
