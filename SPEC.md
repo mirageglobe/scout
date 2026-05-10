@@ -440,7 +440,8 @@ make release
 - [x] `[ui]` consistent message bar styling — uniform dim style for all messages; bracketed tag prefix `[error]`, `[ok]`, `[info]` distinguishes type; no colour emphasis on body or tag  [easy]
 - [ ] `[preview]` increase truncation for text files to 1200 lines (currently ~1000 lines or 32 KB) [easy]
 - [x] `[explorer]` mouse click to select and navigate files in the explorer pane  [medium]
-- [ ] `[preview]` scrollbar indicator in the preview pane showing scroll position  [easy]
+- [x] `[preview]` scrollbar indicator in the preview pane showing scroll position  [easy]
+- [ ] `[explorer]` mouse wheel scroll in the file explorer pane  [easy]
 
 ### ideas
 

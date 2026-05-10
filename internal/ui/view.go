@@ -272,6 +272,22 @@ func (m Model) View() tea.View {
 		Padding(0, 1).
 		Render(rightContent)
 
+	totalLines := len(previewLines)
+	if totalLines > contentHeight {
+		thumbH := contentHeight * contentHeight / totalLines
+		if thumbH < 1 {
+			thumbH = 1
+		}
+		maxOffset := contentHeight - thumbH
+		maxScroll := totalLines - contentHeight
+		thumbStart := 0
+		if maxScroll > 0 {
+			thumbStart = m.PreviewScroll * maxOffset / maxScroll
+		}
+		thumbChar := lipgloss.NewStyle().Foreground(accentColor).Render("▐")
+		rightPane = injectScrollbar(rightPane, contentHeight, thumbStart, thumbStart+thumbH-1, thumbChar)
+	}
+
 	leftPane := lipgloss.NewStyle().
 		Width(leftWidth).
 		Height(contentHeight + 2).
@@ -337,6 +353,25 @@ func (m Model) View() tea.View {
 	v.AltScreen = true
 	v.MouseMode = tea.MouseModeCellMotion
 	return v
+}
+
+// injectScrollbar replaces the right-border │ on thumb lines with thumbChar.
+// paneHeight is the number of content rows (excluding border lines).
+// thumbStart and thumbEnd are 0-indexed content row positions.
+func injectScrollbar(pane string, paneHeight, thumbStart, thumbEnd int, thumbChar string) string {
+	lines := strings.Split(pane, "\n")
+	for i, line := range lines {
+		contentRow := i - 1 // line 0 = top border, lines 1..paneHeight = content
+		if contentRow < thumbStart || contentRow > thumbEnd || contentRow < 0 || contentRow >= paneHeight {
+			continue
+		}
+		idx := strings.LastIndex(line, "│")
+		if idx < 0 {
+			continue
+		}
+		lines[i] = line[:idx] + thumbChar + line[idx+len("│"):]
+	}
+	return strings.Join(lines, "\n")
 }
 
 // changedFileCount returns the number of entries with a git status.
