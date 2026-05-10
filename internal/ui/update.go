@@ -460,6 +460,58 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
+		// Navigation: page down
+		case "pgdown":
+			pageSize := m.Height - 7 // contentHeight - cwd header - stats line
+			if pageSize < 1 {
+				pageSize = 1
+			}
+			if m.FocusRight {
+				previewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
+				contentHeight := m.Height - 5
+				maxScroll := len(previewLines) - contentHeight
+				if maxScroll < 0 {
+					maxScroll = 0
+				}
+				m.PreviewScroll += pageSize
+				if m.PreviewScroll > maxScroll {
+					m.PreviewScroll = maxScroll
+				}
+			} else {
+				m.Cursor += pageSize
+				if m.Cursor >= len(m.Entries) {
+					m.Cursor = len(m.Entries) - 1
+				}
+				m.PreviewScroll = 0
+				m.Preview = m.BuildPreview()
+				m.StatusMsg = ""
+				m = clearSearch(m)
+			}
+			return m, nil
+
+		// Navigation: page up
+		case "pgup":
+			pageSize := m.Height - 7
+			if pageSize < 1 {
+				pageSize = 1
+			}
+			if m.FocusRight {
+				m.PreviewScroll -= pageSize
+				if m.PreviewScroll < 0 {
+					m.PreviewScroll = 0
+				}
+			} else {
+				m.Cursor -= pageSize
+				if m.Cursor < 0 {
+					m.Cursor = 0
+				}
+				m.PreviewScroll = 0
+				m.Preview = m.BuildPreview()
+				m.StatusMsg = ""
+				m = clearSearch(m)
+			}
+			return m, nil
+
 		// Navigation: go to parent directory or unfocus right pane
 		case "left", "backspace":
 			if m.FocusRight {

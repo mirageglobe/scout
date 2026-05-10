@@ -24,6 +24,7 @@ func (m Model) RenderHelp() string {
 	hotkeys := lipgloss.JoinVertical(lipgloss.Left,
 		sectionStyle.Render("─ keys ─"),
 		keyStyle.Render("↑/↓")         +descStyle.Render("navigate / scroll preview"),
+		keyStyle.Render("pgup/pgdn")   +descStyle.Render("page scroll in active pane"),
 		keyStyle.Render("←/→")         +descStyle.Render("nav to parent / enter directory or preview"),
 		keyStyle.Render("backspace")   +descStyle.Render("nav to parent directory"),
 		keyStyle.Render("enter")       +descStyle.Render("enter directory / nav to preview"),
