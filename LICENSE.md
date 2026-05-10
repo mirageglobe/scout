@@ -3,10 +3,10 @@ SPDX-License-Identifier: BUSL-1.1
 Business Source License 1.1
 
 Parameters:
-- Licensor: Jimmy Mian-Guan Lim
+- Licensor: Jimmy MG Lim
 - Licensed Work: scout
 - Change Date: The 4th anniversary of the first public distribution of this specific version.
-- Change License: GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)
+- Change License: Apache License, Version 2.0 (Apache-2.0)
 
 Additional Use Grant:
 1. Non-Commercial Use: You may use the Licensed Work for any non-commercial purpose.
