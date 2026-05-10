@@ -335,6 +335,7 @@ func (m Model) View() tea.View {
 
 	v := tea.NewView(layout)
 	v.AltScreen = true
+	v.MouseMode = tea.MouseModeCellMotion
 	return v
 }
 
