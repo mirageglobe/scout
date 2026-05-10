@@ -184,6 +184,36 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m = clearSearch(m)
 		return m, nil
 
+	case tea.MouseWheelMsg:
+		leftWidth := 40
+		if m.ExplorerCollapsed {
+			leftWidth = 10
+		} else if leftWidth > m.Width*2/5 {
+			leftWidth = m.Width * 2 / 5
+		}
+		if msg.X <= leftWidth+1 {
+			return m, nil
+		}
+		contentHeight := m.Height - 5
+		if contentHeight < 1 {
+			contentHeight = 1
+		}
+		previewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
+		maxScroll := len(previewLines) - contentHeight
+		if maxScroll < 0 {
+			maxScroll = 0
+		}
+		if msg.Button == tea.MouseWheelDown {
+			if m.PreviewScroll < maxScroll {
+				m.PreviewScroll++
+			}
+		} else if msg.Button == tea.MouseWheelUp {
+			if m.PreviewScroll > 0 {
+				m.PreviewScroll--
+			}
+		}
+		return m, nil
+
 	case tea.KeyPressMsg:
 		// cancel any active tip cycling; wrapper re-arms the idle timer
 		m.HintCycling = false
