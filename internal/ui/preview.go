@@ -93,8 +93,8 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 	}
 
 	previewData := data
-	if len(previewData) > 32768 {
-		previewData = previewData[:32768]
+	if len(previewData) > 49152 {
+		previewData = previewData[:49152]
 	}
 
 	if filesystem.IsBinary(previewData) {
@@ -116,7 +116,7 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 	}
 
 	lines := strings.Split(previewStr, "\n")
-	maxLines := 1000
+	maxLines := 1200
 	if len(lines) > maxLines {
 		lines = lines[:maxLines]
 	}
@@ -126,7 +126,7 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 		sb.WriteString(fmt.Sprintf("%s %s\n", gutter, l))
 	}
 
-	if len(data) > 32768 || len(lines) >= maxLines {
+	if len(data) > 49152 || len(lines) >= maxLines {
 		sb.WriteString("\n  … (truncated)")
 	}
 
