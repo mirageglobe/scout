@@ -192,6 +192,24 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			leftWidth = m.Width * 2 / 5
 		}
 		if msg.X <= leftWidth+1 {
+			// explorer pane: move cursor
+			if msg.Button == tea.MouseWheelDown {
+				if m.Cursor < len(m.Entries)-1 {
+					m.Cursor++
+					m.PreviewScroll = 0
+					m.Preview = m.BuildPreview()
+					m.StatusMsg = ""
+					m = clearSearch(m)
+				}
+			} else if msg.Button == tea.MouseWheelUp {
+				if m.Cursor > 0 {
+					m.Cursor--
+					m.PreviewScroll = 0
+					m.Preview = m.BuildPreview()
+					m.StatusMsg = ""
+					m = clearSearch(m)
+				}
+			}
 			return m, nil
 		}
 		contentHeight := m.Height - 5
