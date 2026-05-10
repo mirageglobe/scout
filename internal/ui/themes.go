@@ -8,6 +8,7 @@ type Theme struct {
 	Text       string
 	SelectedBg string
 	SelectedFg string
+	IsDark     bool
 }
 
 // Themes is the global list of available color palettes.
@@ -20,6 +21,7 @@ var Themes = []Theme{
 		Text:       "#D7D7D7",
 		SelectedBg: "#FFAF00",
 		SelectedFg: "#000000",
+		IsDark:     true,
 	},
 	{
 		// index 1 — dusk (17:00–20:00)
@@ -29,6 +31,7 @@ var Themes = []Theme{
 		Text:       "#D7D7D7",
 		SelectedBg: "#FF8700",
 		SelectedFg: "#000000",
+		IsDark:     true,
 	},
 	{
 		// index 2 — manual only
@@ -38,6 +41,7 @@ var Themes = []Theme{
 		Text:       "#BBBBBB",
 		SelectedBg: "#FFFFFF",
 		SelectedFg: "#000000",
+		IsDark:     true,
 	},
 	{
 		// index 3 — afternoon (12:00–17:00)
@@ -47,6 +51,7 @@ var Themes = []Theme{
 		Text:       "#D7D7D7",
 		SelectedBg: "#00AFFF",
 		SelectedFg: "#000000",
+		IsDark:     true,
 	},
 	{
 		// index 4 — dawn (05:00–09:00)
@@ -56,6 +61,7 @@ var Themes = []Theme{
 		Text:       "#D7D7D7",
 		SelectedBg: "#FF8787",
 		SelectedFg: "#000000",
+		IsDark:     true,
 	},
 	{
 		// index 5 — night (00:00–05:00)
@@ -65,6 +71,7 @@ var Themes = []Theme{
 		Text:       "#AFAFD7",
 		SelectedBg: "#875FFF",
 		SelectedFg: "#000000",
+		IsDark:     true,
 	},
 	{
 		// index 6 — evening (20:00–24:00)
@@ -74,6 +81,7 @@ var Themes = []Theme{
 		Text:       "#D7D7D7",
 		SelectedBg: "#FF5FAF",
 		SelectedFg: "#000000",
+		IsDark:     true,
 	},
 	{
 		// index 7 — Solarized Dark (Ethan Schoonover palette)
@@ -83,6 +91,7 @@ var Themes = []Theme{
 		Text:       "#839496",
 		SelectedBg: "#268BD2",
 		SelectedFg: "#002B36",
+		IsDark:     true,
 	},
 	{
 		// index 8 — Solarized Light (Ethan Schoonover palette)
@@ -92,6 +101,7 @@ var Themes = []Theme{
 		Text:       "#657B83",
 		SelectedBg: "#268BD2",
 		SelectedFg: "#FDF6E3",
+		IsDark:     false,
 	},
 	{
 		// index 9 — Github Light
@@ -101,6 +111,7 @@ var Themes = []Theme{
 		Text:       "#1F2328",
 		SelectedBg: "#0550AE",
 		SelectedFg: "#FFFFFF",
+		IsDark:     false,
 	},
 	{
 		// index 10 — Paper (warm sepia)
@@ -110,6 +121,7 @@ var Themes = []Theme{
 		Text:       "#292524",
 		SelectedBg: "#B45309",
 		SelectedFg: "#FFFBEB",
+		IsDark:     false,
 	},
 	{
 		// index 11 — Light Mono
@@ -119,6 +131,7 @@ var Themes = []Theme{
 		Text:       "#2A2A2A",
 		SelectedBg: "#1A1A1A",
 		SelectedFg: "#F5F5F5",
+		IsDark:     false,
 	},
 }
 
@@ -138,4 +151,43 @@ func ThemeForHour(hour int) int {
 	default:
 		return 6 // Evening
 	}
+}
+
+// DarkThemeIndices returns the indices of all dark themes.
+func DarkThemeIndices() []int {
+	var out []int
+	for i, t := range Themes {
+		if t.IsDark {
+			out = append(out, i)
+		}
+	}
+	return out
+}
+
+// LightThemeIndices returns the indices of all light themes.
+func LightThemeIndices() []int {
+	var out []int
+	for i, t := range Themes {
+		if !t.IsDark {
+			out = append(out, i)
+		}
+	}
+	return out
+}
+
+// NextThemeInMode returns the next theme index cycling within the same dark/light pool.
+func NextThemeInMode(current int, isDark bool) int {
+	pool := DarkThemeIndices()
+	if !isDark {
+		pool = LightThemeIndices()
+	}
+	if len(pool) == 0 {
+		return current
+	}
+	for i, idx := range pool {
+		if idx == current {
+			return pool[(i+1)%len(pool)]
+		}
+	}
+	return pool[0]
 }

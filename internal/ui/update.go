@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	tea "charm.land/bubbletea/v2"
@@ -141,6 +142,18 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Preview = m.BuildPreview()
 		return m, filesystem.GetStats(m.Cwd)
 
+	case tea.BackgroundColorMsg:
+		m.TermBgDark = msg.IsDark()
+		if m.ThemeAutoSet {
+			if m.TermBgDark {
+				m.ThemeIdx = ThemeForHour(time.Now().Hour())
+			} else {
+				m.ThemeIdx = LightThemeIndices()[0]
+			}
+			m.ThemeAutoSet = false
+		}
+		return m, nil
+
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
@@ -157,8 +170,9 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if leftWidth > m.Width*2/5 {
 			leftWidth = m.Width * 2 / 5
 		}
-		// click must be within the left pane (border width = leftWidth + 2)
+		// click on right pane: shift focus to preview
 		if msg.X > leftWidth+1 {
+			m.FocusRight = true
 			return m, nil
 		}
 		contentHeight := m.Height - 5
@@ -356,7 +370,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case "t":
-			m.ThemeIdx = (m.ThemeIdx + 1) % len(Themes)
+			m.ThemeIdx = NextThemeInMode(m.ThemeIdx, m.TermBgDark)
 			filesystem.SaveConfig(filesystem.Config{ThemeIdx: m.ThemeIdx})
 			m.Preview = m.BuildPreview()
 			m.StatusMsg = fmt.Sprintf("[info] theme: %s", Themes[m.ThemeIdx].Name)
@@ -367,6 +381,16 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Cursor = 0
 			m, cmd := startLoading(m)
 			return m, tea.Batch(m.LoadDir(m.Cwd), cmd)
+
+		case "w":
+			m.PreviewWrap = !m.PreviewWrap
+			m.PreviewScroll = 0
+			if m.PreviewWrap {
+				m.StatusMsg = "[info] wrap: on"
+			} else {
+				m.StatusMsg = "[info] wrap: off"
+			}
+			return m, nil
 
 		case "l":
 			m.RootLock = !m.RootLock
@@ -605,19 +629,27 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case "g":
-			m.Cursor = 0
-			m.PreviewScroll = 0
-			m.Preview = m.BuildPreview()
+			if m.FocusRight {
+				m.PreviewScroll = 0
+			} else {
+				m.Cursor = 0
+				m.Preview = m.BuildPreview()
+			}
 			m.StatusMsg = ""
 			m = clearSearch(m)
 			return m, nil
 
 		case "G", "shift+g":
-			if len(m.Entries) > 0 {
-				m.Cursor = len(m.Entries) - 1
+			if m.FocusRight {
+				previewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
+				contentHeight := m.Height - 5
+				m.PreviewScroll = max(0, len(previewLines)-contentHeight)
+			} else {
+				if len(m.Entries) > 0 {
+					m.Cursor = len(m.Entries) - 1
+				}
+				m.Preview = m.BuildPreview()
 			}
-			m.PreviewScroll = 0
-			m.Preview = m.BuildPreview()
 			m.StatusMsg = ""
 			m = clearSearch(m)
 			return m, nil
