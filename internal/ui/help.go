@@ -37,8 +37,9 @@ func (m Model) RenderHelp() string {
 		keyStyle.Render("r")           +descStyle.Render("refresh preview"),
 		keyStyle.Render("w")           +descStyle.Render("toggle word wrap in preview"),
 		keyStyle.Render("t")           +descStyle.Render("cycle color themes"),
+		keyStyle.Render("T")           +descStyle.Render("toggle dark / light mode  (match terminal bg for best results)"),
 		keyStyle.Render("/")           +descStyle.Render("search active pane  (n / N: next / prev)"),
-		keyStyle.Render("esc")          +descStyle.Render("clear search"),
+		keyStyle.Render("esc")         +descStyle.Render("clear search"),
 		keyStyle.Render("?")           +descStyle.Render("show / hide help"),
 		keyStyle.Render("q, ctrl+c")   +descStyle.Render("quit"),
 	)

@@ -376,6 +376,22 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.StatusMsg = fmt.Sprintf("[info] theme: %s", Themes[m.ThemeIdx].Name)
 			return m, nil
 
+		case "T", "shift+t":
+			m.TermBgDark = !m.TermBgDark
+			pool := DarkThemeIndices()
+			if !m.TermBgDark {
+				pool = LightThemeIndices()
+			}
+			m.ThemeIdx = pool[0]
+			filesystem.SaveConfig(filesystem.Config{ThemeIdx: m.ThemeIdx})
+			m.Preview = m.BuildPreview()
+			if m.TermBgDark {
+				m.StatusMsg = fmt.Sprintf("[info] dark mode — theme: %s (set terminal bg to dark for best results)", Themes[m.ThemeIdx].Name)
+			} else {
+				m.StatusMsg = fmt.Sprintf("[info] light mode — theme: %s (set terminal bg to light for best results)", Themes[m.ThemeIdx].Name)
+			}
+			return m, nil
+
 		case "i":
 			m.ShowHidden = !m.ShowHidden
 			m.Cursor = 0
