@@ -445,7 +445,7 @@ make release
 
 ### ideas
 
-- [ ] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
+- [x] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
 - [ ] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
 - [ ] `[explorer]` fuzzy file search  [hard]
 - [ ] `[ui]` dark / light mode — detect terminal background via `$COLORFGBG` or OSC 11 query; auto-select a light theme when on a light background, dark when dark; `t` continues to cycle within the active mode  [medium]

@@ -266,6 +266,12 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.Preview = m.BuildPreview()
 					}
 				}
+			case "space":
+				m.ExplorerSearchInput += " "
+				if filtered := m.explorerFiltered(); len(filtered) > 0 {
+					m.Cursor = filtered[0]
+					m.Preview = m.BuildPreview()
+				}
 			default:
 				if utf8.RuneCountInString(msg.String()) == 1 {
 					m.ExplorerSearchInput += msg.String()
@@ -297,6 +303,14 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if len(m.SearchMatches) > 0 {
 						m.PreviewScroll = clampedScrollFor(m, m.SearchMatches[0])
 					}
+				}
+			case "space":
+				m.SearchInput += " "
+				m.SearchQuery = m.SearchInput
+				m.SearchMatches = computeSearchMatches(m.Preview, m.SearchQuery)
+				m.SearchMatchIdx = 0
+				if len(m.SearchMatches) > 0 {
+					m.PreviewScroll = clampedScrollFor(m, m.SearchMatches[0])
 				}
 			default:
 				if utf8.RuneCountInString(msg.String()) == 1 {
