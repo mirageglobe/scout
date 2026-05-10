@@ -296,6 +296,22 @@ func (m Model) View() tea.View {
 		Padding(0, 1).
 		Render(leftContent)
 
+	visibleEntryRows := contentHeight - 2 // minus cwd header and stats line
+	if len(m.Entries) > visibleEntryRows && visibleEntryRows > 0 {
+		thumbH := visibleEntryRows * visibleEntryRows / len(m.Entries)
+		if thumbH < 1 {
+			thumbH = 1
+		}
+		maxOffset := visibleEntryRows - thumbH
+		maxScroll := len(m.Entries) - visibleEntryRows
+		thumbStart := 0
+		if maxScroll > 0 {
+			thumbStart = scrollOffset * maxOffset / maxScroll
+		}
+		thumbChar := lipgloss.NewStyle().Foreground(accentColor).Render("▐")
+		leftPane = injectScrollbar(leftPane, contentHeight, thumbStart+1, thumbStart+thumbH, thumbChar)
+	}
+
 	panes := lipgloss.JoinHorizontal(lipgloss.Top, leftPane, rightPane)
 
 	// ── Status bar ─────────────────────────────────────────────────────
