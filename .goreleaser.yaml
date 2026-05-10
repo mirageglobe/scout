@@ -31,7 +31,7 @@ archives:
     name_template: "scout_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - README.md
-      - LICENSE
+      - LICENSE.md
 
 checksum:
   name_template: "scout_{{ .Version }}_checksums.txt"
