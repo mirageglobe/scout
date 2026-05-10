@@ -12,10 +12,14 @@ Type "./scout"
 Enter
 Sleep 2s
 
-# 1. Navigate — show git badges and file list
-Type "jj"
-Sleep 500ms
-Type "jj"
+# 1. Navigate — show git badges, file sizes, changed-file count
+Down
+Sleep 300ms
+Down
+Sleep 300ms
+Down
+Sleep 300ms
+Down
 Sleep 500ms
 Type "g"
 Sleep 500ms
@@ -37,9 +41,13 @@ Type "t"
 Sleep 1.5s
 
 # 4. Navigate to a root file and preview it
-Type "jjj"
-Sleep 500ms
-Type "l"
+Down
+Sleep 300ms
+Down
+Sleep 300ms
+Down
+Sleep 300ms
+Right
 Sleep 2s
 
 # 5. Search in preview pane
@@ -47,15 +55,33 @@ Type "/"
 Sleep 500ms
 Type "make"
 Sleep 1.5s
+Enter
+Sleep 500ms
+Type "n"
+Sleep 500ms
+Type "n"
+Sleep 500ms
 Escape
 Sleep 500ms
 
 # 6. Scroll preview pane
-Type "jjjjj"
+Down
+Sleep 300ms
+Down
+Sleep 300ms
+Down
+Sleep 300ms
+Down
+Sleep 300ms
+Down
 Sleep 1.5s
-Type "kkk"
+Up
+Sleep 300ms
+Up
+Sleep 300ms
+Up
 Sleep 500ms
-Type "h"
+Left
 Sleep 500ms
 
 # 7. Search in explorer pane
@@ -72,10 +98,16 @@ Sleep 1.5s
 Type "i"
 Sleep 1s
 
-# 9. Collapse / expand the file list pane
-Type "	"
+# 9. Root lock (new in v0.6.0)
+Type "l"
+Sleep 1.5s
+Type "l"
+Sleep 1s
+
+# 10. Collapse / expand the file list pane
+Tab
 Sleep 2s
-Type "	"
+Tab
 Sleep 1s
 
 # Exit
