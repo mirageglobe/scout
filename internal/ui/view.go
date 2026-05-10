@@ -358,19 +358,32 @@ func (m Model) View() tea.View {
 			}
 			return dimHint.Render(text)
 		}
-		statusBar += " " + hint("↑/↓", "nav", false) +
-			sep + hint("←/→", "nav", false) +
-			sep + hint("e", "edit("+editor+")", false) +
-			sep + hint("o", "open", false) +
-			sep + hint("i", "hidden", !m.ShowHidden) +
-			sep + hint("l", "root-lock", m.RootLock) +
-			sep + hint("tab", "explorer", m.ExplorerCollapsed) +
-			sep + hint("r", "refresh", false) +
-			sep + hint("w", "wrap", m.PreviewWrap) +
-			sep + hint("t", "theme", false) +
-			sep + hint("/", "search", false) +
-			sep + hint("?", "help", false) +
-			sep + hint("q", "quit", false)
+		if m.FocusRight {
+			// preview pane hints
+			statusBar += " " + hint("↑/↓", "scroll", false) +
+				sep + hint("←", "explorer", false) +
+				sep + hint("e", "edit("+editor+")", false) +
+				sep + hint("o", "open", false) +
+				sep + hint("r", "refresh", false) +
+				sep + hint("w", "wrap", m.PreviewWrap) +
+				sep + hint("t", "theme", false) +
+				sep + hint("/", "search", false) +
+				sep + hint("?", "help", false) +
+				sep + hint("q", "quit", false)
+		} else {
+			// explorer pane hints
+			statusBar += " " + hint("↑/↓", "nav", false) +
+				sep + hint("←/→", "nav", false) +
+				sep + hint("e", "edit("+editor+")", false) +
+				sep + hint("o", "open", false) +
+				sep + hint("i", "hidden", !m.ShowHidden) +
+				sep + hint("l", "root-lock", m.RootLock) +
+				sep + hint("tab", "explorer", m.ExplorerCollapsed) +
+				sep + hint("t", "theme", false) +
+				sep + hint("/", "search", false) +
+				sep + hint("?", "help", false) +
+				sep + hint("q", "quit", false)
+		}
 	}
 	statusBar = filesystem.Truncate(statusBar, m.Width)
 

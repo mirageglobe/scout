@@ -457,6 +457,7 @@ make release
 - [ ] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
 - [ ] `[explorer]` fuzzy file search  [hard]
 - [x] `[ui]` dark / light mode — detect terminal background via OSC 11 query (`tea.BackgroundColorMsg`); auto-select a light theme when on a light background, dark when dark; `t` continues to cycle within the active mode  [medium]
+- [x] `[ui]` manual dark/light mode toggle — `T` (shift+t) switches between dark and light mode pools and selects the first theme in the new pool; `t` continues to cycle within the active pool  [easy]
 - [ ] `[preview]` theme-aware chroma syntax highlighting — map each scout theme to a named chroma style (e.g. `dracula` for dark, `github` for light) so syntax colours complement the active palette; switch style when theme changes  [medium]
 - [x] `[ui]` more light themes — add 2–3 light-background palettes (e.g. light mono, light warm, Github Light) so light-mode users have themes to cycle through  [easy]
 - [ ] `[ui]` ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; add `SCOUT_UNICODE_SAFE=1` env var that swaps the symbol set to narrow-safe ASCII alternatives at startup  [medium]
