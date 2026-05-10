@@ -374,17 +374,25 @@ make bump-major   # breaking changes       e.g. v0.3.0 -> v1.0.0
 make push-tags
 ```
 
-#### phase 3 — update homebrew tap (after CI completes)
+#### phase 3 — update homebrew tap (after goreleaser completes)
+
+the tap lives at `github.com/mirageglobe/homebrew-tap`. it has its own `Makefile` with an `update` target that downloads the release checksums, patches the formula, commits, and pushes automatically.
 
 ```bash
-# 8. download release assets and compute sha256
-gh release download vX.Y.Z --repo mirageglobe/scout --dir /tmp/scout-vX.Y.Z --clobber
-shasum -a 256 /tmp/scout-vX.Y.Z/*
+# 8. switch to the tap repo and run the update target
+cd path/to/homebrew-tap
+make update FORMULA=scout VERSION=X.Y.Z
+```
 
-# 9. update homebrew-tap/Formula/scout.rb with new version, urls, and sha256 values
+the `update` target:
+- fetches `scout_X.Y.Z_checksums.txt` from the GitHub release
+- patches `Formula/scout.rb` — version string, urls, and all three sha256 values
+- commits with `feat: update scout formula to vX.Y.Z`
+- pushes to origin main
 
-# 10. commit and push the tap update
-git add Formula/scout.rb && git commit -m "feat: update scout to vX.Y.Z" && git push
+users then upgrade via:
+```bash
+brew upgrade mirageglobe/tap/scout
 ```
 
 ### local validation (optional)
