@@ -453,18 +453,21 @@ make release
 
 ### ideas
 
-- [x] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
 - [ ] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
 - [ ] `[explorer]` fuzzy file search  [hard]
-- [x] `[ui]` dark / light mode — detect terminal background via OSC 11 query (`tea.BackgroundColorMsg`); auto-select a light theme when on a light background, dark when dark; `t` continues to cycle within the active mode  [medium]
-- [x] `[ui]` manual dark/light mode toggle — `T` (shift+t) switches between dark and light mode pools and selects the first theme in the new pool; `t` continues to cycle within the active pool  [easy]
-- [ ] `[preview]` theme-aware chroma syntax highlighting — map each scout theme to a named chroma style (e.g. `dracula` for dark, `github` for light) so syntax colours complement the active palette; switch style when theme changes  [medium]
-- [x] `[ui]` more light themes — add 2–3 light-background palettes (e.g. light mono, light warm, Github Light) so light-mode users have themes to cycle through  [easy]
 - [ ] `[ui]` ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; add `SCOUT_UNICODE_SAFE=1` env var that swaps the symbol set to narrow-safe ASCII alternatives at startup  [medium]
 - [ ] `[git]` git diff preview — when selected file has an `M` badge, show `git diff` output in the preview pane  [medium]
 - [ ] `[git]` git log preview — when selecting a file, offer a keypress to show `git log --oneline` for that file in the preview pane  [medium]
-- [ ] `[ui]` context-aware help overlay — filter displayed keybindings to only those relevant to the active pane; explorer-only keys (e, o, i, l) hidden when preview is focused, preview-only keys (r, n/N) hidden when explorer is focused  [easy]
+- [ ] `[explorer]` three-width explorer pane — cycle `tab` through three widths: normal (40%), wide (~60%), and collapsed (hidden); replaces the current binary toggle; `tab:explorer` hint bar indicator updated to reflect the active width step  [medium]
+- [ ] `[install]` curl binary install/upgrade script — provide a one-liner script that detects OS/arch, downloads the correct tarball from the GitHub release, and places the binary in `~/.local/bin` or `/usr/local/bin`; re-running the script upgrades to the latest release; alternative to Homebrew for non-Mac or Homebrew-free environments  [medium]
+- [x] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
+- [x] `[ui]` dark / light mode — detect terminal background via OSC 11 query (`tea.BackgroundColorMsg`); auto-select a light theme when on a light background, dark when dark; `t` continues to cycle within the active mode  [medium]
+- [x] `[ui]` manual dark/light mode toggle — `T` (shift+t) switches between dark and light mode pools and selects the first theme in the new pool; `t` continues to cycle within the active pool  [easy]
+- [x] `[preview]` theme-aware chroma syntax highlighting — map each scout theme to a named chroma style (e.g. `dracula` for dark, `github` for light) so syntax colours complement the active palette; switch style when theme changes  [medium]
+- [x] `[ui]` more light themes — add 2–3 light-background palettes (e.g. light mono, light warm, Github Light) so light-mode users have themes to cycle through  [easy]
+- [x] `[ui]` context-aware help overlay — filter displayed keybindings to only those relevant to the active pane; explorer-only keys (e, o, i, l) hidden when preview is focused, preview-only keys (r, n/N) hidden when explorer is focused  [easy]
 - [x] `[preview]` word-wrap toggle — keypress (e.g. `w`) wraps long lines in the preview pane to fit the pane width instead of truncating with `…`; wrap state persists across file navigation until toggled off  [easy]
+- [x] `[cli]` update check — `scout --version` compares the running version against the latest GitHub release tag via the API and prints a notice if an upgrade is available  [easy]
 
 ---
 
@@ -477,7 +480,8 @@ make release
 | `tea.ExecProcess` for vim            | idiomatic Bubble Tea way to suspend TUI, hand off stdin/stdout, and resume cleanly         |
 | no `bubbles/list` component          | gives full control over git badge rendering, scrolling, and padding behaviour              |
 | directories-first sort               | standard filesystem browser convention; reduces cognitive load                             |
-| 32 KB / 1000-line preview cap        | prevents large files from blocking the UI during preview generation                       |
+| 128 KB / 2500-line preview cap       | prevents large files from blocking the UI during preview generation                       |
+| wrap-aware scroll via `previewDisplayLineCount` | `view.go` expands raw lines into display lines (wrap); `update.go` must compute the same count to bound `PreviewScroll` correctly — `previewDisplayLineCount` approximates it using visible rune count / pane width without re-running `lipgloss.Wrap` on every keypress |
 | time-based theme auto-selection      | reduces manual configuration; theme still switchable at runtime with `t`                  |
 | 2-second tick for stats and git      | low enough overhead to feel live; high enough to avoid hammering the filesystem            |
 | `runtime.ReadMemStats` for memory    | zero-dependency way to surface allocated heap without external tooling                     |

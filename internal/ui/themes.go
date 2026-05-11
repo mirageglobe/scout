@@ -2,136 +2,149 @@ package ui
 
 // Theme represents a color palette for the application.
 type Theme struct {
-	Name       string
-	Accent     string
-	Dim        string
-	Text       string
-	SelectedBg string
-	SelectedFg string
-	IsDark     bool
+	Name        string
+	Accent      string
+	Dim         string
+	Text        string
+	SelectedBg  string
+	SelectedFg  string
+	IsDark      bool
+	ChromaStyle string // chroma syntax highlighting style name
 }
 
 // Themes is the global list of available color palettes.
 var Themes = []Theme{
 	{
 		// index 0 — morning (09:00–12:00)
-		Name:       "Classic Amber",
-		Accent:     "#FFAF00",
-		Dim:        "#875F00",
-		Text:       "#D7D7D7",
-		SelectedBg: "#FFAF00",
-		SelectedFg: "#000000",
-		IsDark:     true,
+		Name:        "Classic Amber",
+		Accent:      "#FFAF00",
+		Dim:         "#875F00",
+		Text:        "#D7D7D7",
+		SelectedBg:  "#FFAF00",
+		SelectedFg:  "#000000",
+		IsDark:      true,
+		ChromaStyle: "monokai",
 	},
 	{
 		// index 1 — dusk (17:00–20:00)
-		Name:       "Safety Orange",
-		Accent:     "#FF8700",
-		Dim:        "#AF5F00",
-		Text:       "#D7D7D7",
-		SelectedBg: "#FF8700",
-		SelectedFg: "#000000",
-		IsDark:     true,
+		Name:        "Safety Orange",
+		Accent:      "#FF8700",
+		Dim:         "#AF5F00",
+		Text:        "#D7D7D7",
+		SelectedBg:  "#FF8700",
+		SelectedFg:  "#000000",
+		IsDark:      true,
+		ChromaStyle: "monokai",
 	},
 	{
 		// index 2 — manual only
-		Name:       "Mono",
-		Accent:     "#FFFFFF",
-		Dim:        "#555555",
-		Text:       "#BBBBBB",
-		SelectedBg: "#FFFFFF",
-		SelectedFg: "#000000",
-		IsDark:     true,
+		Name:        "Mono",
+		Accent:      "#FFFFFF",
+		Dim:         "#555555",
+		Text:        "#BBBBBB",
+		SelectedBg:  "#FFFFFF",
+		SelectedFg:  "#000000",
+		IsDark:      true,
+		ChromaStyle: "bw",
 	},
 	{
 		// index 3 — afternoon (12:00–17:00)
-		Name:       "Electric Cyan",
-		Accent:     "#00AFFF",
-		Dim:        "#005F87",
-		Text:       "#D7D7D7",
-		SelectedBg: "#00AFFF",
-		SelectedFg: "#000000",
-		IsDark:     true,
+		Name:        "Electric Cyan",
+		Accent:      "#00AFFF",
+		Dim:         "#005F87",
+		Text:        "#D7D7D7",
+		SelectedBg:  "#00AFFF",
+		SelectedFg:  "#000000",
+		IsDark:      true,
+		ChromaStyle: "nord",
 	},
 	{
 		// index 4 — dawn (05:00–09:00)
-		Name:       "Dawn",
-		Accent:     "#FF8787",
-		Dim:        "#875F5F",
-		Text:       "#D7D7D7",
-		SelectedBg: "#FF8787",
-		SelectedFg: "#000000",
-		IsDark:     true,
+		Name:        "Dawn",
+		Accent:      "#FF8787",
+		Dim:         "#875F5F",
+		Text:        "#D7D7D7",
+		SelectedBg:  "#FF8787",
+		SelectedFg:  "#000000",
+		IsDark:      true,
+		ChromaStyle: "rose-pine",
 	},
 	{
 		// index 5 — night (00:00–05:00)
-		Name:       "Midnight",
-		Accent:     "#875FFF",
-		Dim:        "#5F5F87",
-		Text:       "#AFAFD7",
-		SelectedBg: "#875FFF",
-		SelectedFg: "#000000",
-		IsDark:     true,
+		Name:        "Midnight",
+		Accent:      "#875FFF",
+		Dim:         "#5F5F87",
+		Text:        "#AFAFD7",
+		SelectedBg:  "#875FFF",
+		SelectedFg:  "#000000",
+		IsDark:      true,
+		ChromaStyle: "dracula",
 	},
 	{
 		// index 6 — evening (20:00–24:00)
-		Name:       "Evening",
-		Accent:     "#FF5FAF",
-		Dim:        "#87005F",
-		Text:       "#D7D7D7",
-		SelectedBg: "#FF5FAF",
-		SelectedFg: "#000000",
-		IsDark:     true,
+		Name:        "Evening",
+		Accent:      "#FF5FAF",
+		Dim:         "#87005F",
+		Text:        "#D7D7D7",
+		SelectedBg:  "#FF5FAF",
+		SelectedFg:  "#000000",
+		IsDark:      true,
+		ChromaStyle: "witchhazel",
 	},
 	{
 		// index 7 — Solarized Dark (Ethan Schoonover palette)
-		Name:       "Solarized Dark",
-		Accent:     "#268BD2",
-		Dim:        "#586E75",
-		Text:       "#839496",
-		SelectedBg: "#268BD2",
-		SelectedFg: "#002B36",
-		IsDark:     true,
+		Name:        "Solarized Dark",
+		Accent:      "#268BD2",
+		Dim:         "#586E75",
+		Text:        "#839496",
+		SelectedBg:  "#268BD2",
+		SelectedFg:  "#002B36",
+		IsDark:      true,
+		ChromaStyle: "solarized-dark256",
 	},
 	{
 		// index 8 — Solarized Light (Ethan Schoonover palette)
-		Name:       "Solarized Light",
-		Accent:     "#268BD2",
-		Dim:        "#93A1A1",
-		Text:       "#657B83",
-		SelectedBg: "#268BD2",
-		SelectedFg: "#FDF6E3",
-		IsDark:     false,
+		Name:        "Solarized Light",
+		Accent:      "#268BD2",
+		Dim:         "#93A1A1",
+		Text:        "#657B83",
+		SelectedBg:  "#268BD2",
+		SelectedFg:  "#FDF6E3",
+		IsDark:      false,
+		ChromaStyle: "solarized-light",
 	},
 	{
 		// index 9 — Github Light
-		Name:       "Github Light",
-		Accent:     "#0550AE",
-		Dim:        "#57606A",
-		Text:       "#1F2328",
-		SelectedBg: "#0550AE",
-		SelectedFg: "#FFFFFF",
-		IsDark:     false,
+		Name:        "Github Light",
+		Accent:      "#0550AE",
+		Dim:         "#57606A",
+		Text:        "#1F2328",
+		SelectedBg:  "#0550AE",
+		SelectedFg:  "#FFFFFF",
+		IsDark:      false,
+		ChromaStyle: "github",
 	},
 	{
 		// index 10 — Paper (warm sepia)
-		Name:       "Paper",
-		Accent:     "#B45309",
-		Dim:        "#92817A",
-		Text:       "#292524",
-		SelectedBg: "#B45309",
-		SelectedFg: "#FFFBEB",
-		IsDark:     false,
+		Name:        "Paper",
+		Accent:      "#B45309",
+		Dim:         "#92817A",
+		Text:        "#292524",
+		SelectedBg:  "#B45309",
+		SelectedFg:  "#FFFBEB",
+		IsDark:      false,
+		ChromaStyle: "friendly",
 	},
 	{
 		// index 11 — Light Mono
-		Name:       "Light Mono",
-		Accent:     "#1A1A1A",
-		Dim:        "#888888",
-		Text:       "#2A2A2A",
-		SelectedBg: "#1A1A1A",
-		SelectedFg: "#F5F5F5",
-		IsDark:     false,
+		Name:        "Light Mono",
+		Accent:      "#1A1A1A",
+		Dim:         "#888888",
+		Text:        "#2A2A2A",
+		SelectedBg:  "#1A1A1A",
+		SelectedFg:  "#F5F5F5",
+		IsDark:      false,
+		ChromaStyle: "bw",
 	},
 }
 
