@@ -223,8 +223,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if contentHeight < 1 {
 			contentHeight = 1
 		}
-		previewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
-		maxScroll := len(previewLines) - contentHeight
+		maxScroll := previewDisplayLineCount(m) - contentHeight
 		if maxScroll < 0 {
 			maxScroll = 0
 		}
@@ -471,9 +470,8 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Navigation: move cursor down
 		case "down":
 			if m.FocusRight {
-				previewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
 				contentHeight := m.Height - 5
-				maxScroll := len(previewLines) - contentHeight
+				maxScroll := previewDisplayLineCount(m) - contentHeight
 				if maxScroll < 0 {
 					maxScroll = 0
 				}
@@ -517,9 +515,8 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				pageSize = 1
 			}
 			if m.FocusRight {
-				previewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
 				contentHeight := m.Height - 5
-				maxScroll := len(previewLines) - contentHeight
+				maxScroll := previewDisplayLineCount(m) - contentHeight
 				if maxScroll < 0 {
 					maxScroll = 0
 				}
@@ -655,9 +652,8 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "G", "shift+g":
 			if m.FocusRight {
-				previewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
 				contentHeight := m.Height - 5
-				m.PreviewScroll = max(0, len(previewLines)-contentHeight)
+				m.PreviewScroll = max(0, previewDisplayLineCount(m)-contentHeight)
 			} else {
 				if len(m.Entries) > 0 {
 					m.Cursor = len(m.Entries) - 1
@@ -679,6 +675,46 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
+}
+
+// previewWrapWidth returns the usable character width of the preview pane,
+// mirroring the layout logic in view.go.
+func previewWrapWidth(m Model) int {
+	usableWidth := m.Width
+	if usableWidth < 20 {
+		usableWidth = 20
+	}
+	leftWidth := 40
+	if m.ExplorerCollapsed {
+		leftWidth = 10
+	} else if leftWidth > usableWidth*2/5 {
+		leftWidth = usableWidth * 2 / 5
+	}
+	w := (usableWidth - leftWidth) - 4
+	if w < 1 {
+		w = 10
+	}
+	return w
+}
+
+// previewDisplayLineCount returns the number of display lines in m.Preview,
+// accounting for word-wrap expansion when m.PreviewWrap is true.
+func previewDisplayLineCount(m Model) int {
+	rawLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
+	if !m.PreviewWrap {
+		return len(rawLines)
+	}
+	wrapWidth := previewWrapWidth(m)
+	total := 0
+	for _, l := range rawLines {
+		visible := len([]rune(stripANSI(l)))
+		if visible == 0 {
+			total++
+		} else {
+			total += (visible + wrapWidth - 1) / wrapWidth
+		}
+	}
+	return total
 }
 
 // stripANSI removes ANSI/CSI escape sequences for plain-text matching.
@@ -755,8 +791,7 @@ func clampedScrollFor(m Model, lineIdx int) int {
 	if contentHeight < 1 {
 		contentHeight = 1
 	}
-	previewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
-	maxScroll := len(previewLines) - contentHeight
+	maxScroll := previewDisplayLineCount(m) - contentHeight
 	if maxScroll < 0 {
 		maxScroll = 0
 	}
