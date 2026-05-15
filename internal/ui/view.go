@@ -47,12 +47,7 @@ func (m Model) View() tea.View {
 		usableWidth = 20
 	}
 
-	leftWidth := 40
-	if m.ExplorerCollapsed {
-		leftWidth = 10
-	} else if leftWidth > usableWidth*2/5 {
-		leftWidth = usableWidth * 2 / 5
-	}
+	leftWidth := ExplorerLeftWidth(m.ExplorerWidthMode, usableWidth)
 	rightWidth := usableWidth - leftWidth
 
 	contentHeight := m.Height - 5
@@ -178,7 +173,7 @@ func (m Model) View() tea.View {
 	}
 
 	// Last line: directory stats (hidden when explorer is collapsed)
-	if m.ExplorerCollapsed {
+	if m.ExplorerWidthMode == 1 || m.ExplorerWidthMode == 2 { // sliver/narrow: too narrow for stats
 		listLines = append(listLines, strings.Repeat(" ", leftWidth-4))
 	} else {
 		dirStatStyle := lipgloss.NewStyle().Foreground(dimColor)
@@ -375,7 +370,7 @@ func (m Model) View() tea.View {
 				sep + hint("o", "open", false) +
 				sep + hint("i", "hidden", !m.ShowHidden) +
 				sep + hint("l", "root-lock", m.RootLock) +
-				sep + hint("tab", "explorer", m.ExplorerCollapsed) +
+				sep + hint("tab", "explorer", m.ExplorerWidthMode != 0) +
 				sep + hint("t", "theme", false) +
 				sep + hint("/", "search", false) +
 				sep + hint("?", "help", false) +

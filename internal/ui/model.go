@@ -35,9 +35,9 @@ type Model struct {
 	ThemeIdx      int
 	GitStatus     map[string]string
 	GitBranch     string
-	ShowHidden      bool
-	ExplorerCollapsed bool
-	Stats         filesystem.Stats
+	ShowHidden        bool
+	ExplorerWidthMode int // 0=initial-default(~40), 1=sliver(5), 2=narrow(13), 3=cycle-default(~40), 4=wide(50%)
+	Stats             filesystem.Stats
 	StatusMsg     string
 	Err           error
 	SearchActive   bool   // "/" mode active, user is typing a query
@@ -142,6 +142,37 @@ func (m Model) WatchDir(path string) tea.Cmd {
 			GitStatus: git.GetStatus(ctx, path),
 			GitBranch: git.GetBranch(ctx, path),
 		}
+	}
+}
+
+// ExplorerLeftWidth returns the left pane column width for the given mode and terminal width.
+// Mode 0: initial default (~40 cols, capped at 2/5 of terminal); entry point only.
+// Mode 1: sliver (5 cols).
+// Mode 2: narrow (13 cols).
+// Mode 3: cycle-default (~40 cols, same width as 0).
+// Mode 4: wide (50% of terminal).
+// Tab transitions: 0→1→2→3→4→1→2→3→4→...
+func ExplorerLeftWidth(mode, usableWidth int) int {
+	if usableWidth < 20 {
+		usableWidth = 20
+	}
+	switch mode {
+	case 1:
+		return 5
+	case 2:
+		return 13
+	case 4:
+		w := usableWidth / 2
+		if w < 10 {
+			w = 10
+		}
+		return w
+	default: // 0, 3
+		lw := 40
+		if lw > usableWidth*2/5 {
+			lw = usableWidth * 2 / 5
+		}
+		return lw
 	}
 }
 

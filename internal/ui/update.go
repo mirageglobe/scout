@@ -166,12 +166,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Button != tea.MouseLeft {
 			return m, nil
 		}
-		leftWidth := 40
-		if m.ExplorerCollapsed {
-			leftWidth = 10
-		} else if leftWidth > m.Width*2/5 {
-			leftWidth = m.Width * 2 / 5
-		}
+		leftWidth := ExplorerLeftWidth(m.ExplorerWidthMode, m.Width)
 		// click on right pane: shift focus to preview
 		if msg.X > leftWidth+1 {
 			m.FocusRight = true
@@ -195,12 +190,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.MouseWheelMsg:
-		leftWidth := 40
-		if m.ExplorerCollapsed {
-			leftWidth = 10
-		} else if leftWidth > m.Width*2/5 {
-			leftWidth = m.Width * 2 / 5
-		}
+		leftWidth := ExplorerLeftWidth(m.ExplorerWidthMode, m.Width)
 		if msg.X <= leftWidth+1 {
 			// explorer pane: scroll viewport only, cursor stays
 			visible := explorerVisibleRows(m)
@@ -410,7 +400,11 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case "tab":
-			m.ExplorerCollapsed = !m.ExplorerCollapsed
+			if m.ExplorerWidthMode == 0 {
+				m.ExplorerWidthMode = 1
+			} else {
+				m.ExplorerWidthMode = (m.ExplorerWidthMode % 4) + 1
+			}
 			return m, nil
 
 		// search/find: "/" activates in whichever pane is focused
@@ -684,12 +678,7 @@ func previewWrapWidth(m Model) int {
 	if usableWidth < 20 {
 		usableWidth = 20
 	}
-	leftWidth := 40
-	if m.ExplorerCollapsed {
-		leftWidth = 10
-	} else if leftWidth > usableWidth*2/5 {
-		leftWidth = usableWidth * 2 / 5
-	}
+	leftWidth := ExplorerLeftWidth(m.ExplorerWidthMode, usableWidth)
 	w := (usableWidth - leftWidth) - 4
 	if w < 1 {
 		w = 10
