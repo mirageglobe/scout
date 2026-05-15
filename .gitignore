@@ -38,6 +38,12 @@ Icon
 *.swo
 *~
 
+# Site (Astro)
+/site/node_modules/
+/site/dist/
+/site/.astro/
+/site/public/demo.gif
+
 # Environment Variables
 .env
 .env.local
