@@ -1,0 +1,52 @@
+---
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <style is:global>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg:      #0a0a0a;
+        --bg2:     #111111;
+        --bg3:     #1a1a1a;
+        --border:  #1e1e1e;
+        --border2: #2e2e2e;
+        --text:    #b8b8b8;
+        --dim:     #4a4a4a;
+        --accent:  #7eb8da;
+        --green:   #7ec89a;
+        --bright:  #efefef;
+      }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        font-family: 'Courier New', Courier, monospace;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        font-size: 16px;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 1.25rem;
+      }
+
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

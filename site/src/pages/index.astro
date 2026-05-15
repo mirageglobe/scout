@@ -1,0 +1,448 @@
+---
+import Base from '../layouts/Base.astro';
+
+const features = [
+  { icon: '▪', label: 'dual-pane layout',    detail: 'explorer and syntax-highlighted preview side by side; collapse to full-screen preview with tab' },
+  { icon: '▪', label: 'git integration',      detail: 'live M + ? ! badges per file and branch name in the status bar — no config, no plugin' },
+  { icon: '▪', label: 'chroma highlighting',  detail: 'hundreds of languages, rendered in your current colour theme, in the preview pane' },
+  { icon: '▪', label: 'time-aware themes',    detail: 'nine themes auto-selected by hour of day; press t to cycle manually' },
+  { icon: '▪', label: 'system stats',         detail: 'live CPU, memory, directory size, and clock always visible in the header' },
+  { icon: '▪', label: 'async non-blocking',   detail: 'directory reads, git queries, and file watch run off the main loop — UI stays responsive' },
+  { icon: '▪', label: 'editor handoff',       detail: 'press e to open the file in $EDITOR; TUI suspends and resumes cleanly on exit' },
+  { icon: '▪', label: 'mouse support',        detail: 'click to select, scroll wheel in explorer and preview panes' },
+];
+
+const navKeys = [
+  { key: 'j / k',   action: 'move down / up' },
+  { key: '← / →',   action: 'parent dir / enter or preview' },
+  { key: 'g / G',   action: 'jump to top / bottom' },
+  { key: 'tab',     action: 'collapse / expand file pane' },
+];
+
+const actionKeys = [
+  { key: 'e',   action: 'open in $EDITOR' },
+  { key: 'o',   action: 'open with system default' },
+  { key: 'i',   action: 'toggle hidden files' },
+  { key: 't',   action: 'cycle colour theme' },
+  { key: '/',   action: 'search in preview' },
+  { key: '?',   action: 'help overlay' },
+  { key: 'q',   action: 'quit' },
+];
+---
+
+<Base title="scout" description="terminal-native file intelligence. fast.">
+
+  <!-- ── header ── -->
+  <header>
+    <div class="container">
+      <span class="header-logo">scout</span>
+      <nav>
+        <a href="https://github.com/mirageglobe/scout">github</a>
+        <a href="https://github.com/mirageglobe/scout/blob/main/SPEC.md">spec</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ── hero ── -->
+  <section class="hero">
+    <div class="container">
+      <p class="eyebrow">terminal file manager</p>
+      <h1>sc<em>ou</em>t</h1>
+      <p class="tagline">
+        fast, terminal-native file explorer.<br />
+        dual-pane. git-aware. syntax-highlighted.
+      </p>
+      <div class="install-cmd">
+        <span class="prompt">$</span>
+        <span class="cmd">brew install mirageglobe/tap/scout</span>
+      </div>
+      <p class="install-alt">
+        or <a href="https://github.com/mirageglobe/scout">build from source</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ── traits strip ── -->
+  <div class="traits">
+    <div class="container">
+      <ul>
+        <li>zero config</li>
+        <li>single binary</li>
+        <li>async non-blocking</li>
+        <li>macos + linux</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── preview ── -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-label">preview</h2>
+      <img src="/scout/demo.gif" alt="scout terminal demo" class="demo" />
+    </div>
+  </section>
+
+  <!-- ── features ── -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-label">features</h2>
+      <ul class="feature-grid">
+        {features.map(f => (
+          <li class="feature-card">
+            <span class="feature-icon">{f.icon}</span>
+            <div>
+              <div class="feature-label">{f.label}</div>
+              <div class="feature-detail">{f.detail}</div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── keybindings ── -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-label">keybindings</h2>
+      <div class="kb-grid">
+        <div class="kb-group">
+          <div class="kb-group-label">navigate</div>
+          {navKeys.map(k => (
+            <div class="kb-row">
+              <span class="kb-key">
+                {k.key.split(' / ').map((part, i, arr) => (
+                  <><kbd>{part}</kbd>{i < arr.length - 1 ? <span class="kb-sep"> / </span> : ''}</>
+                ))}
+              </span>
+              <span class="kb-action">{k.action}</span>
+            </div>
+          ))}
+        </div>
+        <div class="kb-group">
+          <div class="kb-group-label">actions</div>
+          {actionKeys.map(k => (
+            <div class="kb-row">
+              <span class="kb-key"><kbd>{k.key}</kbd></span>
+              <span class="kb-action">{k.action}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── install ── -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-label">install</h2>
+      <div class="install-grid">
+        <div class="install-panel">
+          <div class="install-panel-header">
+            homebrew <span class="tag">recommended</span>
+          </div>
+          <pre><code><span class="c">tap the formula</span>
+brew tap mirageglobe/tap
+
+<span class="c">install</span>
+brew install mirageglobe/tap/scout
+
+<span class="c">upgrade later</span>
+brew upgrade mirageglobe/tap/scout</code></pre>
+        </div>
+        <div class="install-panel">
+          <div class="install-panel-header">from source</div>
+          <pre><code><span class="c">clone and build</span>
+git clone https://github.com/mirageglobe/scout.git
+cd scout
+make build
+
+<span class="c">run</span>
+./scout</code></pre>
+        </div>
+      </div>
+      <p class="install-note">requires go 1.21+</p>
+    </div>
+  </section>
+
+  <!-- ── footer ── -->
+  <footer>
+    <div class="container">
+      <span>scout &mdash; <a href="https://github.com/mirageglobe/scout/blob/main/LICENSE.md">busl-1.1</a></span>
+      <span class="footer-links">
+        <a href="https://github.com/mirageglobe/scout">github</a>
+        <a href="https://github.com/mirageglobe/scout/blob/main/SPEC.md">spec</a>
+      </span>
+    </div>
+  </footer>
+
+</Base>
+
+<style>
+  /* ── header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+  }
+
+  header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .header-logo {
+    font-size: 0.85rem;
+    color: var(--bright);
+    letter-spacing: 0.1em;
+  }
+
+  nav { display: flex; gap: 1.5rem; }
+  nav a { font-size: 0.78rem; color: var(--dim); }
+  nav a:hover { color: var(--accent); text-decoration: none; }
+
+  /* ── hero ── */
+  .hero {
+    padding: 5rem 0 3.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-size: clamp(3rem, 12vw, 5.5rem);
+    color: var(--bright);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 1.25rem;
+  }
+
+  h1 em { color: var(--accent); font-style: normal; }
+
+  .tagline {
+    font-size: 0.95rem;
+    color: var(--dim);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+
+  .install-cmd {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    padding: 0.7rem 1.25rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .prompt { color: var(--dim); user-select: none; }
+  .cmd    { color: var(--green); }
+
+  .install-alt { font-size: 0.75rem; color: var(--dim); }
+  .install-alt a { color: var(--dim); text-decoration: underline; }
+  .install-alt a:hover { color: var(--accent); }
+
+  /* ── traits strip ── */
+  .traits {
+    border-bottom: 1px solid var(--border);
+    padding: 0.875rem 0;
+    background: var(--bg2);
+  }
+
+  .traits ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+  }
+
+  .traits li {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .traits li::before { content: '+ '; color: var(--accent); }
+
+  /* ── sections ── */
+  .section { padding: 3rem 0; border-bottom: 1px solid var(--border); }
+
+  .section-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 1.5rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--accent);
+  }
+
+  /* ── demo ── */
+  .demo {
+    width: 100%;
+    display: block;
+    border: 1px solid var(--border2);
+  }
+
+  /* ── features ── */
+  .feature-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .feature-card {
+    background: var(--bg);
+    padding: 1rem 1.25rem;
+    display: flex;
+    gap: 0.875rem;
+    align-items: flex-start;
+  }
+
+  .feature-card:hover { background: var(--bg2); }
+
+  .feature-icon { color: var(--accent); flex-shrink: 0; margin-top: 0.1rem; font-size: 0.6rem; }
+
+  .feature-label {
+    font-size: 0.85rem;
+    color: var(--bright);
+    margin-bottom: 0.2rem;
+  }
+
+  .feature-detail { font-size: 0.78rem; color: var(--dim); line-height: 1.5; }
+
+  @media (min-width: 600px) {
+    .feature-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── keybindings ── */
+  .kb-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .kb-group { background: var(--bg); padding: 1.25rem 1.5rem; }
+
+  .kb-group-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 1rem;
+  }
+
+  .kb-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.82rem;
+  }
+
+  .kb-row:last-child { border-bottom: none; }
+
+  .kb-key { min-width: 7rem; flex-shrink: 0; }
+
+  kbd {
+    display: inline-block;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-bottom-width: 2px;
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 0.1rem 0.45rem;
+    line-height: 1.5;
+  }
+
+  .kb-sep { color: var(--dim); font-size: 0.75rem; }
+  .kb-action { color: var(--dim); font-size: 0.78rem; }
+
+  @media (min-width: 600px) {
+    .kb-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── install ── */
+  .install-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 0.875rem;
+  }
+
+  .install-panel { background: var(--bg); }
+
+  .install-panel-header {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 0.7rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .tag {
+    font-size: 0.6rem;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 0.1rem 0.4rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .install-panel pre {
+    padding: 1.25rem 1.5rem;
+    font-size: 0.8rem;
+    line-height: 1.9;
+    overflow-x: auto;
+    color: var(--green);
+  }
+
+  .install-panel .c { color: var(--dim); }
+
+  .install-note { font-size: 0.72rem; color: var(--dim); }
+
+  @media (min-width: 600px) {
+    .install-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── footer ── */
+  footer {
+    padding: 2rem 0;
+    font-size: 0.75rem;
+    color: var(--dim);
+  }
+
+  footer .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  footer a { color: var(--dim); }
+  footer a:hover { color: var(--accent); text-decoration: none; }
+
+  .footer-links { display: flex; gap: 1.25rem; }
+</style>
