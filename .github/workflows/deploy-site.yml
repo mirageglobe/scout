@@ -34,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: copy assets
-        run: cp demo.gif site/public/demo.gif
+        run: mkdir -p site/public && cp demo.gif site/public/demo.gif
 
       - name: build
         working-directory: site
