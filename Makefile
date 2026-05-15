@@ -119,15 +119,15 @@ site-install: ## install site dependencies
 	cd site && npm install
 
 site-dev: ## start astro dev server with hot reload
-	cp demo.gif site/public/demo.gif
+	mkdir -p site/public && cp demo.gif site/public/demo.gif
 	cd site && npm run dev
 
 site-build: ## build the astro site
-	cp demo.gif site/public/demo.gif
+	mkdir -p site/public && cp demo.gif site/public/demo.gif
 	cd site && npm run build
 
 site-preview: ## serve the built site (no hot reload; use site-dev for development)
-	cp demo.gif site/public/demo.gif
+	mkdir -p site/public && cp demo.gif site/public/demo.gif
 	cd site && npm run build && npm run preview
 
 ##@ clean
