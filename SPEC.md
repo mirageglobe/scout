@@ -424,6 +424,8 @@ make release
 
 ### near term
 
+- [ ] `[site]` add github pages website — astro source in `/site`, ci builds and deploys to github pages environment (no branch); workflow triggers on `/site/**` changes  [easy]
+- [ ] `[ai]` detect locally running ollama instance and connect for in-app chat — probe `http://localhost:11434` on startup; if available, expose a chat panel keybinding to open a conversational interface backed by the detected model  [hard]
 - [x] `[explorer]` consider showing in file pane, the number of changed files  [easy]
 - [x] `[explorer]` update naming of command `root-focus` to `root-lock`  [easy]
 - [x] `[explorer]` ls all files in current directory  [easy]
@@ -450,8 +452,6 @@ make release
 - [x] `[explorer]` mouse click to select and navigate files in the explorer pane  [medium]
 - [x] `[preview]` scrollbar indicator in the preview pane showing scroll position  [easy]
 - [x] `[explorer]` mouse wheel scroll in the file explorer pane  [easy]
-- [ ] `[site]` add github pages website — astro source in `/site`, ci builds and deploys to github pages environment (no branch); workflow triggers on `/site/**` changes  [easy]
-- [ ] `[ai]` detect locally running ollama instance and connect for in-app chat — probe `http://localhost:11434` on startup; if available, expose a chat panel keybinding to open a conversational interface backed by the detected model  [hard]
 
 ### ideas
 
@@ -460,8 +460,9 @@ make release
 - [ ] `[ui]` ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; add `SCOUT_UNICODE_SAFE=1` env var that swaps the symbol set to narrow-safe ASCII alternatives at startup  [medium]
 - [ ] `[git]` git diff preview — when selected file has an `M` badge, show `git diff` output in the preview pane  [medium]
 - [ ] `[git]` git log preview — when selecting a file, offer a keypress to show `git log --oneline` for that file in the preview pane  [medium]
-- [x] `[explorer]` four-width explorer pane — `tab` from default (~40 cols) enters a sub-cycle: sliver (5 cols) → narrow (13 cols) → wide (50%) → sliver; default is an entry point only and is never revisited via tab; replaces the binary collapse toggle; `tab:explorer` hint bar indicator activates when not in default mode  [medium]
+- [ ] `[preview]` mouse drag text selection in preview viewport — click-drag highlights lines; releasing the mouse copies the selected text to the system clipboard  [medium]
 - [ ] `[install]` curl binary install/upgrade script — provide a one-liner script that detects OS/arch, downloads the correct tarball from the GitHub release, and places the binary in `~/.local/bin` or `/usr/local/bin`; re-running the script upgrades to the latest release; alternative to Homebrew for non-Mac or Homebrew-free environments  [medium]
+- [x] `[explorer]` four-width explorer pane — `tab` from default (~40 cols) enters a sub-cycle: sliver (5 cols) → narrow (13 cols) → wide (50%) → sliver; default is an entry point only and is never revisited via tab; replaces the binary collapse toggle; `tab:explorer` hint bar indicator activates when not in default mode  [medium]
 - [x] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
 - [x] `[ui]` dark / light mode — detect terminal background via OSC 11 query (`tea.BackgroundColorMsg`); auto-select a light theme when on a light background, dark when dark; `t` continues to cycle within the active mode  [medium]
 - [x] `[ui]` manual dark/light mode toggle — `T` (shift+t) switches between dark and light mode pools and selects the first theme in the new pool; `t` continues to cycle within the active pool  [easy]
