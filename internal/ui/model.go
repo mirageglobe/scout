@@ -59,6 +59,9 @@ type Model struct {
 	TermBgDark           bool   // true when terminal background is detected as dark
 	ThemeAutoSet         bool   // true when theme was set by hour (no saved config); allows bg detection to override
 	PreviewWrap          bool   // true when preview pane wraps long lines instead of truncating
+	DragStartRow         int    // -1 = inactive; ≥0 = viewport content row where drag started
+	DragEndRow           int    // current viewport content row during drag
+	DragActive           bool   // true once mouse has moved since click
 }
 
 // NewModel initializes a fresh UI model with a time-based theme (or saved config).
@@ -70,13 +73,14 @@ func NewModel(cwd string) Model {
 		autoSet = false
 	}
 	return Model{
-		Cwd:         cwd,
-		RootPath:    cwd,
-		RootLock:    true,
-		ThemeIdx:    themeIdx,
-		ShowHidden:  true,
-		TermBgDark:  true,
+		Cwd:          cwd,
+		RootPath:     cwd,
+		RootLock:     true,
+		ThemeIdx:     themeIdx,
+		ShowHidden:   true,
+		TermBgDark:   true,
 		ThemeAutoSet: autoSet,
+		DragStartRow: -1,
 	}
 }
 
