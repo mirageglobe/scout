@@ -223,6 +223,10 @@ func (m Model) View() tea.View {
 		Foreground(lipgloss.Color("#282A36")).
 		Bold(true).
 		Width(rightWidth - 4)
+	selectionStyle := lipgloss.NewStyle().
+		Background(lipgloss.Color("#3D59A1")).
+		Foreground(lipgloss.Color("#C0CAF5")).
+		Width(rightWidth - 4)
 
 	// expand lines: wrap or truncate depending on mode
 	type displayLine struct {
@@ -247,9 +251,21 @@ func (m Model) View() tea.View {
 
 	startIdx := min(m.PreviewScroll, len(displayLines))
 	endIdx := min(startIdx+contentHeight, len(displayLines))
+
+	dragLo, dragHi := -1, -1
+	if m.DragActive {
+		dragLo = m.DragStartRow
+		dragHi = m.DragEndRow
+		if dragLo > dragHi {
+			dragLo, dragHi = dragHi, dragLo
+		}
+	}
+
 	visiblePreview := make([]string, endIdx-startIdx)
 	for i, dl := range displayLines[startIdx:endIdx] {
 		switch {
+		case m.DragActive && i >= dragLo && i <= dragHi:
+			visiblePreview[i] = selectionStyle.Render(stripANSI(dl.text))
 		case dl.origIdx == currentMatchLine:
 			visiblePreview[i] = currentMatchStyle.Render(stripANSI(dl.text))
 		case matchSet[dl.origIdx]:

@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -167,9 +168,16 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		leftWidth := ExplorerLeftWidth(m.ExplorerWidthMode, m.Width)
-		// click on right pane: shift focus to preview
+		// click on right pane: anchor drag start
 		if msg.X > leftWidth+1 {
 			m.FocusRight = true
+			contentRow := msg.Y - 2
+			if contentRow < 0 {
+				contentRow = 0
+			}
+			m.DragStartRow = contentRow
+			m.DragEndRow = contentRow
+			m.DragActive = false
 			return m, nil
 		}
 		contentHeight := m.Height - 5
@@ -226,6 +234,65 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.PreviewScroll--
 			}
 		}
+		return m, nil
+
+	case tea.MouseMotionMsg:
+		if msg.Button != tea.MouseLeft || m.DragStartRow < 0 {
+			return m, nil
+		}
+		leftWidth := ExplorerLeftWidth(m.ExplorerWidthMode, m.Width)
+		if msg.X <= leftWidth+1 {
+			return m, nil
+		}
+		contentRow := msg.Y - 2
+		if contentRow < 0 {
+			contentRow = 0
+		}
+		m.DragActive = true
+		m.DragEndRow = contentRow
+		return m, nil
+
+	case tea.MouseReleaseMsg:
+		if !m.DragActive {
+			m.DragStartRow = -1
+			m.DragActive = false
+			return m, nil
+		}
+		lo := m.DragStartRow
+		hi := m.DragEndRow
+		if lo > hi {
+			lo, hi = hi, lo
+		}
+		rawLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
+		absLo := lo + m.PreviewScroll
+		absHi := hi + m.PreviewScroll
+		if absLo < 0 {
+			absLo = 0
+		}
+		if absHi >= len(rawLines) {
+			absHi = len(rawLines) - 1
+		}
+		var sb strings.Builder
+		for idx := absLo; idx <= absHi; idx++ {
+			plain := stripANSI(rawLines[idx])
+			// strip line-number gutter ("  N │ ") if present
+			if sep := strings.Index(plain, " │ "); sep >= 0 {
+				plain = plain[sep+3:]
+			}
+			if sb.Len() > 0 {
+				sb.WriteByte('\n')
+			}
+			sb.WriteString(plain)
+		}
+		copied := sb.String()
+		lineCount := absHi - absLo + 1
+		if err := copyToClipboard(copied); err == nil {
+			m.StatusMsg = fmt.Sprintf("[ok] copied %d line(s)", lineCount)
+		} else {
+			m.StatusMsg = "[err] clipboard unavailable"
+		}
+		m.DragStartRow = -1
+		m.DragActive = false
 		return m, nil
 
 	case tea.KeyPressMsg:
@@ -815,6 +882,18 @@ func clearExplorerSearch(m Model) Model {
 	m.ExplorerSearchActive = false
 	m.ExplorerSearchInput = ""
 	return m
+}
+
+// copyToClipboard writes text to the system clipboard using pbcopy (macOS) or xclip (Linux).
+func copyToClipboard(text string) error {
+	var cmd *exec.Cmd
+	if runtime.GOOS == "darwin" {
+		cmd = exec.Command("pbcopy")
+	} else {
+		cmd = exec.Command("xclip", "-selection", "clipboard")
+	}
+	cmd.Stdin = strings.NewReader(text)
+	return cmd.Run()
 }
 
 // clearSearch resets all search state on the model.
