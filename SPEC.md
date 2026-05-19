@@ -424,7 +424,7 @@ make release
 
 ### near term
 
-- [ ] `[site]` add github pages website — astro source in `/site`, ci builds and deploys to github pages environment (no branch); workflow triggers on `/site/**` changes  [easy]
+- [x] `[site]` add github pages website — astro source in `/site`, ci builds and deploys to github pages environment (no branch); workflow triggers on `/site/**` changes  [easy]
 - [ ] `[ai]` detect locally running ollama instance and connect for in-app chat — probe `http://localhost:11434` on startup; if available, expose a chat panel keybinding to open a conversational interface backed by the detected model  [hard]
 - [x] `[explorer]` consider showing in file pane, the number of changed files  [easy]
 - [x] `[explorer]` update naming of command `root-focus` to `root-lock`  [easy]

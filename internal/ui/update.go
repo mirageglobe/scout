@@ -277,7 +277,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			plain := stripANSI(rawLines[idx])
 			// strip line-number gutter ("  N │ ") if present
 			if sep := strings.Index(plain, " │ "); sep >= 0 {
-				plain = plain[sep+3:]
+				plain = plain[sep+len(" │ "):]
 			}
 			if sb.Len() > 0 {
 				sb.WriteByte('\n')
