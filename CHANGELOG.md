@@ -10,6 +10,23 @@ versions follow [semantic versioning](https://semver.org/).
 
 ---
 
+## [v0.8.0] — 2026-05-19
+
+### added
+- mouse drag text selection in preview pane — releasing mouse copies selected lines to clipboard
+- multi-step explorer width cycle via `tab`
+- github pages site (`/site` astro source, `/docs` built output)
+- theme-aware chroma syntax highlighting; CLI flags (`--theme`, `--wrap`)
+- context-aware hint bar; manual dark/light toggle (`T`)
+- decouple explorer viewport scroll from cursor
+
+### fixed
+- strip full UTF-8 gutter separator when copying from preview pane (line numbers no longer bleed into clipboard)
+- wrap-aware preview scroll
+- github pages: `.nojekyll`, `/docs` folder, node 22 for astro 6
+
+---
+
 ## [v0.7.0] — 2026-05-10
 
 ### added
