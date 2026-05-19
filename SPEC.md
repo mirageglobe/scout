@@ -327,14 +327,20 @@ make build
 
 ## 10. Releasing
 
-> **for AI agents:** present each command below as a step for the user to run manually. do NOT execute `make bump-*`, `make push-tags`, or `make update` autonomously — these affect shared git history and remote state. guide the user through each phase; wait for confirmation before proceeding to the next.
+> **for AI agents:** always ask the user which release method to use before proceeding (default: CI). present every command as a manual step for the user to run — do NOT execute `make bump-*`, `make push-tags`, `make release`, or `make update` autonomously. these commands affect shared git history and remote state. guide one phase at a time and wait for confirmation before continuing.
 
-pushing a `v*` tag triggers the GitHub Actions release workflow (`.github/workflows/release.yml`), which runs goreleaser to build cross-platform binaries, create tarballs, generate a checksums file, and publish the GitHub release automatically. the homebrew tap is updated manually after each release.
+two release methods are available. **CI goreleaser is the default and preferred method.**
+
+| method          | when to use                                              |
+| :-------------- | :------------------------------------------------------- |
+| CI goreleaser   | default; clean environment; audit trail in GitHub Actions |
+| local goreleaser | CI is broken; no internet on runner; faster iteration    |
 
 ### prerequisites
 
-- `GITHUB_TOKEN` available in repo secrets (GitHub provides this automatically for Actions)
 - homebrew tap repo checked out locally alongside this repo: `../homebrew-tap`
+- CI method: `GITHUB_TOKEN` in repo secrets (provided automatically by GitHub Actions)
+- local method: `goreleaser` installed locally; `GITHUB_TOKEN` exported in shell
 
 ### version bump guide
 
@@ -344,15 +350,12 @@ pushing a `v*` tag triggers the GitHub Actions release workflow (`.github/workfl
 | new user-facing features, no breaking changes | minor | v0.3.0 → v0.4.0  |
 | breaking changes to behaviour or config       | major | v0.3.0 → v1.0.0  |
 
-### steps
+### phase 1 — prepare changelog (on feature branch)
 
-#### phase 1 — prepare changelog (on feature branch)
-
-all changelog work happens on a feature branch before tagging. do not commit changelog or tag directly on main.
+shared by both methods. do not commit changelog or tag directly on main.
 
 ```bash
 # 1. decide the target version using the bump guide above
-#    decide before editing — the version determines the changelog heading
 
 # 2. update CHANGELOG.md:
 #    - move all [unreleased] items under a new heading: ## [vX.Y.Z] — YYYY-MM-DD
@@ -364,26 +367,39 @@ git add CHANGELOG.md && git commit -m "docs: finalize changelog for vX.Y.Z" && g
 # 4. open a PR and merge into main
 ```
 
-#### phase 2 — tag and publish (on main, after PR is merged)
+### phase 2 — tag (on main, after PR is merged)
+
+shared by both methods. always use `make bump-*` — do NOT use `git tag` directly.
 
 ```bash
 # 5. sync local main
 git checkout main && git pull
 
-# 6. tag the next version using make — do NOT use git tag directly
+# 6. tag the next version
 make bump-patch   # bug fixes only         e.g. v0.3.0 -> v0.3.1
 make bump-minor   # new features           e.g. v0.3.0 -> v0.4.0
 make bump-major   # breaking changes       e.g. v0.3.0 -> v1.0.0
+```
 
-# 7. push the tag — triggers CI goreleaser to build and publish the GitHub release
+### phase 2a — publish via CI goreleaser (default)
+
+```bash
+# 7. push the tag — triggers GitHub Actions goreleaser
 make push-tags
 ```
 
 verify CI completes before proceeding: check https://github.com/mirageglobe/scout/actions
 
-#### phase 3 — update homebrew tap (after goreleaser CI completes)
+### phase 2b — publish via local goreleaser (alternative)
 
-the tap lives at `github.com/mirageglobe/homebrew-tap` (checked out at `../homebrew-tap`). run the `update` target manually — do not automate this step.
+```bash
+# 7. publish directly using local goreleaser (requires GITHUB_TOKEN exported)
+make release
+```
+
+### phase 3 — update homebrew tap (after goreleaser completes)
+
+shared by both methods. the tap lives at `../homebrew-tap`. run manually — do not automate.
 
 ```bash
 # 8. switch to the tap repo and run the update target
@@ -405,20 +421,21 @@ brew upgrade mirageglobe/tap/scout
 ### local validation (optional)
 
 ```bash
-make release-dry   # dry-run via goreleaser: builds binaries and archives locally, no publish
+make release-dry   # dry-run goreleaser: builds binaries and archives locally, no publish
 ```
 
 ### troubleshooting
 
 **release fails with `422 Validation Failed — tag_name already_exists`**
 
-this happens when a previous goreleaser run partially created a GitHub release for the same tag (e.g. interrupted mid-upload). goreleaser cannot overwrite an existing release.
+this happens when a previous goreleaser run partially created a GitHub release for the same tag. goreleaser cannot overwrite an existing release.
 
-fix: delete the partial release and re-run — run these commands manually:
+fix: delete the partial release and retrigger — run these commands manually:
 
 ```bash
 make release-reset   # deletes any existing GitHub release for the current tag
-make push-tags       # retriggers CI goreleaser
+make push-tags       # CI method: retriggers goreleaser via tag push
+# make release       # local method: run goreleaser directly instead
 ```
 
 ---
