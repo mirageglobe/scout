@@ -404,7 +404,8 @@ shared by both methods. the tap lives at `../homebrew-tap`. run manually — do 
 ```bash
 # 8. switch to the tap repo and run the update target
 cd ../homebrew-tap
-make update FORMULA=scout VERSION=X.Y.Z   # VERSION without the v prefix, e.g. 0.8.0
+gmake update FORMULA=scout VERSION=X.Y.Z   # VERSION without the v prefix, e.g. 0.8.0
+# note: gmake required — macOS ships with GNU make 3.81 which lacks .ONESHELL support
 ```
 
 the `update` target:
