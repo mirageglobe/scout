@@ -5,77 +5,87 @@
 
 ---
 
-## vision
+## product
 
-scout is a terminal file manager that does one thing well — browse and preview files without leaving the keyboard. no config, no plugins, no bloat. just a fast, clean TUI that feels like it belongs in the terminal.
-
-the goal: be the file manager that developers actually keep open.
-
----
-
-## audience
-
-- **terminal-first developers** who live in the shell and want a lightweight alternative to `ls` + `cat` + `vim` for file browsing
-- **keyboard-driven workflow users** who prefer navigating without a mouse (vi-style, ranger-style)
-- **go and charm.sh enthusiasts** who appreciate well-built TUI tools in the bubbletea ecosystem
+- **description**: single-binary terminal file manager with dual-pane layout, git badges, and syntax-highlighted previews
+- **audience**: terminal-first developers — individual and small teams
+- **stage**: launch-ready (v0.8.x — homebrew tap live, demo gif present, docs complete)
+- **model**: free and open source
 
 ---
 
-## key messages
+## positioning
 
-- single binary, zero config, instant start
-- dual-pane: file explorer + live preview side by side
-- git-aware — badges show modified, staged, and untracked files at a glance
-- time-based and terminal-aware themes out of the box
-
----
-
-## voice and tone
-
-- confident but minimal
-- technical, not tutorial-heavy
-- lowercase, no hype, show the tool doing the work
-- let the screenshot do the talking
+- **what makes it different**: git integration + zero config out of the box; single binary, no plugins, no rc files
+- **for**: developers who want immediate file and git situational awareness in the terminal; small teams where zero-setup matters for consistency across machines
+- **not for**: users who need file operations (copy/move/delete); GUI or mouse-driven workflows
 
 ---
 
 ## channels
 
-| channel          | audience                        | priority | notes                                                  |
-| :--------------- | :------------------------------ | :------- | :----------------------------------------------------- |
-| github           | developers, contributors        | high     | stars, issues, and discussions as social proof         |
-| hacker news      | senior engineers, open-source   | high     | show hn post at launch; one shot, make it count        |
-| x / twitter      | developers, tui enthusiasts     | high     | short demo gif, tag `#tui` `#golang` `#terminal`       |
-| reddit           | broad developer community       | high     | r/commandline, r/golang, r/unixporn                    |
-| product hunt     | makers, early adopters          | medium   | launch when demo gif and docs are polished             |
-| dev.to           | developer bloggers              | medium   | post: "building a tui file manager in go"              |
-| discord          | charm.sh, go communities        | medium   | charm discord, gophers slack                           |
-| youtube          | visual learners                 | low      | terminal workflow demos; longer-term investment        |
+four channels. that's it. do these well before adding more.
+
+| channel          | audience                      | priority | rationale                                              |
+| :--------------- | :---------------------------- | :------- | :----------------------------------------------------- |
+| github           | developers; contributors      | high     | stars = trust signal; issues = usage signal            |
+| awesome lists    | developers evaluating tools   | high     | one PR to `awesome-tui` / `awesome-go`; permanent traffic |
+| hacker news      | senior engineers; open-source | high     | show hn at launch; highest single-post leverage        |
+| reddit           | broad developer community     | high     | r/commandline, r/golang, r/unixporn; sustained reach   |
+
+**later, when the above are done:**
+
+| channel              | priority | note                                         |
+| :------------------- | :------- | :------------------------------------------- |
+| developer newsletters | medium  | Console.dev, Go Weekly, TLDR; pitch once     |
+| x / twitter          | medium   | demo gif; low effort, low ceiling            |
+| dev.to               | low      | "building a tui in go" article; long-tail    |
 
 ---
 
-## strategy
+## messaging
 
-### launch
-- publish a **show hn** post — highest-leverage single post for a terminal tool
-- post on r/commandline and r/golang the same day
-- share a demo gif on x showing git badges, theme cycling, and live preview
+**tone**: lowercase, no hype, let the tool speak. a good gif beats any copy.
 
-### content
-- lead with the demo gif — a good gif is worth more than any description
-- show the dual-pane layout in a real project, not a toy directory
-- highlight git integration — most file managers don't have it
+**key themes**:
+- single binary, zero config, works on any machine
+- see your files and git status together, instantly
+- stays out of your way
 
-### milestones to shout about
-- first github star from a stranger
-- 100 stars
-- first mention in a "terminal tools" roundup or blog post
-- v1.0 release
+**phrases to use**: "zero config", "immediate situational awareness", "stays out of your way"
 
-### community
-- respond to every issue personally in the early days
-- credit anyone who reports bugs or contributes feedback publicly
-- keep the binary footprint small — trust is built by not adding bloat
+**phrases to avoid**: "blazing fast", "powerful", "intuitive", feature-list dumps without showing the tool
+
+---
+
+## content calendar
+
+| step | channel          | format       | topic / asset                                      | status   | unblocked    |
+| :--- | :--------------- | :----------- | :------------------------------------------------- | :------- | :----------- |
+| 1    | awesome-tuis     | PR           | PR #687 open at rothgar/awesome-tuis               | done     | now          |
+| 2    | hacker news      | show hn post | launch post — git badges + zero config angle       | planned  | now          |
+| 3    | reddit           | text post    | r/commandline + r/golang same day as HN            | planned  | now          |
+| 4    | awesome-cli-apps | PR           | add to file managers section                       | blocked  | 2026-07-17   |
+| 5    | awesome-go       | PR           | add to advanced console UIs or utilities section   | blocked  | 2026-11-18   |
+| 6    | newsletters      | pitch email  | Console.dev, Go Weekly — one-liner + gif           | backlog  | after 20 stars |
+
+**blockers (revisit mid-July 2026):**
+- `awesome-cli-apps`: requires 90 days old (eligible 2026-07-17) and 20+ stars
+- `awesome-go`: requires 5 months old (eligible 2026-09-18) + OSI-approved license (BUSL-1.1 not accepted) + 80% test coverage
+- **license note**: BUSL-1.1 blocks most curated lists. switching to MIT or Apache-2.0 removes this permanently.
+
+**milestones to amplify**: first external star, 20 stars (unlocks list submissions), 100 stars, first roundup mention, v1.0
+
+---
+
+## metrics
+
+| channel       | success signal                              | threshold   |
+| :------------ | :------------------------------------------ | :---------- |
+| github        | stars from non-network accounts             | 100 stars   |
+| awesome lists | PR merged; referral traffic in star history | merged      |
+| hacker news   | front page; comments from terminal users    | top 10      |
+| reddit        | upvotes; constructive comments              | 50 upvotes  |
 
 ---
 
