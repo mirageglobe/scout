@@ -9,15 +9,38 @@ import (
 	"github.com/mirageglobe/scout/internal/filesystem"
 )
 
+func TestSelectedEntryPath(t *testing.T) {
+	entries := []filesystem.Entry{
+		{Name: "alpha.go"},
+		{Name: "beta", IsDir: true},
+	}
+	cases := []struct {
+		name  string
+		model Model
+		want  string
+	}{
+		{"empty listing", Model{Cwd: "/home/u", Entries: nil, Cursor: 0}, ""},
+		{"first entry", Model{Cwd: "/home/u", Entries: entries, Cursor: 0}, "/home/u/alpha.go"},
+		{"second entry (dir)", Model{Cwd: "/home/u", Entries: entries, Cursor: 1}, "/home/u/beta"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := selectedEntryPath(c.model); got != c.want {
+				t.Errorf("selectedEntryPath() = %q, want %q", got, c.want)
+			}
+		})
+	}
+}
+
 // mockFileInfo satisfies os.FileInfo with a configurable ModTime.
 type mockFileInfo struct{ modTime time.Time }
 
-func (f mockFileInfo) Name() string      { return "" }
-func (f mockFileInfo) Size() int64       { return 0 }
-func (f mockFileInfo) Mode() os.FileMode { return 0 }
+func (f mockFileInfo) Name() string       { return "" }
+func (f mockFileInfo) Size() int64        { return 0 }
+func (f mockFileInfo) Mode() os.FileMode  { return 0 }
 func (f mockFileInfo) ModTime() time.Time { return f.modTime }
-func (f mockFileInfo) IsDir() bool       { return false }
-func (f mockFileInfo) Sys() any          { return nil }
+func (f mockFileInfo) IsDir() bool        { return false }
+func (f mockFileInfo) Sys() any           { return nil }
 
 func TestComputeSearchMatches(t *testing.T) {
 	preview := "hello world\nfoo bar\nHELLO again"

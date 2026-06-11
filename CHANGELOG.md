@@ -8,6 +8,13 @@ versions follow [semantic versioning](https://semver.org/).
 
 ## [unreleased]
 
+### added
+- `install.sh` curl one-liner installer: detects os/arch, downloads the matching release binary, verifies its sha256 checksum, and installs to `~/.local/bin`; re-run to upgrade. `SCOUT_VERSION` pins a version; `SCOUT_BIN_DIR` overrides the install dir. alternative to Homebrew.
+- `y` copies the selected entry's full path to the system clipboard
+
+### fixed
+- docs: corrected root-lock keybinding (`l`, not `f`) and theme count (nine) in README and SPEC; resynced keybinding tables with the implementation
+
 ---
 
 ## [v0.8.0] — 2026-05-19
