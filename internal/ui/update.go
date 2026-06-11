@@ -411,6 +411,16 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
+		case "y":
+			if path := selectedEntryPath(m); path != "" {
+				if err := copyToClipboard(path); err == nil {
+					m.StatusMsg = fmt.Sprintf("[ok] copied path: %s", path)
+				} else {
+					m.StatusMsg = "[err] clipboard unavailable"
+				}
+			}
+			return m, nil
+
 		case "r":
 			if m.FocusRight {
 				m.Preview = m.BuildPreview()
@@ -882,6 +892,15 @@ func clearExplorerSearch(m Model) Model {
 	m.ExplorerSearchActive = false
 	m.ExplorerSearchInput = ""
 	return m
+}
+
+// selectedEntryPath returns the absolute path of the entry under the cursor,
+// or an empty string when the listing is empty.
+func selectedEntryPath(m Model) string {
+	if len(m.Entries) == 0 {
+		return ""
+	}
+	return filepath.Join(m.Cwd, m.Entries[m.Cursor].Name)
 }
 
 // copyToClipboard writes text to the system clipboard using pbcopy (macOS) or xclip (Linux).

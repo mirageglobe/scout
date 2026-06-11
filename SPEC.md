@@ -27,11 +27,11 @@
 | help overlay (`?`)                                          | [x]    |
 | live system stats (CPU, memory, clock)                      | [x]    |
 | hidden file toggle (`i`)                                    | [x]    |
-| collapsible file list pane (`tab`)                          | [x]    |
+| resizable explorer pane width cycle (`tab`)                 | [x]    |
 | open with system default application (`o`)                  | [x]    |
 | scrollable preview pane (nav with `l`, scroll with `j`/`k`) | [x]    |
 | search in explorer and preview pane (`/`, `n`/`N`)          | [x]    |
-| root-lock mode: lock navigation to launch directory (`f`)   | [x]    |
+| root-lock mode: lock navigation to launch directory (`l`)   | [x]    |
 | persistent `scout ›` status prompt with loading spinner     | [x]    |
 | cursor restores to previous folder on parent navigation     | [x]    |
 | context-bounded async commands (no goroutine pile-up)       | [x]    |
@@ -92,7 +92,7 @@ type Model struct {
     GitStatus            map[string]string // filename → git status code ("M", "+", "?", "!")
     GitBranch            string            // current git branch name
     ShowHidden           bool              // whether hidden (dot) files are shown
-    ExplorerCollapsed    bool              // whether file list pane is collapsed to 8 chars
+    ExplorerWidthMode    int               // explorer pane width: 0/3 default, 1 sliver, 2 narrow, 4 wide
     Stats                filesystem.Stats  // live CPU, memory, and directory size
     StatusMsg            string            // transient status message shown in scout › prompt
     Err                  error             // last error to display in-pane
@@ -111,7 +111,7 @@ type Model struct {
 }
 ```
 
-`NewModel` sets `ThemeIdx` via `ThemeForHour(time.Now().Hour())` (or the saved config), and enables `RootLock` by default so navigation is locked to the launch directory until toggled with `f`.
+`NewModel` sets `ThemeIdx` via `ThemeForHour(time.Now().Hour())` (or the saved config), and enables `RootLock` by default so navigation is locked to the launch directory until toggled with `l`.
 
 ### 3.2 Messages (Msg)
 
@@ -161,7 +161,7 @@ suspends the TUI, forks `$EDITOR <file>`, and resumes on exit. the callback wrap
 5. renders the **right pane**: pre-computed `m.Preview` string (syntax-highlighted content or dir listing).
 6. joins panes horizontally with `lipgloss.JoinHorizontal`.
 7. renders the **`scout ›` status line** (always visible): shows loading spinner, search input/results, status messages, or a dim idle prompt.
-8. renders the **hint bar**: git branch (`⎇ name`) and keybinding hints; active toggles (`i:hidden`, `f:root-lock`, `tab:explorer`) render bold+accent.
+8. renders the **hint bar**: git branch (`⎇ name`) and keybinding hints; active toggles (`i:hidden`, `l:root-lock`, `tab:explorer`) render bold+accent.
 
 ### 3.5 Theming
 
@@ -213,21 +213,26 @@ Nine themes are defined in a `Themes` slice. Each theme carries a name, accent, 
 
 ## 5. Key Bindings
 
-| key              | action                                            |
-| ---------------- | --------------------------------------------------|
-| `↓` / `↑`        | move cursor down / up                             |
-| `←` / `⌫`        | nav to parent directory (or nav back from preview)|
-| `→` / `enter`    | enter directory or nav to preview pane            |
-| `e`              | open file in editor                               |
-| `o`              | open file with system default application         |
-| `g`              | jump to top of list                               |
-| `G`              | jump to bottom of list                            |
-| `i`              | toggle hidden files                               |
-| `l`              | toggle root-lock mode                             |
-| `tab`            | collapse / expand file list pane                  |
-| `t`              | cycle color theme                                 |
-| `?`              | show / hide help overlay                          |
-| `q` / `ctrl+c`   | quit                                              |
+| key            | action                                             |
+| :------------- | :------------------------------------------------- |
+| `↓` / `↑`      | move cursor down / up                              |
+| `←` / `⌫`      | nav to parent directory (or nav back from preview) |
+| `→` / `enter`  | enter directory or nav to preview pane             |
+| `g` / `G`      | jump to top / bottom of active pane                |
+| `e`            | open file in editor                                |
+| `o`            | open file with system default application          |
+| `y`            | copy selected path to clipboard                    |
+| `i`            | toggle hidden files                                |
+| `l`            | toggle root-lock mode                              |
+| `tab`          | cycle explorer pane width                          |
+| `r`            | refresh preview                                    |
+| `w`            | toggle word wrap in preview                        |
+| `t`            | cycle color theme                                  |
+| `T`            | toggle dark / light mode                           |
+| `/`            | search active pane (`n` / `N`: next / prev)        |
+| `esc`          | clear search                                       |
+| `?`            | show / hide help overlay                           |
+| `q` / `ctrl+c` | quit                                               |
 
 ---
 
@@ -467,7 +472,7 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 - [x] `[explorer]` focus command: restrict navigation to root directory where scout was launched (no escaping to parent)  [medium]
 - [x] `[ui]` visible status/activity indicator above the hint bar (`scout ›` persistent prompt with spinner and state-aware messages)  [medium]
 - [x] `[explorer]` navigating to parent directory should restore cursor focus to the folder you came from  [medium]
-- [x] `[ui]` toggle state indicators in the hint bar (bold accent on i:hidden, f:root-lock, tab:explorer when active)  [easy]
+- [x] `[ui]` toggle state indicators in the hint bar (bold accent on i:hidden, l:root-lock, tab:explorer when active)  [easy]
 - [x] `[explorer]` add context.Context with timeout to WatchDir, LoadDir, RefreshGit, and GetStats to prevent goroutine pile-up on slow or hung mounts  [medium]
 - [x] `[preview]` preview pane text wrapping — long lines truncated at pane boundary with a dim-styled `…` indicator; horizontal scroll deferred (use `e` to open in `$EDITOR`)  [easy]
 - [x] `[preview]` stale preview notification — preview auto-refreshes on file change via dirEntriesChanged ModTime check; no separate notification needed  [easy]
@@ -480,13 +485,13 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 
 ### ideas
 
-- [ ] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
+- [x] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
 - [ ] `[explorer]` fuzzy file search  [hard]
 - [ ] `[ui]` ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; add `SCOUT_UNICODE_SAFE=1` env var that swaps the symbol set to narrow-safe ASCII alternatives at startup  [medium]
 - [ ] `[git]` git diff preview — when selected file has an `M` badge, show `git diff` output in the preview pane  [medium]
 - [ ] `[git]` git log preview — when selecting a file, offer a keypress to show `git log --oneline` for that file in the preview pane  [medium]
 - [ ] `[preview]` mouse drag text selection in preview viewport — click-drag highlights lines; releasing the mouse copies the selected text to the system clipboard  [medium]
-- [ ] `[install]` curl binary install/upgrade script — provide a one-liner script that detects OS/arch, downloads the correct tarball from the GitHub release, and places the binary in `~/.local/bin` or `/usr/local/bin`; re-running the script upgrades to the latest release; alternative to Homebrew for non-Mac or Homebrew-free environments  [medium]
+- [x] `[install]` curl binary install/upgrade script — provide a one-liner script that detects OS/arch, downloads the correct tarball from the GitHub release, and places the binary in `~/.local/bin` or `/usr/local/bin`; re-running the script upgrades to the latest release; alternative to Homebrew for non-Mac or Homebrew-free environments  [medium]
 - [x] `[explorer]` four-width explorer pane — `tab` from default (~40 cols) enters a sub-cycle: sliver (5 cols) → narrow (13 cols) → wide (50%) → sliver; default is an entry point only and is never revisited via tab; replaces the binary collapse toggle; `tab:explorer` hint bar indicator activates when not in default mode  [medium]
 - [x] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
 - [x] `[ui]` dark / light mode — detect terminal background via OSC 11 query (`tea.BackgroundColorMsg`); auto-select a light theme when on a light background, dark when dark; `t` continues to cycle within the active mode  [medium]
