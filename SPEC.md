@@ -483,6 +483,7 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 - [x] `[explorer]` mouse wheel scroll in the file explorer pane  [easy]
 - [ ] `[ui]` remove the `tab:explorer` indicator from the hint bar and drop it as a visible toggle; `tab` stays as an unadvertised background hotkey that still cycles explorer pane width  [easy]
 - [ ] `[ui]` rename the `i:hidden` hint-bar indicator to `i:show hidden`; hidden files shown by default (toggle on at startup)  [easy]
+- [ ] `[ui]` help modal keys: while the `?` help overlay is open, `?`, `q`, and `esc` all close it; standardise every other popup modal to close on `q` and `esc`  [easy]
 
 ### ideas
 
