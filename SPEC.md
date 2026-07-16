@@ -481,6 +481,7 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 - [x] `[explorer]` mouse click to select and navigate files in the explorer pane  [medium]
 - [x] `[preview]` scrollbar indicator in the preview pane showing scroll position  [easy]
 - [x] `[explorer]` mouse wheel scroll in the file explorer pane  [easy]
+- [ ] `[ui]` remove the `tab:explorer` indicator from the hint bar and drop it as a visible toggle; `tab` stays as an unadvertised background hotkey that still cycles explorer pane width  [easy]
 
 ### ideas
 
