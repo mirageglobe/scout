@@ -455,7 +455,6 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 ### near term
 
 - [x] `[site]` add github pages website — astro source in `/site`, ci builds and deploys to github pages environment (no branch); workflow triggers on `/site/**` changes  [easy]
-- [ ] `[ai]` detect locally running ollama instance and connect for in-app chat — probe `http://localhost:11434` on startup; if available, expose a chat panel keybinding to open a conversational interface backed by the detected model  [hard]
 - [x] `[explorer]` consider showing in file pane, the number of changed files  [easy]
 - [x] `[explorer]` update naming of command `root-focus` to `root-lock`  [easy]
 - [x] `[explorer]` ls all files in current directory  [easy]
@@ -485,6 +484,7 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 
 ### ideas
 
+- [ ] `[ai]` detect locally running ollama instance and connect for in-app chat — probe `http://localhost:11434` on startup; if available, expose a chat panel keybinding to open a conversational interface backed by the detected model  [hard]
 - [x] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
 - [ ] `[explorer]` fuzzy file search  [hard]
 - [ ] `[ui]` ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; add `SCOUT_UNICODE_SAFE=1` env var that swaps the symbol set to narrow-safe ASCII alternatives at startup  [medium]
