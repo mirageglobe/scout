@@ -303,9 +303,10 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if m.ShowHelp {
 			switch msg.String() {
-			case "q", "ctrl+c":
+			case "ctrl+c":
 				return m, tea.Quit
-			case "?":
+			case "?", "q", "esc":
+				// ?, q, and esc all dismiss the help overlay; ctrl+c still hard-quits
 				m.ShowHelp = false
 			}
 			return m, nil

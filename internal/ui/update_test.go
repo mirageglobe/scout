@@ -6,8 +6,27 @@ import (
 	"testing"
 	"time"
 
+	tea "charm.land/bubbletea/v2"
 	"github.com/mirageglobe/scout/internal/filesystem"
 )
+
+func TestHelpOverlayCloseKeys(t *testing.T) {
+	// while the help overlay is open, ?, q, and esc all dismiss it
+	keys := []tea.KeyPressMsg{
+		{Code: '?', Text: "?"},
+		{Code: 'q', Text: "q"},
+		{Code: tea.KeyEscape},
+	}
+	for _, k := range keys {
+		t.Run(k.String(), func(t *testing.T) {
+			m := Model{ShowHelp: true}
+			updated, _ := m.Update(k)
+			if updated.(Model).ShowHelp {
+				t.Errorf("key %q did not dismiss the help overlay", k.String())
+			}
+		})
+	}
+}
 
 func TestSelectedEntryPath(t *testing.T) {
 	entries := []filesystem.Entry{
