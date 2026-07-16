@@ -16,7 +16,6 @@ var HintTips = [][2]string{
 	{"← / →", "jump between the explorer and preview panes"},
 	{"e", "open the selected file in your $EDITOR"},
 	{"o", "open the file with your system default app"},
-	{"tab", "collapse the explorer into a sliver to maximise the preview"},
 	{"i", "show or hide dotfiles and hidden entries"},
 	{"f", "lock navigation to the folder you launched scout from"},
 	{"r", "force a refresh of the current directory"},
@@ -384,9 +383,8 @@ func (m Model) View() tea.View {
 				sep + hint("←/→", "nav", false) +
 				sep + hint("e", "edit("+editor+")", false) +
 				sep + hint("o", "open", false) +
-				sep + hint("i", "hidden", !m.ShowHidden) +
+				sep + hint("i", "show hidden", m.ShowHidden) +
 				sep + hint("l", "root-lock", m.RootLock) +
-				sep + hint("tab", "explorer", m.ExplorerWidthMode != 0) +
 				sep + hint("t", "theme", false) +
 				sep + hint("/", "search", false) +
 				sep + hint("?", "help", false) +

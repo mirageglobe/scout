@@ -12,6 +12,11 @@ versions follow [semantic versioning](https://semver.org/).
 - `install.sh` curl one-liner installer: detects os/arch, downloads the matching release binary, verifies its sha256 checksum, and installs to `~/.local/bin`; re-run to upgrade. `SCOUT_VERSION` pins a version; `SCOUT_BIN_DIR` overrides the install dir. alternative to Homebrew.
 - `y` copies the selected entry's full path to the system clipboard
 
+### changed
+- hint bar: renamed `i:hidden` toggle to `i:show hidden` (highlights when hidden files are shown; shown by default)
+- hint bar: dropped the `tab:explorer` indicator and its idle tip; `tab` still cycles explorer pane width as an unadvertised hotkey
+- help overlay: `?`, `q`, and `esc` all dismiss it (`q` no longer quits the app while help is open); `ctrl+c` still hard-quits
+
 ### fixed
 - docs: corrected root-lock keybinding (`l`, not `f`) and theme count (nine) in README and SPEC; resynced keybinding tables with the implementation
 
