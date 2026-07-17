@@ -8,6 +8,9 @@ versions follow [semantic versioning](https://semver.org/).
 
 ## [unreleased]
 
+### changed
+- `make demo` now records from a throwaway `$HOME`, so `demo.gif` always renders `~/scout` and never leaks a local checkout path; requires GNU Make 4+ (`.ONESHELL`)
+
 ### added
 - `d` cycles the preview content between the file, its `git diff`, and `git log` for the selected file; git output is fetched asynchronously and highlighted with the chroma diff lexer; `d:git` hint-bar indicator lights up when a git view is active
 

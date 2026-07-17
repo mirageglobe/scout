@@ -70,8 +70,17 @@ build: ## compile the scout binary
 run: build ## build and run scout locally
 	./scout
 
-demo: build ## generate a VHS demo GIF
-	vhs < demo.tape
+demo: ## record demo.gif from a throwaway HOME so the header renders ~/scout (no local-path leak)
+	tmp=$$(mktemp -d)
+	trap 'rm -rf "$$tmp"' EXIT
+	git clone -q . "$$tmp/scout"
+	cd "$$tmp/scout"
+	go build -o scout ./cmd/scout
+	printf '\n' >> README.md   # dirty a tracked file so the M badge shows
+	: > SCRATCH.txt             # untracked file so the ? badge shows
+	HOME="$$tmp" vhs demo.tape
+	cp demo.gif "$(CURDIR)/demo.gif"
+	echo "[ ok ] demo.gif recorded from a throwaway HOME (header renders ~/scout)"
 
 ##@ verify
 
