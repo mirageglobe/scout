@@ -17,6 +17,36 @@ func GetBranch(ctx context.Context, dir string) string {
 	return strings.TrimSpace(string(out))
 }
 
+// Diff returns the working-tree "git diff" for a single file, relative to dir.
+// empty output (no unstaged changes) falls back to the staged diff.
+func Diff(ctx context.Context, dir, file string) (string, error) {
+	out, err := runGit(ctx, dir, "diff", "--", file)
+	if err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(out) == "" {
+		// nothing unstaged; show staged changes instead
+		return runGit(ctx, dir, "diff", "--staged", "--", file)
+	}
+	return out, nil
+}
+
+// Log returns "git log --oneline" (capped at 50) for a single file, relative to dir.
+func Log(ctx context.Context, dir, file string) (string, error) {
+	return runGit(ctx, dir, "log", "--oneline", "-n", "50", "--", file)
+}
+
+// runGit executes a git subcommand in dir and returns stdout.
+func runGit(ctx context.Context, dir string, args ...string) (string, error) {
+	cmd := exec.CommandContext(ctx, "git", args...)
+	cmd.Dir = dir
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
 // GetStatus runs "git status --porcelain" in the given directory and
 // returns a map of filename -> status code, relative to dir.
 func GetStatus(ctx context.Context, dir string) map[string]string {

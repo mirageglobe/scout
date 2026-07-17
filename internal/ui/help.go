@@ -34,6 +34,7 @@ func (m Model) RenderHelp() string {
 		keyStyle.Render("y")+descStyle.Render("copy selected path to clipboard"),
 		keyStyle.Render("i")+descStyle.Render("toggle hidden files"),
 		keyStyle.Render("l")+descStyle.Render("toggle root-lock mode"),
+		keyStyle.Render("d")+descStyle.Render("cycle git preview (file / diff / log)"),
 		keyStyle.Render("tab")+descStyle.Render("collapse / expand explorer"),
 		keyStyle.Render("r")+descStyle.Render("refresh preview"),
 		keyStyle.Render("w")+descStyle.Render("toggle word wrap in preview"),

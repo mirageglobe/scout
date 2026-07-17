@@ -221,6 +221,7 @@ Nine themes are defined in a `Themes` slice. Each theme carries a name, accent, 
 | `g` / `G`      | jump to top / bottom of active pane                |
 | `e`            | open file in editor                                |
 | `o`            | open file with system default application          |
+| `d`            | cycle git preview (file / diff / log)              |
 | `y`            | copy selected path to clipboard                    |
 | `i`            | toggle hidden files                                |
 | `l`            | toggle root-lock mode                              |
@@ -491,8 +492,8 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 - [x] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
 - [ ] `[explorer]` fuzzy file search  [hard]
 - [ ] `[ui]` ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; add `SCOUT_UNICODE_SAFE=1` env var that swaps the symbol set to narrow-safe ASCII alternatives at startup  [medium]
-- [ ] `[git]` git diff preview — when selected file has an `M` badge, show `git diff` output in the preview pane  [medium]
-- [ ] `[git]` git log preview — when selecting a file, offer a keypress to show `git log --oneline` for that file in the preview pane  [medium]
+- [x] `[git]` git diff preview — when selected file has an `M` badge, show `git diff` output in the preview pane  [medium]
+- [x] `[git]` git log preview — when selecting a file, offer a keypress to show `git log --oneline` for that file in the preview pane  [medium]
   - approach (both git-preview items): model as a preview content-source enum (`PreviewFile`/`GitDiff`/`GitLog`) that feeds the existing preview viewport, not a behavioral key-remapping mode; fetch git output via an async `tea.Cmd` + msg (mirroring `RefreshGit`/`GitRefreshMsg`) since it shells out, keeping `BuildPreview` sync for files; reuse the chroma `diff` lexer; reset to `PreviewFile` on navigation; guard non-repo (`GitBranch == ""`) and untracked `?` files
 - [ ] `[preview]` mouse drag text selection in preview viewport — click-drag highlights lines; releasing the mouse copies the selected text to the system clipboard  [medium]
 - [x] `[install]` curl binary install/upgrade script — provide a one-liner script that detects OS/arch, downloads the correct tarball from the GitHub release, and places the binary in `~/.local/bin` or `/usr/local/bin`; re-running the script upgrades to the latest release; alternative to Homebrew for non-Mac or Homebrew-free environments  [medium]
@@ -522,3 +523,4 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 | time-based theme auto-selection      | reduces manual configuration; theme still switchable at runtime with `t`                  |
 | 2-second tick for stats and git      | low enough overhead to feel live; high enough to avoid hammering the filesystem            |
 | `runtime.ReadMemStats` for memory    | zero-dependency way to surface allocated heap without external tooling                     |
+| preview content-source enum (`d`)    | one `PreviewMode` (file/diff/log) feeds the existing viewport; git output fetched async (`GitPreview` cmd + `GitPreviewMsg`) so shelling out never blocks the UI; resets to file on navigation |
