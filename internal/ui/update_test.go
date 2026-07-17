@@ -204,3 +204,83 @@ func TestClampedScrollFor(t *testing.T) {
 		})
 	}
 }
+
+func pressD(m Model) Model {
+	updated, _ := m.Update(tea.KeyPressMsg{Code: 'd', Text: "d"})
+	return updated.(Model)
+}
+
+func TestGitPreviewToggleCycle(t *testing.T) {
+	// in a git repo with a file selected, "d" cycles file -> diff -> log -> file
+	m := Model{
+		Cwd:       "/tmp",
+		GitBranch: "main",
+		Entries:   []filesystem.Entry{{Name: "a.go"}},
+		Cursor:    0,
+	}
+	if m.PreviewMode != PreviewFile {
+		t.Fatalf("initial mode = %d, want PreviewFile", m.PreviewMode)
+	}
+	m = pressD(m)
+	if m.PreviewMode != GitDiff {
+		t.Errorf("after 1st d = %d, want GitDiff", m.PreviewMode)
+	}
+	m = pressD(m)
+	if m.PreviewMode != GitLog {
+		t.Errorf("after 2nd d = %d, want GitLog", m.PreviewMode)
+	}
+	m = pressD(m)
+	if m.PreviewMode != PreviewFile {
+		t.Errorf("after 3rd d = %d, want PreviewFile (wrapped)", m.PreviewMode)
+	}
+}
+
+func TestGitPreviewToggleNonRepo(t *testing.T) {
+	// outside a git repo, "d" is a no-op and stays on the file preview
+	m := Model{Cwd: "/tmp", GitBranch: "", Entries: []filesystem.Entry{{Name: "a.go"}}}
+	m = pressD(m)
+	if m.PreviewMode != PreviewFile {
+		t.Errorf("non-repo mode = %d, want PreviewFile", m.PreviewMode)
+	}
+	if !strings.Contains(m.StatusMsg, "not a git repo") {
+		t.Errorf("status = %q, want a not-a-git-repo note", m.StatusMsg)
+	}
+}
+
+func TestGitPreviewMsgStaleDropped(t *testing.T) {
+	// a result whose mode no longer matches the model is discarded
+	m := Model{
+		Cwd:         "/tmp",
+		PreviewMode: PreviewFile, // user already toggled back to file
+		Preview:     "orig",
+		Entries:     []filesystem.Entry{{Name: "a.go"}},
+	}
+	msg := GitPreviewMsg{Mode: GitDiff, Path: "/tmp/a.go", Content: "diff --git a/a.go"}
+	updated, _ := m.Update(msg)
+	if got := updated.(Model).Preview; got != "orig" {
+		t.Errorf("stale preview applied: %q, want unchanged \"orig\"", got)
+	}
+}
+
+func TestGitPreviewMsgApplied(t *testing.T) {
+	// a matching result renders into the preview with a git header
+	m := Model{
+		Cwd:         "/tmp",
+		PreviewMode: GitDiff,
+		Entries:     []filesystem.Entry{{Name: "a.go"}},
+	}
+	msg := GitPreviewMsg{Mode: GitDiff, Path: "/tmp/a.go", Content: "diff --git a/a.go b/a.go"}
+	updated, _ := m.Update(msg)
+	if got := updated.(Model).Preview; !strings.Contains(got, "git diff") {
+		t.Errorf("preview = %q, want it to contain the git diff header", got)
+	}
+}
+
+func TestRenderGitPreviewHeaders(t *testing.T) {
+	if out := renderGitPreview(GitDiff, "diff --git a/x b/x", Themes[0]); !strings.Contains(out, "git diff") {
+		t.Errorf("diff render missing header: %q", out)
+	}
+	if out := renderGitPreview(GitLog, "abc123 commit", Themes[0]); !strings.Contains(out, "git log") {
+		t.Errorf("log render missing header: %q", out)
+	}
+}

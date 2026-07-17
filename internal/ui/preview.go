@@ -132,3 +132,42 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 
 	return sb.String()
 }
+
+// renderGitPreview formats async git diff/log output for the preview pane.
+// diff output is highlighted with the chroma "diff" lexer; log is plain.
+func renderGitPreview(mode int, content string, t Theme) string {
+	accentStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.Accent)).Bold(true)
+	dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.Dim))
+
+	header := "⎇ git diff"
+	if mode == GitLog {
+		header = "⎇ git log"
+	}
+
+	var sb strings.Builder
+	sb.WriteString(accentStyle.Render(header) + "\n")
+	sb.WriteString(dimStyle.Render(strings.Repeat("─", 30)) + "\n")
+
+	body := content
+	if mode == GitDiff {
+		var b bytes.Buffer
+		if err := quick.Highlight(&b, content, "diff", "terminal256", t.ChromaStyle); err == nil && b.Len() > 0 {
+			body = b.String()
+		}
+	}
+
+	lines := strings.Split(strings.TrimSuffix(body, "\n"), "\n")
+	maxLines := 2500
+	truncated := false
+	if len(lines) > maxLines {
+		lines = lines[:maxLines]
+		truncated = true
+	}
+	for _, l := range lines {
+		sb.WriteString(strings.ReplaceAll(l, "\t", "    ") + "\n")
+	}
+	if truncated {
+		sb.WriteString("\n  … (truncated)")
+	}
+	return sb.String()
+}

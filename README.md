@@ -14,7 +14,7 @@ Scout is a fast, elegant, terminal-native file explorer designed for immediate s
 
 - **Navigation**: fully keyboard-driven with instant directory entry, parent-navigation, and top/bottom jumps.
 - **Rich Previews**: real-time file previews with Chroma syntax highlighting, directory metadata, and intelligent binary detection.
-- **Git Integration**: integrated git status badges (`M`, `+`, `?`, `!`) and branch name in the status bar.
+- **Git Integration**: integrated git status badges (`M`, `+`, `?`, `!`) and branch name in the status bar; `d` cycles the preview between the file, its `git diff`, and `git log`.
 - **Time-Aware Themes**: nine color themes auto-selected by time of day, manually cycled with `t`; `T` toggles dark / light mode.
 - **Help Overlay**: full keybinding and symbol reference available at any time with `?`.
 - **System Stats**: live CPU usage, memory consumption, directory size, and clock in the header bar.
@@ -69,6 +69,7 @@ Scout stores your theme preferences in `~/.config/scout/config`. This file is au
 | `g` / `G`      | jump to top / bottom of active pane                |
 | `e`            | open file in editor                                |
 | `o`            | open file with system default application          |
+| `d`            | cycle git preview (file / diff / log)              |
 | `y`            | copy selected path to clipboard                    |
 | `i`            | toggle hidden files                                |
 | `l`            | toggle root-lock mode                              |

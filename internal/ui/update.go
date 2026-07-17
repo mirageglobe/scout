@@ -34,6 +34,30 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.GitBranch = msg.GitBranch
 		return m, nil
 
+	case GitPreviewMsg:
+		m.Loading = false
+		// drop stale output: cursor moved or mode toggled since the fetch started
+		if m.PreviewMode != msg.Mode || len(m.Entries) == 0 ||
+			filepath.Join(m.Cwd, m.Entries[m.Cursor].Name) != msg.Path {
+			return m, nil
+		}
+		m.PreviewScroll = 0
+		m.StatusMsg = ""
+		if msg.Err != nil {
+			m.Preview = "  (git error: " + msg.Err.Error() + ")"
+			return m, nil
+		}
+		if strings.TrimSpace(msg.Content) == "" {
+			if msg.Mode == GitLog {
+				m.Preview = "  (no history for this file)"
+			} else {
+				m.Preview = "  (no changes)"
+			}
+			return m, nil
+		}
+		m.Preview = renderGitPreview(msg.Mode, msg.Content, Themes[m.ThemeIdx])
+		return m, nil
+
 	case filesystem.TickMsg:
 		return m, tea.Batch(filesystem.DoTick(), filesystem.GetStats(m.Cwd), m.RefreshGit(), m.WatchDir(m.Cwd))
 
@@ -68,7 +92,9 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.Cursor >= len(m.Entries) {
 				m.Cursor = max(0, len(m.Entries)-1)
 			}
-			m.Preview = m.BuildPreview()
+			if m.PreviewMode == PreviewFile {
+				m.Preview = m.BuildPreview()
+			}
 		}
 		return m, nil
 
@@ -129,6 +155,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.StatusMsg = ""
 		m.PreviewScroll = 0
 		m.ExplorerScroll = 0
+		m.PreviewMode = PreviewFile
 		if m.PendingCursor != "" {
 			m.Cursor = 0
 			for i, e := range m.Entries {
@@ -485,6 +512,33 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 
+		// cycle preview content source: file -> git diff -> git log -> file
+		case "d":
+			if m.GitBranch == "" {
+				m.StatusMsg = "[info] git preview: not a git repo"
+				return m, nil
+			}
+			if len(m.Entries) == 0 || m.Entries[m.Cursor].IsDir {
+				m.StatusMsg = "[info] git preview: select a file"
+				return m, nil
+			}
+			m.PreviewMode = (m.PreviewMode + 1) % 3
+			m.PreviewScroll = 0
+			if m.PreviewMode == PreviewFile {
+				m.Preview = m.BuildPreview()
+				m.StatusMsg = "[info] preview: file"
+				return m, nil
+			}
+			sel := m.Entries[m.Cursor]
+			path := filepath.Join(m.Cwd, sel.Name)
+			label := "diff"
+			if m.PreviewMode == GitLog {
+				label = "log"
+			}
+			m, cmd := startLoading(m)
+			m.StatusMsg = "[info] git " + label + " …"
+			return m, tea.Batch(m.GitPreview(m.PreviewMode, path, sel.Name), cmd)
+
 		// search/find: "/" activates in whichever pane is focused
 		case "/":
 			if len(m.Entries) > 0 {
@@ -509,6 +563,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if idx == m.Cursor && pos < len(filtered)-1 {
 						m.Cursor = filtered[pos+1]
 						m.PreviewScroll = 0
+						m.PreviewMode = PreviewFile
 						m.Preview = m.BuildPreview()
 						break
 					}
@@ -526,6 +581,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if idx == m.Cursor && pos > 0 {
 						m.Cursor = filtered[pos-1]
 						m.PreviewScroll = 0
+						m.PreviewMode = PreviewFile
 						m.Preview = m.BuildPreview()
 						break
 					}
@@ -556,6 +612,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m = clampExplorerScroll(m)
 				m.PreviewScroll = 0
+				m.PreviewMode = PreviewFile
 				m.Preview = m.BuildPreview()
 				m.StatusMsg = ""
 				m = clearSearch(m)
@@ -574,6 +631,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m = clampExplorerScroll(m)
 				m.PreviewScroll = 0
+				m.PreviewMode = PreviewFile
 				m.Preview = m.BuildPreview()
 				m.StatusMsg = ""
 				m = clearSearch(m)
@@ -603,6 +661,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m = clampExplorerScroll(m)
 				m.PreviewScroll = 0
+				m.PreviewMode = PreviewFile
 				m.Preview = m.BuildPreview()
 				m.StatusMsg = ""
 				m = clearSearch(m)
@@ -627,6 +686,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m = clampExplorerScroll(m)
 				m.PreviewScroll = 0
+				m.PreviewMode = PreviewFile
 				m.Preview = m.BuildPreview()
 				m.StatusMsg = ""
 				m = clearSearch(m)
@@ -716,6 +776,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.Cursor = 0
 				m.ExplorerScroll = 0
+				m.PreviewMode = PreviewFile
 				m.Preview = m.BuildPreview()
 			}
 			m.StatusMsg = ""
@@ -731,6 +792,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.Cursor = len(m.Entries) - 1
 				}
 				m = clampExplorerScroll(m)
+				m.PreviewMode = PreviewFile
 				m.Preview = m.BuildPreview()
 			}
 			m.StatusMsg = ""

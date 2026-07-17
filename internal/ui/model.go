@@ -21,6 +21,22 @@ type HintTipTickMsg struct{}
 // EditorFinishedMsg is sent when the external editor (vim) exits.
 type EditorFinishedMsg struct{ Err error }
 
+// Preview content-source modes for the right pane.
+const (
+	PreviewFile = iota // normal file/directory preview
+	GitDiff            // "git diff" for the selected file
+	GitLog             // "git log --oneline" for the selected file
+)
+
+// GitPreviewMsg carries async git diff/log output for the preview pane.
+// Path guards against stale results after the cursor has moved.
+type GitPreviewMsg struct {
+	Mode    int
+	Path    string
+	Content string
+	Err     error
+}
+
 // Model represents the state of the Scout TUI.
 type Model struct {
 	Cwd           string
@@ -30,6 +46,7 @@ type Model struct {
 	Height        int
 	Preview       string
 	PreviewScroll int
+	PreviewMode   int // PreviewFile | GitDiff | GitLog
 	FocusRight    bool
 	ShowHelp      bool
 	ThemeIdx      int
@@ -127,6 +144,23 @@ func (m Model) RefreshGit() tea.Cmd {
 			GitStatus: git.GetStatus(ctx, m.Cwd),
 			GitBranch: git.GetBranch(ctx, m.Cwd),
 		}
+	}
+}
+
+// GitPreview fetches git diff or log output for path as an async command,
+// mirroring RefreshGit; bounded by a 5-second timeout since it shells out.
+func (m Model) GitPreview(mode int, path, file string) tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		var content string
+		var err error
+		if mode == GitLog {
+			content, err = git.Log(ctx, m.Cwd, file)
+		} else {
+			content, err = git.Diff(ctx, m.Cwd, file)
+		}
+		return GitPreviewMsg{Mode: mode, Path: path, Content: content, Err: err}
 	}
 }
 

@@ -9,6 +9,9 @@ versions follow [semantic versioning](https://semver.org/).
 ## [unreleased]
 
 ### added
+- `d` cycles the preview content between the file, its `git diff`, and `git log` for the selected file; git output is fetched asynchronously and highlighted with the chroma diff lexer; `d:git` hint-bar indicator lights up when a git view is active
+
+### added
 - `install.sh` curl one-liner installer: detects os/arch, downloads the matching release binary, verifies its sha256 checksum, and installs to `~/.local/bin`; re-run to upgrade. `SCOUT_VERSION` pins a version; `SCOUT_BIN_DIR` overrides the install dir. alternative to Homebrew.
 - `y` copies the selected entry's full path to the system clipboard
 
