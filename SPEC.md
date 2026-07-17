@@ -486,7 +486,7 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 - [x] `[ui]` rename the `i:hidden` hint-bar indicator to `i:show hidden`; hidden files shown by default (toggle on at startup)  [easy]
 - [x] `[ui]` help modal keys: while the `?` help overlay is open, `?`, `q`, and `esc` all close it; standardise every other popup modal to close on `q` and `esc`  [easy]
 
-- [ ] `[demo]` automate neutral-path demo recording: `make demo` should record with a temp `$HOME` so `demo.gif` always renders `~/scout`, never the maintainer's local checkout path (public repo)  [easy]
+- [x] `[demo]` automate neutral-path demo recording: `make demo` should record with a temp `$HOME` so `demo.gif` always renders `~/scout`, never the maintainer's local checkout path (public repo)  [easy]
 
 ### ideas
 
@@ -497,7 +497,7 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 - [x] `[git]` git diff preview — when selected file has an `M` badge, show `git diff` output in the preview pane  [medium]
 - [x] `[git]` git log preview — when selecting a file, offer a keypress to show `git log --oneline` for that file in the preview pane  [medium]
   - approach (both git-preview items): model as a preview content-source enum (`PreviewFile`/`GitDiff`/`GitLog`) that feeds the existing preview viewport, not a behavioral key-remapping mode; fetch git output via an async `tea.Cmd` + msg (mirroring `RefreshGit`/`GitRefreshMsg`) since it shells out, keeping `BuildPreview` sync for files; reuse the chroma `diff` lexer; reset to `PreviewFile` on navigation; guard non-repo (`GitBranch == ""`) and untracked `?` files
-- [ ] `[preview]` mouse drag text selection in preview viewport — click-drag highlights lines; releasing the mouse copies the selected text to the system clipboard  [medium]
+- [x] `[preview]` mouse drag text selection in preview viewport — click-drag highlights lines; releasing the mouse copies the selected text to the system clipboard  [medium]
 - [x] `[install]` curl binary install/upgrade script — provide a one-liner script that detects OS/arch, downloads the correct tarball from the GitHub release, and places the binary in `~/.local/bin` or `/usr/local/bin`; re-running the script upgrades to the latest release; alternative to Homebrew for non-Mac or Homebrew-free environments  [medium]
 - [x] `[explorer]` four-width explorer pane — `tab` from default (~40 cols) enters a sub-cycle: sliver (5 cols) → narrow (13 cols) → wide (50%) → sliver; default is an entry point only and is never revisited via tab; replaces the binary collapse toggle; `tab:explorer` hint bar indicator activates when not in default mode  [medium]
 - [x] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
