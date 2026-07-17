@@ -22,11 +22,11 @@ func (m Model) RenderHelp() string {
 	header := titleStyle.Render(fmt.Sprintf("scout help  -  %s theme  (press ? to dismiss)", t.Name))
 
 	hotkeys := lipgloss.JoinVertical(lipgloss.Left,
-		sectionStyle.Render("─ keys ─"),
-		keyStyle.Render("↑/↓")+descStyle.Render("navigate / scroll preview"),
+		sectionStyle.Render(m.Sym.Rule+" keys "+m.Sym.Rule),
+		keyStyle.Render(m.Sym.Up+"/"+m.Sym.Down)+descStyle.Render("navigate / scroll preview"),
 		keyStyle.Render("pgup/pgdn")+descStyle.Render("page scroll in active pane"),
 		keyStyle.Render("g / G")+descStyle.Render("jump to top / bottom of active pane"),
-		keyStyle.Render("←/→")+descStyle.Render("nav to parent / enter directory or preview"),
+		keyStyle.Render(m.Sym.Left+"/"+m.Sym.Right)+descStyle.Render("nav to parent / enter directory or preview"),
 		keyStyle.Render("backspace")+descStyle.Render("nav to parent directory"),
 		keyStyle.Render("enter")+descStyle.Render("enter directory / nav to preview"),
 		keyStyle.Render("e")+descStyle.Render("open file in editor"),
@@ -47,9 +47,9 @@ func (m Model) RenderHelp() string {
 	)
 
 	symbols := lipgloss.JoinVertical(lipgloss.Left,
-		sectionStyle.Render("─ symbols ─"),
-		keyStyle.Render("▸")+descStyle.Render("directory"),
-		keyStyle.Render("·")+descStyle.Render("clean file"),
+		sectionStyle.Render(m.Sym.Rule+" symbols "+m.Sym.Rule),
+		keyStyle.Render(m.Sym.Dir)+descStyle.Render("directory"),
+		keyStyle.Render(m.Sym.Dot)+descStyle.Render("clean file"),
 		keyStyle.Render("M")+descStyle.Render("git modified"),
 		keyStyle.Render("+")+descStyle.Render("git added / staged"),
 		keyStyle.Render("?")+descStyle.Render("git untracked"),

@@ -79,6 +79,7 @@ type Model struct {
 	DragStartRow         int    // -1 = inactive; ≥0 = viewport content row where drag started
 	DragEndRow           int    // current viewport content row during drag
 	DragActive           bool   // true once mouse has moved since click
+	Sym                  Glyphs // active glyph set (unicode or SCOUT_UNICODE_SAFE ascii)
 }
 
 // NewModel initializes a fresh UI model with a time-based theme (or saved config).
@@ -98,6 +99,7 @@ func NewModel(cwd string) Model {
 		TermBgDark:   true,
 		ThemeAutoSet: autoSet,
 		DragStartRow: -1,
+		Sym:          selectGlyphs(),
 	}
 }
 

@@ -57,6 +57,8 @@ make build
 
 Scout stores your theme preferences in `~/.config/scout/config`. This file is automatically created and updated when you cycle through themes using `t`.
 
+Set `SCOUT_UNICODE_SAFE=1` to swap the UI marker glyphs (`▸`, `⎇`, `›`, arrows, and friends) for narrow-safe ASCII equivalents. This helps in terminals that render ambiguous-width characters as two cells (for example with `RUNEWIDTH_EASTASIAN=1`), which would otherwise misalign the columns.
+
 ---
 
 ## Keybindings

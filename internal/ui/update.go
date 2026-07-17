@@ -55,7 +55,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		}
-		m.Preview = renderGitPreview(msg.Mode, msg.Content, Themes[m.ThemeIdx])
+		m.Preview = m.renderGitPreview(msg.Mode, msg.Content)
 		return m, nil
 
 	case filesystem.TickMsg:
@@ -124,7 +124,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		m.HintTipIdx++
-		if m.HintTipIdx >= len(HintTips) {
+		if m.HintTipIdx >= len(hintTips(m.Sym)) {
 			// one full cycle complete — return to normal bar
 			m.HintCycling = false
 			m.HintTipIdx = 0
@@ -536,7 +536,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				label = "log"
 			}
 			m, cmd := startLoading(m)
-			m.StatusMsg = "[info] git " + label + " …"
+			m.StatusMsg = "[info] git " + label + " " + m.Sym.Ellipsis
 			return m, tea.Batch(m.GitPreview(m.PreviewMode, path, sel.Name), cmd)
 
 		// search/find: "/" activates in whichever pane is focused

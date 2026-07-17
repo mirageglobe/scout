@@ -277,10 +277,10 @@ func TestGitPreviewMsgApplied(t *testing.T) {
 }
 
 func TestRenderGitPreviewHeaders(t *testing.T) {
-	if out := renderGitPreview(GitDiff, "diff --git a/x b/x", Themes[0]); !strings.Contains(out, "git diff") {
+	if out := (Model{Sym: unicodeGlyphs}).renderGitPreview(GitDiff, "diff --git a/x b/x"); !strings.Contains(out, "git diff") {
 		t.Errorf("diff render missing header: %q", out)
 	}
-	if out := renderGitPreview(GitLog, "abc123 commit", Themes[0]); !strings.Contains(out, "git log") {
+	if out := (Model{Sym: unicodeGlyphs}).renderGitPreview(GitLog, "abc123 commit"); !strings.Contains(out, "git log") {
 		t.Errorf("log render missing header: %q", out)
 	}
 }

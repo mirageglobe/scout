@@ -10,26 +10,29 @@ import (
 	"github.com/mirageglobe/scout/internal/filesystem"
 )
 
-// HintTips is the rotating set of [key, description] pairs shown after 10s idle.
-var HintTips = [][2]string{
-	{"↑ / ↓", "move up and down through files"},
-	{"← / →", "jump between the explorer and preview panes"},
-	{"e", "open the selected file in your $EDITOR"},
-	{"o", "open the file with your system default app"},
-	{"d", "cycle the preview between the file, its git diff, and git log"},
-	{"i", "show or hide dotfiles and hidden entries"},
-	{"f", "lock navigation to the folder you launched scout from"},
-	{"r", "force a refresh of the current directory"},
-	{"t", "switch to the next colour theme"},
-	{"/", "search for text inside the preview pane"},
-	{"?", "open the full help overlay"},
-	{"q", "quit scout"},
+// hintTips returns the rotating [key, description] pairs shown after 10s idle,
+// built from the active glyph set so arrows honour SCOUT_UNICODE_SAFE.
+func hintTips(g Glyphs) [][2]string {
+	return [][2]string{
+		{g.Up + " / " + g.Down, "move up and down through files"},
+		{g.Left + " / " + g.Right, "jump between the explorer and preview panes"},
+		{"e", "open the selected file in your $EDITOR"},
+		{"o", "open the file with your system default app"},
+		{"d", "cycle the preview between the file, its git diff, and git log"},
+		{"i", "show or hide dotfiles and hidden entries"},
+		{"f", "lock navigation to the folder you launched scout from"},
+		{"r", "force a refresh of the current directory"},
+		{"t", "switch to the next colour theme"},
+		{"/", "search for text inside the preview pane"},
+		{"?", "open the full help overlay"},
+		{"q", "quit scout"},
+	}
 }
 
 // View renders the entire application UI.
 func (m Model) View() tea.View {
 	if m.Width == 0 {
-		return tea.NewView("Loading…")
+		return tea.NewView("Loading" + m.Sym.Ellipsis)
 	}
 
 	// ── Colours & metrics ──────────────────────────────────────────────
@@ -91,9 +94,9 @@ func (m Model) View() tea.View {
 		var dirBaseName, dirCountStr, fileSizeStr string
 
 		if e.IsDir {
-			symbol = "▸"
+			symbol = m.Sym.Dir
 			symStyle = lipgloss.NewStyle().Foreground(dirColor)
-			dirCountStr = fmt.Sprintf("%d ≡", e.SubCount)
+			dirCountStr = fmt.Sprintf("%d %s", e.SubCount, m.Sym.SubCount)
 			dirBaseName = e.Name + "/"
 			nameWidth := leftWidth - 6 // leftWidth-4 content minus 2 for symbol+space
 			if padWidth := nameWidth - lipgloss.Width(dirCountStr); padWidth >= len(dirBaseName) {
@@ -103,10 +106,10 @@ func (m Model) View() tea.View {
 				dirCountStr = "" // no room for count
 			}
 		} else if e.IsSymlink {
-			symbol = "↳"
+			symbol = m.Sym.Symlink
 			symStyle = lipgloss.NewStyle().Foreground(accentColor)
 		} else {
-			symbol = "·"
+			symbol = m.Sym.Dot
 			symStyle = lipgloss.NewStyle().Foreground(dimColor)
 		}
 
@@ -187,7 +190,7 @@ func (m Model) View() tea.View {
 		}
 		changeStat := ""
 		if n := changedFileCount(m.GitStatus); n > 0 {
-			changeStat = fmt.Sprintf(" ± %d", n)
+			changeStat = fmt.Sprintf(" %s %d", m.Sym.Changed, n)
 		}
 		leftStat := fmt.Sprintf("%s%s", itemStat, changeStat)
 		rightStat := fmt.Sprintf("%s%s", curFileSize, filesystem.HumanSize(m.Stats.DirSize))
@@ -235,7 +238,7 @@ func (m Model) View() tea.View {
 	}
 	var displayLines []displayLine
 	wrapWidth := rightWidth - 4
-	dimEllipsis := lipgloss.NewStyle().Foreground(dimColor).Render("…")
+	dimEllipsis := lipgloss.NewStyle().Foreground(dimColor).Render(m.Sym.Ellipsis)
 	for origIdx, l := range rawPreviewLines {
 		if m.PreviewWrap {
 			wrapped := lipgloss.Wrap(l, wrapWidth, " ")
@@ -351,13 +354,13 @@ func (m Model) View() tea.View {
 
 	var statusBar string
 	if m.GitBranch != "" {
-		statusBar = dimHint.Render(" ⎇ " + m.GitBranch + "  │")
+		statusBar = dimHint.Render(" " + m.Sym.Branch + " " + m.GitBranch + "  │")
 	}
 	sep := "  "
 
 	if m.HintCycling {
-		tip := HintTips[m.HintTipIdx]
-		statusBar += " " + activeHint.Render(tip[0]) + dimHint.Render("  ·  "+tip[1])
+		tip := hintTips(m.Sym)[m.HintTipIdx]
+		statusBar += " " + activeHint.Render(tip[0]) + dimHint.Render("  "+m.Sym.Dot+"  "+tip[1])
 	} else {
 		hint := func(key, label string, on bool) string {
 			text := key + ":" + label
@@ -368,8 +371,8 @@ func (m Model) View() tea.View {
 		}
 		if m.FocusRight {
 			// preview pane hints
-			statusBar += " " + hint("↑/↓", "scroll", false) +
-				sep + hint("←", "explorer", false) +
+			statusBar += " " + hint(m.Sym.Up+"/"+m.Sym.Down, "scroll", false) +
+				sep + hint(m.Sym.Left, "explorer", false) +
 				sep + hint("e", "edit("+editor+")", false) +
 				sep + hint("o", "open", false) +
 				sep + hint("r", "refresh", false) +
@@ -380,8 +383,8 @@ func (m Model) View() tea.View {
 				sep + hint("q", "quit", false)
 		} else {
 			// explorer pane hints
-			statusBar += " " + hint("↑/↓", "nav", false) +
-				sep + hint("←/→", "nav", false) +
+			statusBar += " " + hint(m.Sym.Up+"/"+m.Sym.Down, "nav", false) +
+				sep + hint(m.Sym.Left+"/"+m.Sym.Right, "nav", false) +
 				sep + hint("e", "edit("+editor+")", false) +
 				sep + hint("o", "open", false) +
 				sep + hint("i", "show hidden", m.ShowHidden) +
@@ -443,15 +446,16 @@ func (m Model) RenderStatusLine() string {
 	accentStyle := lipgloss.NewStyle().Foreground(accent)
 
 	// "scout ›" prefix is always rendered bold+accent, followed by state-specific content.
-	prefix := " " + lipgloss.NewStyle().Foreground(accent).Bold(true).Render("scout ›") + " "
+	prefix := " " + lipgloss.NewStyle().Foreground(accent).Bold(true).Render("scout "+m.Sym.Prompt) + " "
 
 	if m.Loading {
-		dots := [3]string{"·", "··", "···"}
+		d := m.Sym.Dot
+		dots := [3]string{d, d + d, d + d + d}
 		return prefix + accentStyle.Render(dots[m.SpinnerFrame])
 	}
 
 	if m.ExplorerSearchActive {
-		return prefix + accentStyle.Render("/"+m.ExplorerSearchInput+"█") +
+		return prefix + accentStyle.Render("/"+m.ExplorerSearchInput+m.Sym.Block) +
 			dimStyle.Render("  enter:confirm  esc:clear")
 	}
 
@@ -462,7 +466,7 @@ func (m Model) RenderStatusLine() string {
 	}
 
 	if m.SearchActive {
-		return prefix + accentStyle.Render("/"+m.SearchInput+"█") +
+		return prefix + accentStyle.Render("/"+m.SearchInput+m.Sym.Block) +
 			dimStyle.Render("  enter:confirm  esc:exit")
 	}
 
@@ -480,5 +484,5 @@ func (m Model) RenderStatusLine() string {
 	}
 
 	// idle: dim prompt awaiting input
-	return dimStyle.Render(" scout › ")
+	return dimStyle.Render(" scout " + m.Sym.Prompt + " ")
 }
