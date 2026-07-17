@@ -36,8 +36,8 @@ func (m Model) previewDir(path string, e filesystem.Entry, t Theme) string {
 	dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.Dim))
 
 	var sb strings.Builder
-	sb.WriteString(accentStyle.Render("▸ Directory: "+e.Name+"/") + "\n")
-	sb.WriteString(dimStyle.Render(strings.Repeat("─", 30)) + "\n")
+	sb.WriteString(accentStyle.Render(m.Sym.Dir+" Directory: "+e.Name+"/") + "\n")
+	sb.WriteString(dimStyle.Render(strings.Repeat(m.Sym.Rule, 30)) + "\n")
 
 	if e.Info != nil {
 		sb.WriteString(accentStyle.Render("Modified: ") + e.Info.ModTime().Format("2006-01-02 15:04") + "\n")
@@ -51,12 +51,12 @@ func (m Model) previewDir(path string, e filesystem.Entry, t Theme) string {
 	}
 
 	sb.WriteString(accentStyle.Render("Children: ") + fmt.Sprintf("%d", len(children)) + "\n")
-	sb.WriteString(dimStyle.Render(strings.Repeat("─", 30)) + "\n")
+	sb.WriteString(dimStyle.Render(strings.Repeat(m.Sym.Rule, 30)) + "\n")
 
 	shown := 0
 	for _, c := range children {
 		if shown >= 20 {
-			sb.WriteString(fmt.Sprintf("  … and %d more\n", len(children)-shown))
+			sb.WriteString(fmt.Sprintf("  %s and %d more\n", m.Sym.Ellipsis, len(children)-shown))
 			break
 		}
 		name := c.Name()
@@ -75,8 +75,8 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 	dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.Dim))
 
 	var sb strings.Builder
-	sb.WriteString(accentStyle.Render("• File: "+e.Name) + "\n")
-	sb.WriteString(dimStyle.Render(strings.Repeat("─", 30)) + "\n")
+	sb.WriteString(accentStyle.Render(m.Sym.Bullet+" File: "+e.Name) + "\n")
+	sb.WriteString(dimStyle.Render(strings.Repeat(m.Sym.Rule, 30)) + "\n")
 
 	if e.Info != nil {
 		sb.WriteString(accentStyle.Render("Size:     ") + filesystem.HumanSize(e.Info.Size()) + "\n")
@@ -84,7 +84,7 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 		sb.WriteString(accentStyle.Render("Mode:     ") + e.Info.Mode().String() + "\n")
 	}
 
-	sb.WriteString(dimStyle.Render(strings.Repeat("─", 30)) + "\n")
+	sb.WriteString(dimStyle.Render(strings.Repeat(m.Sym.Rule, 30)) + "\n")
 
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -127,7 +127,7 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 	}
 
 	if len(data) > 131072 || len(lines) >= maxLines {
-		sb.WriteString("\n  … (truncated)")
+		sb.WriteString("\n  " + m.Sym.Ellipsis + " (truncated)")
 	}
 
 	return sb.String()
@@ -135,18 +135,19 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 
 // renderGitPreview formats async git diff/log output for the preview pane.
 // diff output is highlighted with the chroma "diff" lexer; log is plain.
-func renderGitPreview(mode int, content string, t Theme) string {
+func (m Model) renderGitPreview(mode int, content string) string {
+	t := Themes[m.ThemeIdx]
 	accentStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.Accent)).Bold(true)
 	dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.Dim))
 
-	header := "⎇ git diff"
+	header := m.Sym.Branch + " git diff"
 	if mode == GitLog {
-		header = "⎇ git log"
+		header = m.Sym.Branch + " git log"
 	}
 
 	var sb strings.Builder
 	sb.WriteString(accentStyle.Render(header) + "\n")
-	sb.WriteString(dimStyle.Render(strings.Repeat("─", 30)) + "\n")
+	sb.WriteString(dimStyle.Render(strings.Repeat(m.Sym.Rule, 30)) + "\n")
 
 	body := content
 	if mode == GitDiff {
@@ -167,7 +168,7 @@ func renderGitPreview(mode int, content string, t Theme) string {
 		sb.WriteString(strings.ReplaceAll(l, "\t", "    ") + "\n")
 	}
 	if truncated {
-		sb.WriteString("\n  … (truncated)")
+		sb.WriteString("\n  " + m.Sym.Ellipsis + " (truncated)")
 	}
 	return sb.String()
 }
