@@ -1,3 +1,6 @@
+# privacy: record from a neutral $HOME so scout's header shows ~/scout,
+# not your real checkout path (this gif is public).
+# see CONTRIBUTING.md "regenerating the demo".
 Output demo.gif
 
 Set FontSize 20

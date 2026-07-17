@@ -20,3 +20,20 @@ These terms protect both contributors and the project's ability to evolve its li
 - keep pull requests focused and minimal
 - run `make test` before submitting
 - follow existing code style and conventions
+
+## Regenerating the Demo
+
+`demo.gif` is public and embedded in the README, and scout renders its working
+directory in the header. Record from a throwaway `$HOME` so the header shows a
+neutral `~/scout` instead of your real checkout path:
+
+```sh
+tmp=$(mktemp -d)
+git clone -q "$PWD" "$tmp/scout"
+cd "$tmp/scout" && go build -o scout ./cmd/scout
+printf '\n' >> README.md; : > SCRATCH.txt   # dirty files so M/? git badges show
+HOME="$tmp" vhs demo.tape                     # header renders ~/scout
+```
+
+Copy the resulting `demo.gif` back over both `demo.gif` and `docs/demo.gif`.
+
