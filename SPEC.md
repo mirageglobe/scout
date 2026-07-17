@@ -486,6 +486,8 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 - [x] `[ui]` rename the `i:hidden` hint-bar indicator to `i:show hidden`; hidden files shown by default (toggle on at startup)  [easy]
 - [x] `[ui]` help modal keys: while the `?` help overlay is open, `?`, `q`, and `esc` all close it; standardise every other popup modal to close on `q` and `esc`  [easy]
 
+- [ ] `[demo]` automate neutral-path demo recording: `make demo` should record with a temp `$HOME` so `demo.gif` always renders `~/scout`, never the maintainer's local checkout path (public repo)  [easy]
+
 ### ideas
 
 - [ ] `[ai]` detect locally running ollama instance and connect for in-app chat — probe `http://localhost:11434` on startup; if available, expose a chat panel keybinding to open a conversational interface backed by the detected model  [hard]
