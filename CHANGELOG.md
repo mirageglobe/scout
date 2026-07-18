@@ -8,6 +8,11 @@ versions follow [semantic versioning](https://semver.org/).
 
 ## [unreleased]
 
+## [v0.9.1] - 2026-07-18
+
+### changed
+- much faster preview: large files render instantly and syntax-highlight in the background instead of blocking, and scrolling no longer re-processes the whole preview on every frame (noticeably smoother on large files)
+
 ## [v0.9.0] - 2026-07-18
 
 ### added
