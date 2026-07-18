@@ -488,6 +488,8 @@ make push-tags       # CI method: retriggers goreleaser via tag push
 
 - [x] `[demo]` automate neutral-path demo recording: `make demo` should record with a temp `$HOME` so `demo.gif` always renders `~/scout`, never the maintainer's local checkout path (public repo)  [easy]
 
+- [x] `[explorer]` search-to-jump: pressing enter in an explorer search commits the query; the cursor (already moved to the match live while typing) stays on the matched file and the search bar clears; `n`/`N` stepping ends on commit  [easy]
+
 ### ideas
 
 - [ ] `[ai]` detect locally running ollama instance and connect for in-app chat — probe `http://localhost:11434` on startup; if available, expose a chat panel keybinding to open a conversational interface backed by the detected model  [hard]

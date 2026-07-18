@@ -61,6 +61,36 @@ func (f mockFileInfo) ModTime() time.Time { return f.modTime }
 func (f mockFileInfo) IsDir() bool        { return false }
 func (f mockFileInfo) Sys() any           { return nil }
 
+func TestExplorerSearchEnterCommits(t *testing.T) {
+	// typing an explorer query jumps the cursor to the match live; pressing
+	// enter commits: cursor stays on the match and the search bar clears.
+	entries := []filesystem.Entry{
+		{Name: "alpha.go"}, {Name: "beta.go"}, {Name: "config.yaml"},
+		{Name: "readme.md"}, {Name: "server.go"},
+	}
+	m := Model{Cwd: "/tmp/x", Entries: entries, Cursor: 0, ExplorerSearchActive: true}
+	for _, r := range "serv" {
+		u, _ := m.Update(tea.KeyPressMsg{Code: r, Text: string(r)})
+		m = u.(Model)
+	}
+	// live jump landed on the match before enter
+	if got := entries[m.Cursor].Name; got != "server.go" {
+		t.Fatalf("pre-enter cursor on %q, want server.go", got)
+	}
+	// enter commits: cursor unchanged, search state cleared
+	u, _ := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
+	m = u.(Model)
+	if got := entries[m.Cursor].Name; got != "server.go" {
+		t.Errorf("post-enter cursor on %q, want server.go", got)
+	}
+	if m.ExplorerSearchActive {
+		t.Errorf("ExplorerSearchActive still true after enter")
+	}
+	if m.ExplorerSearchInput != "" {
+		t.Errorf("ExplorerSearchInput = %q after enter, want empty", m.ExplorerSearchInput)
+	}
+}
+
 func TestComputeSearchMatches(t *testing.T) {
 	preview := "hello world\nfoo bar\nHELLO again"
 	tests := []struct {
