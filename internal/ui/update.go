@@ -375,8 +375,11 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			case "enter":
 				// commit the search: cursor already sits on the match (moved live
-				// while typing); clear the query so the search bar returns to normal
-				m = clearExplorerSearch(m)
+				// while typing). keep the query so n/N can still step between matches;
+				// deactivate input and clear the typing buffer so the bar returns to normal.
+				m.ExplorerSearchQuery = m.ExplorerSearchInput
+				m.ExplorerSearchActive = false
+				m.ExplorerSearchInput = ""
 			case "esc":
 				m = clearExplorerSearch(m)
 			case "backspace":
@@ -588,7 +591,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.FocusRight && len(m.SearchMatches) > 0 {
 				m.SearchMatchIdx = (m.SearchMatchIdx + 1) % len(m.SearchMatches)
 				m.PreviewScroll = clampedScrollFor(m, m.SearchMatches[m.SearchMatchIdx])
-			} else if !m.FocusRight && m.ExplorerSearchInput != "" {
+			} else if !m.FocusRight && m.explorerQuery() != "" {
 				filtered := m.explorerFiltered()
 				for pos, idx := range filtered {
 					if idx == m.Cursor && pos < len(filtered)-1 {
@@ -606,7 +609,7 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.FocusRight && len(m.SearchMatches) > 0 {
 				m.SearchMatchIdx = (m.SearchMatchIdx - 1 + len(m.SearchMatches)) % len(m.SearchMatches)
 				m.PreviewScroll = clampedScrollFor(m, m.SearchMatches[m.SearchMatchIdx])
-			} else if !m.FocusRight && m.ExplorerSearchInput != "" {
+			} else if !m.FocusRight && m.explorerQuery() != "" {
 				filtered := m.explorerFiltered()
 				for pos, idx := range filtered {
 					if idx == m.Cursor && pos > 0 {
@@ -973,11 +976,21 @@ func clampedScrollFor(m Model, lineIdx int) int {
 
 // explorerFiltered returns the m.Entries indices whose names match ExplorerSearchInput.
 // Returns nil when ExplorerSearchInput is empty (meaning: show all entries).
+// explorerQuery returns the query driving explorer filtering: the live typing
+// buffer while search input is active, otherwise the committed query (so n/N and
+// filtering keep working after enter commits the search).
+func (m Model) explorerQuery() string {
+	if m.ExplorerSearchActive {
+		return m.ExplorerSearchInput
+	}
+	return m.ExplorerSearchQuery
+}
+
 func (m Model) explorerFiltered() []int {
-	if m.ExplorerSearchInput == "" {
+	query := strings.ToLower(m.explorerQuery())
+	if query == "" {
 		return nil
 	}
-	query := strings.ToLower(m.ExplorerSearchInput)
 	var result []int
 	for i, e := range m.Entries {
 		if strings.Contains(strings.ToLower(e.Name), query) {
@@ -991,6 +1004,7 @@ func (m Model) explorerFiltered() []int {
 func clearExplorerSearch(m Model) Model {
 	m.ExplorerSearchActive = false
 	m.ExplorerSearchInput = ""
+	m.ExplorerSearchQuery = ""
 	return m
 }
 

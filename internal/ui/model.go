@@ -78,7 +78,8 @@ type Model struct {
 	SearchMatches        []int  // preview line indices that contain the query
 	SearchMatchIdx       int    // index into SearchMatches for current match
 	ExplorerSearchActive bool   // "\" mode active in file explorer
-	ExplorerSearchInput  string // current explorer search input
+	ExplorerSearchInput  string // in-progress buffer while ExplorerSearchActive
+	ExplorerSearchQuery  string // committed explorer query; drives filtering + n/N after enter
 	RootLock             bool   // restrict navigation to RootPath
 	RootPath             string // the starting directory path
 	Loading              bool   // true while a LoadDir command is in-flight
