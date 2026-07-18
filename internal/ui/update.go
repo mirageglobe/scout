@@ -18,11 +18,17 @@ import (
 // the hint idle timer is always reset after a keypress.
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	newModel, cmd := m.handleMsg(msg)
+	nm := newModel.(Model)
+	// rebuild the preview display cache only when an input changed, so scrolling
+	// does not re-expand every preview line on every frame (see withPreviewDisplay).
+	if nm.Preview != nm.previewDisplayFor || nm.PreviewWrap != nm.previewDisplayWrap ||
+		nm.ThemeIdx != nm.previewDisplayTheme || previewWrapWidth(nm) != nm.previewDisplayW {
+		nm = nm.withPreviewDisplay()
+	}
 	if _, ok := msg.(tea.KeyPressMsg); ok {
-		nm := newModel.(Model)
 		return nm, tea.Batch(cmd, DoHintIdleTick(nm.HintIdleSeq))
 	}
-	return newModel, cmd
+	return nm, cmd
 }
 
 // handleMsg handles all state transitions in response to messages.
@@ -831,6 +837,12 @@ func previewWrapWidth(m Model) int {
 // previewDisplayLineCount returns the number of display lines in m.Preview,
 // accounting for word-wrap expansion when m.PreviewWrap is true.
 func previewDisplayLineCount(m Model) int {
+	// fast path: the display cache is current for this preview/width/wrap/theme
+	if m.Preview == m.previewDisplayFor && m.PreviewWrap == m.previewDisplayWrap &&
+		m.ThemeIdx == m.previewDisplayTheme && previewWrapWidth(m) == m.previewDisplayW {
+		return len(m.previewDisplay)
+	}
+	// stale (preview changed earlier in this same handler): count directly
 	rawLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
 	if !m.PreviewWrap {
 		return len(rawLines)

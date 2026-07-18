@@ -12,6 +12,21 @@ import (
 	"github.com/mirageglobe/scout/internal/filesystem"
 )
 
+// ansiWrap renders a sentinel through style once and splits on it, returning the
+// leading and trailing ANSI escape sequences. Callers can then wrap many strings
+// in the same style by string concatenation, avoiding a lipgloss render per item.
+// Safe for colour-only styles (no padding/width); returns empty strings when the
+// active colour profile emits no escapes.
+func ansiWrap(style lipgloss.Style) (pre, suf string) {
+	const sentinel = "\x00"
+	rendered := style.Render(sentinel)
+	i := strings.Index(rendered, sentinel)
+	if i < 0 {
+		return "", ""
+	}
+	return rendered[:i], rendered[i+len(sentinel):]
+}
+
 // BuildPreview generates the preview text for the currently selected entry.
 func (m Model) BuildPreview() string {
 	if len(m.Entries) == 0 {
@@ -103,7 +118,6 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 	}
 
 	previewStr := string(previewData)
-	var b bytes.Buffer
 	lang := filepath.Ext(path)
 	if len(lang) > 0 {
 		lang = lang[1:]
@@ -111,22 +125,29 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 		lang = filepath.Base(path)
 	}
 
+	// cap to maxLines BEFORE highlighting so chroma only tokenises what is shown,
+	// not the whole (up to 128 KB) buffer that would then be discarded.
+	maxLines := 2500
+	rawLines := strings.Split(previewStr, "\n")
+	truncatedLines := len(rawLines) > maxLines
+	if truncatedLines {
+		previewStr = strings.Join(rawLines[:maxLines], "\n")
+	}
+
+	var b bytes.Buffer
 	if err := quick.Highlight(&b, previewStr, lang, "terminal256", t.ChromaStyle); err == nil && b.Len() > 0 {
 		previewStr = b.String()
 	}
 
-	lines := strings.Split(previewStr, "\n")
-	maxLines := 2500
-	if len(lines) > maxLines {
-		lines = lines[:maxLines]
-	}
-	for i, l := range lines {
+	// render the constant dim-gutter wrapper once; only the line number varies,
+	// avoiding a lipgloss render call per line (up to maxLines of them).
+	gPre, gSuf := ansiWrap(dimStyle)
+	for i, l := range strings.Split(previewStr, "\n") {
 		l = strings.ReplaceAll(l, "\t", "    ")
-		gutter := dimStyle.Render(fmt.Sprintf("%3d │", i+1))
-		sb.WriteString(fmt.Sprintf("%s %s\n", gutter, l))
+		sb.WriteString(gPre + fmt.Sprintf("%3d │", i+1) + gSuf + " " + l + "\n")
 	}
 
-	if len(data) > 131072 || len(lines) >= maxLines {
+	if len(data) > 131072 || truncatedLines {
 		sb.WriteString("\n  " + m.Sym.Ellipsis + " (truncated)")
 	}
 

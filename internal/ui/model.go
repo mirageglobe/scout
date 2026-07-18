@@ -37,31 +37,38 @@ type GitPreviewMsg struct {
 	Err     error
 }
 
+// displayLine is one rendered preview row: the post-wrap/truncate text plus the
+// source line index it came from (used for search-match highlighting).
+type displayLine struct {
+	text    string
+	origIdx int
+}
+
 // Model represents the state of the Scout TUI.
 type Model struct {
-	Cwd           string
-	Entries       []filesystem.Entry
-	Cursor        int
-	Width         int
-	Height        int
-	Preview       string
-	PreviewScroll int
-	PreviewMode   int // PreviewFile | GitDiff | GitLog
-	FocusRight    bool
-	ShowHelp      bool
-	ThemeIdx      int
-	GitStatus     map[string]string
-	GitBranch     string
-	ShowHidden        bool
-	ExplorerWidthMode int // 0=initial-default(~40), 1=sliver(5), 2=narrow(13), 3=cycle-default(~40), 4=wide(50%)
-	Stats             filesystem.Stats
-	StatusMsg     string
-	Err           error
-	SearchActive   bool   // "/" mode active, user is typing a query
-	SearchQuery    string // committed search term
-	SearchInput    string // in-progress buffer while SearchActive
-	SearchMatches  []int  // preview line indices that contain the query
-	SearchMatchIdx int    // index into SearchMatches for current match
+	Cwd                  string
+	Entries              []filesystem.Entry
+	Cursor               int
+	Width                int
+	Height               int
+	Preview              string
+	PreviewScroll        int
+	PreviewMode          int // PreviewFile | GitDiff | GitLog
+	FocusRight           bool
+	ShowHelp             bool
+	ThemeIdx             int
+	GitStatus            map[string]string
+	GitBranch            string
+	ShowHidden           bool
+	ExplorerWidthMode    int // 0=initial-default(~40), 1=sliver(5), 2=narrow(13), 3=cycle-default(~40), 4=wide(50%)
+	Stats                filesystem.Stats
+	StatusMsg            string
+	Err                  error
+	SearchActive         bool   // "/" mode active, user is typing a query
+	SearchQuery          string // committed search term
+	SearchInput          string // in-progress buffer while SearchActive
+	SearchMatches        []int  // preview line indices that contain the query
+	SearchMatchIdx       int    // index into SearchMatches for current match
 	ExplorerSearchActive bool   // "\" mode active in file explorer
 	ExplorerSearchInput  string // current explorer search input
 	RootLock             bool   // restrict navigation to RootPath
@@ -80,6 +87,15 @@ type Model struct {
 	DragEndRow           int    // current viewport content row during drag
 	DragActive           bool   // true once mouse has moved since click
 	Sym                  Glyphs // active glyph set (unicode or SCOUT_UNICODE_SAFE ascii)
+
+	// preview display cache: the expanded (wrapped/truncated) rows for m.Preview.
+	// rebuilt by Update only when an input below changes, so scrolling stays O(visible)
+	// instead of re-expanding every line on every frame.
+	previewDisplay      []displayLine // cached expanded rows
+	previewDisplayFor   string        // the m.Preview value the cache was built from
+	previewDisplayW     int           // previewWrapWidth at build time
+	previewDisplayWrap  bool          // m.PreviewWrap at build time
+	previewDisplayTheme int           // m.ThemeIdx at build time
 }
 
 // NewModel initializes a fresh UI model with a time-based theme (or saved config).
