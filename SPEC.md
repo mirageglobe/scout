@@ -333,98 +333,83 @@ make build
 
 ## 10. Releasing
 
-> **for AI agents:** always ask the user which release method to use before proceeding (default: CI). present every command as a manual step for the user to run — do NOT execute `make bump-*`, `make push-tags`, `make release`, or `make update` autonomously. these commands affect shared git history and remote state. guide one phase at a time and wait for confirmation before continuing.
+> **for AI agents:** always ask the user which publish method to use before proceeding (default: CI). present every command as a manual step for the user to run; do NOT execute `make bump-*`, `make push-tags`, `make release`, or `make update` autonomously. these commands affect shared git history and remote state. guide one step at a time and wait for confirmation before continuing.
 
-two release methods are available. **CI goreleaser is the default and preferred method.**
-
-| method          | when to use                                              |
-| :-------------- | :------------------------------------------------------- |
-| CI goreleaser   | default; clean environment; audit trail in GitHub Actions |
-| local goreleaser | CI is broken; no internet on runner; faster iteration    |
+a release is one linear runbook: steps 1-3 prepare and tag, step 4 publishes, step 5 updates homebrew. run them in order. step 4 has two methods; **CI is the default**, local goreleaser is a fallback for when CI is broken or offline.
 
 ### prerequisites
 
 - homebrew tap repo checked out locally alongside this repo at `../homebrew-tap`; clone it if missing: `git clone https://github.com/mirageglobe/homebrew-tap.git ../homebrew-tap`
-- CI method: `GITHUB_TOKEN` in repo secrets (provided automatically by GitHub Actions)
-- local method: `goreleaser` installed locally; `GITHUB_TOKEN` exported in shell
+- default CI method: `GITHUB_TOKEN` in repo secrets (provided automatically by GitHub Actions)
+- fallback local method: `goreleaser` installed locally; `GITHUB_TOKEN` exported in shell
 
 ### version bump guide
 
 | change type                                   | bump  | example          |
 | :-------------------------------------------- | :---- | :--------------- |
-| bug fixes only                                | patch | v0.3.0 → v0.3.1  |
-| new user-facing features, no breaking changes | minor | v0.3.0 → v0.4.0  |
-| breaking changes to behaviour or config       | major | v0.3.0 → v1.0.0  |
+| bug fixes only                                | patch | v0.8.0 -> v0.8.1 |
+| new user-facing features, no breaking changes | minor | v0.8.0 -> v0.9.0 |
+| breaking changes to behaviour or config       | major | v0.8.0 -> v1.0.0 |
 
-### phase 1 — prepare changelog (on feature branch)
+### the runbook
 
-shared by both methods. do not commit changelog or tag directly on main.
+**step 1 :: changelog (on a feature branch).** do not commit the changelog or tag directly on main.
 
 ```bash
-# 1. decide the target version using the bump guide above
-
-# 2. update CHANGELOG.md:
-#    - move all [unreleased] items under a new heading: ## [vX.Y.Z] — YYYY-MM-DD
-#    - add a fresh empty [unreleased] section at the top
-
-# 3. commit and push
+# decide the target version from the bump guide above, then edit CHANGELOG.md:
+#   - move all [unreleased] items under a new dated version heading, matching the
+#     format of the existing entries (e.g. "## [vX.Y.Z]" followed by the date)
+#   - add a fresh empty [unreleased] section at the top
 git add CHANGELOG.md && git commit -m "docs: finalize changelog for vX.Y.Z" && git push
-
-# 4. open a PR and merge into main
+# then open a PR and merge it into main
 ```
 
-### phase 2 — tag (on main, after PR is merged)
-
-shared by both methods. always use `make bump-*` — do NOT use `git tag` directly.
+**step 2 :: sync main (after the PR merges).**
 
 ```bash
-# 5. sync local main
 git checkout main && git pull
+```
 
-# 6. tag the next version. bump-* anchors to the HIGHEST published tag
-#    (via `git tag --sort`), so it stays correct even if a prior tag was
-#    orphaned by a rebase; `git describe` would anchor to a stale tag and
-#    could recompute an already-published version.
+**step 3 :: tag.** always use `make bump-*`; do NOT run `git tag` directly. bump-* anchors to the HIGHEST published tag (via `git tag --sort`), so it stays correct even if a prior tag was orphaned by a rebase; `git describe` would anchor to a stale tag and could recompute an already-published version.
+
+```bash
 make bump-patch   # bug fixes only         e.g. v0.8.0 -> v0.8.1
 make bump-minor   # new features           e.g. v0.8.0 -> v0.9.0
 make bump-major   # breaking changes       e.g. v0.8.0 -> v1.0.0
 ```
 
-### phase 2a — publish via CI goreleaser (default)
+**step 4 :: publish (pick ONE method).**
+
+default, via CI goreleaser:
 
 ```bash
-# 7. push the tag — triggers GitHub Actions goreleaser
-make push-tags
+make push-tags   # pushes the tag; GitHub Actions then runs goreleaser
+# verify the run completes before step 5: https://github.com/mirageglobe/scout/actions
 ```
 
-verify CI completes before proceeding: check https://github.com/mirageglobe/scout/actions
-
-### phase 2b — publish via local goreleaser (alternative)
+fallback, via local goreleaser (only if CI is broken or offline; requires `GITHUB_TOKEN` exported):
 
 ```bash
-# 7. publish directly using local goreleaser (requires GITHUB_TOKEN exported)
 make release
 ```
 
-### phase 3 — update homebrew tap (after goreleaser completes)
-
-shared by both methods. the tap lives at `../homebrew-tap`. run manually — do not automate.
+**step 5 :: update homebrew tap (after goreleaser completes).** the tap lives at `../homebrew-tap`; run manually, do not automate.
 
 ```bash
-# 8. switch to the tap repo and run the update target
 cd ../homebrew-tap
 gmake update FORMULA=scout VERSION=X.Y.Z   # VERSION without the v prefix, e.g. 0.8.0
-# note: gmake required — macOS ships with GNU make 3.81 which lacks .ONESHELL support
+# note: gmake required; macOS ships GNU make 3.81 which lacks .ONESHELL support
 ```
 
 the `update` target:
 - fetches `scout_X.Y.Z_checksums.txt` from the GitHub release
 - aborts if any expected checksum is missing (guards against pushing a formula with an empty sha256)
-- patches `Formula/scout.rb` — version string, download urls (including tag path), and all sha256 values
+- patches `Formula/scout.rb`: version string, download urls (including tag path), and all sha256 values
 - commits with `feat: update scout formula to vX.Y.Z`
 - pushes to origin main
 
 users then upgrade via:
+
 ```bash
 brew upgrade mirageglobe/tap/scout
 ```
@@ -437,16 +422,16 @@ make release-dry   # dry-run goreleaser: builds binaries and archives locally, n
 
 ### troubleshooting
 
-**release fails with `422 Validation Failed — tag_name already_exists`**
+**release fails with `422 Validation Failed: tag_name already_exists`**
 
-this happens when a previous goreleaser run partially created a GitHub release for the same tag. goreleaser cannot overwrite an existing release.
+a previous goreleaser run partially created a GitHub release for the same tag, and goreleaser cannot overwrite an existing release.
 
-fix: delete the partial release and retrigger — run these commands manually:
+fix: delete the partial release and retrigger, manually:
 
 ```bash
 make release-reset   # deletes any existing GitHub release for the current tag
-make push-tags       # CI method: retriggers goreleaser via tag push
-# make release       # local method: run goreleaser directly instead
+make push-tags       # default: retrigger goreleaser via tag push
+# make release       # fallback: run goreleaser directly instead
 ```
 
 ---
