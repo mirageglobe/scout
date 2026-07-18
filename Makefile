@@ -14,12 +14,15 @@
 
 # ============================================================== targets ===== #
 
-# derive version from latest git tag; fallback to "dev" if no tag exists
-VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "dev")
+# derive version from the highest semver tag; fallback to "dev" if no tag exists.
+# use `git tag --sort` not `git describe`: describe only sees tags reachable from
+# HEAD, so a tag left orphaned by a rebase (e.g. v0.8.0) would be skipped and the
+# bump math would anchor to a stale, lower version.
+VERSION := $(shell v=$$(git tag --list 'v*' --sort=-v:refname | head -n1 | sed 's/^v//'); echo "$${v:-dev}")
 
 # compute next patch version: v1.2.3 -> v1.2.4; falls back to v0.1.0 if no tag exists
 NEXT_VERSION := $(shell \
-	tag=$$(git describe --tags --abbrev=0 2>/dev/null); \
+	tag=$$(git tag --list 'v*' --sort=-v:refname | head -n1); \
 	if [ -z "$$tag" ]; then echo "v0.1.0"; \
 	else \
 		major=$$(echo $$tag | sed 's/^v//' | cut -d. -f1); \
@@ -30,7 +33,7 @@ NEXT_VERSION := $(shell \
 
 # compute next minor version: v1.2.3 -> v1.3.0
 NEXT_MINOR_VERSION := $(shell \
-	tag=$$(git describe --tags --abbrev=0 2>/dev/null); \
+	tag=$$(git tag --list 'v*' --sort=-v:refname | head -n1); \
 	if [ -z "$$tag" ]; then echo "v0.1.0"; \
 	else \
 		major=$$(echo $$tag | sed 's/^v//' | cut -d. -f1); \
@@ -40,7 +43,7 @@ NEXT_MINOR_VERSION := $(shell \
 
 # compute next major version: v1.2.3 -> v2.0.0
 NEXT_MAJOR_VERSION := $(shell \
-	tag=$$(git describe --tags --abbrev=0 2>/dev/null); \
+	tag=$$(git tag --list 'v*' --sort=-v:refname | head -n1); \
 	if [ -z "$$tag" ]; then echo "v1.0.0"; \
 	else \
 		major=$$(echo $$tag | sed 's/^v//' | cut -d. -f1); \

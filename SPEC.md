@@ -301,7 +301,7 @@ scout/
 │       └── view.go                    # View, RenderStatusLine
 ├── .github/workflows/
 │   └── release.yml                    # goreleaser CI trigger on tag push
-├── .goreleaser.yaml                   # cross-platform build + homebrew-tap config
+├── .goreleaser.yaml                   # cross-platform build + archive + checksum (no brew; tap is updated separately)
 ├── go.mod
 ├── go.sum
 ├── AGENT.md                           # AI assistant guidelines (CLAUDE.md symlinks here)
@@ -344,7 +344,7 @@ two release methods are available. **CI goreleaser is the default and preferred 
 
 ### prerequisites
 
-- homebrew tap repo checked out locally alongside this repo: `../homebrew-tap`
+- homebrew tap repo checked out locally alongside this repo at `../homebrew-tap`; clone it if missing: `git clone https://github.com/mirageglobe/homebrew-tap.git ../homebrew-tap`
 - CI method: `GITHUB_TOKEN` in repo secrets (provided automatically by GitHub Actions)
 - local method: `goreleaser` installed locally; `GITHUB_TOKEN` exported in shell
 
@@ -381,10 +381,13 @@ shared by both methods. always use `make bump-*` — do NOT use `git tag` direct
 # 5. sync local main
 git checkout main && git pull
 
-# 6. tag the next version
-make bump-patch   # bug fixes only         e.g. v0.3.0 -> v0.3.1
-make bump-minor   # new features           e.g. v0.3.0 -> v0.4.0
-make bump-major   # breaking changes       e.g. v0.3.0 -> v1.0.0
+# 6. tag the next version. bump-* anchors to the HIGHEST published tag
+#    (via `git tag --sort`), so it stays correct even if a prior tag was
+#    orphaned by a rebase; `git describe` would anchor to a stale tag and
+#    could recompute an already-published version.
+make bump-patch   # bug fixes only         e.g. v0.8.0 -> v0.8.1
+make bump-minor   # new features           e.g. v0.8.0 -> v0.9.0
+make bump-major   # breaking changes       e.g. v0.8.0 -> v1.0.0
 ```
 
 ### phase 2a — publish via CI goreleaser (default)
@@ -416,6 +419,7 @@ gmake update FORMULA=scout VERSION=X.Y.Z   # VERSION without the v prefix, e.g. 
 
 the `update` target:
 - fetches `scout_X.Y.Z_checksums.txt` from the GitHub release
+- aborts if any expected checksum is missing (guards against pushing a formula with an empty sha256)
 - patches `Formula/scout.rb` — version string, download urls (including tag path), and all sha256 values
 - commits with `feat: update scout formula to vX.Y.Z`
 - pushes to origin main
