@@ -345,7 +345,9 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "ctrl+c":
 				return m, tea.Quit
 			case "enter":
-				m.ExplorerSearchActive = false
+				// commit the search: cursor already sits on the match (moved live
+				// while typing); clear the query so the search bar returns to normal
+				m = clearExplorerSearch(m)
 			case "esc":
 				m = clearExplorerSearch(m)
 			case "backspace":
