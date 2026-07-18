@@ -37,6 +37,14 @@ type GitPreviewMsg struct {
 	Err     error
 }
 
+// HighlightFilledMsg delivers an async-highlighted preview for a large file.
+// Path/Key guard against swapping in a result after the cursor moved or theme changed.
+type HighlightFilledMsg struct {
+	Path    string
+	Key     string
+	Content string
+}
+
 // displayLine is one rendered preview row: the post-wrap/truncate text plus the
 // source line index it came from (used for search-match highlighting).
 type displayLine struct {
@@ -96,6 +104,8 @@ type Model struct {
 	previewDisplayW     int           // previewWrapWidth at build time
 	previewDisplayWrap  bool          // m.PreviewWrap at build time
 	previewDisplayTheme int           // m.ThemeIdx at build time
+
+	previewHighlightPending string // highlightCache key currently being filled async
 }
 
 // NewModel initializes a fresh UI model with a time-based theme (or saved config).
@@ -179,6 +189,18 @@ func (m Model) GitPreview(mode int, path, file string) tea.Cmd {
 			content, err = git.Diff(ctx, m.Cwd, file)
 		}
 		return GitPreviewMsg{Mode: mode, Path: path, Content: content, Err: err}
+	}
+}
+
+// HighlightPreview computes the highlighted preview for a large file off the event
+// loop, stores it in the shared cache, and returns HighlightFilledMsg so the swap
+// happens on the UI goroutine. m is captured at dispatch, so it highlights the file
+// that was selected then; Path/Key let the handler drop a stale result.
+func (m Model) HighlightPreview(path, key string) tea.Cmd {
+	return func() tea.Msg {
+		content := m.buildHighlightedFile(path)
+		highlightCachePut(key, content)
+		return HighlightFilledMsg{Path: path, Key: key, Content: content}
 	}
 }
 

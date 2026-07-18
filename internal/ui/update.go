@@ -25,6 +25,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		nm.ThemeIdx != nm.previewDisplayTheme || previewWrapWidth(nm) != nm.previewDisplayW {
 		nm = nm.withPreviewDisplay()
 	}
+	// large files render as plain text immediately; fill the highlight cache off the
+	// event loop and swap the coloured version in when ready (once per file/theme).
+	if nm.PreviewMode == PreviewFile && len(nm.Entries) > 0 && nm.Cursor < len(nm.Entries) {
+		if e := nm.Entries[nm.Cursor]; fileNeedsAsyncHighlight(e) {
+			path := filepath.Join(nm.Cwd, e.Name)
+			key := highlightKey(path, e, Themes[nm.ThemeIdx])
+			if _, cached := highlightCacheGet(key); !cached && nm.previewHighlightPending != key {
+				nm.previewHighlightPending = key
+				cmd = tea.Batch(cmd, nm.HighlightPreview(path, key))
+			}
+		}
+	}
 	if _, ok := msg.(tea.KeyPressMsg); ok {
 		return nm, tea.Batch(cmd, DoHintIdleTick(nm.HintIdleSeq))
 	}
@@ -38,6 +50,17 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case filesystem.GitRefreshMsg:
 		m.GitStatus = msg.GitStatus
 		m.GitBranch = msg.GitBranch
+		return m, nil
+
+	case HighlightFilledMsg:
+		if msg.Key == m.previewHighlightPending {
+			m.previewHighlightPending = ""
+		}
+		// swap in the highlighted preview only if the cursor is still on that file
+		if m.PreviewMode == PreviewFile && len(m.Entries) > 0 && m.Cursor < len(m.Entries) &&
+			filepath.Join(m.Cwd, m.Entries[m.Cursor].Name) == msg.Path {
+			m.Preview = msg.Content
+		}
 		return m, nil
 
 	case GitPreviewMsg:
