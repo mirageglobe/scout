@@ -490,6 +490,7 @@ make push-tags       # default: retrigger goreleaser via tag push
 - [x] `[preview]` async syntax highlight for large files (> 32 KB): render plain text immediately, fill a memoized highlight cache off the event loop (`HighlightPreview` cmd + `HighlightFilledMsg`) and swap the coloured version in when ready; small files stay synchronous and unchanged. keeps navigation responsive (chroma measured at 40-115 ms synchronous); revisits hit the cache instantly. live smoke test recommended  [medium]
 - [ ] `[docs]` improve the README and sharpen the product pitch: make the value proposition land faster, tighten the description and feature framing  [easy]
 - [ ] `[install]` add / document non-Homebrew install paths (direct binary via `install.sh` exists) and research other package managers to submit to (e.g. apt/deb, AUR, nixpkgs, scoop, MacPorts, asdf); pick targets and submit  [medium]
+- [ ] `[explorer]` `o` on a directory copies the selected folder's absolute path to the clipboard and shows a confirmation in the status footer, instead of the file "open with default app" action (which does not apply to directories)  [easy]
 
 ### ideas
 
