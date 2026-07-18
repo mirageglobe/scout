@@ -487,7 +487,7 @@ make push-tags       # default: retrigger goreleaser via tag push
 - [x] `[preview]` truncate to the line cap before chroma highlighting, so large files tokenise only what is shown rather than the whole 128 KB buffer  [easy]
 - [x] `[preview]` render the dim line-number gutter wrapper once (via `ansiWrap`) instead of a lipgloss render per line  [easy]
 - [x] `[ui]` hoist the per-frame preview highlight styles to package-level bases; only `.Width()` varies per frame  [easy]
-- [ ] `[preview]` async preview build: move file read + chroma off the event loop via a `tea.Cmd` + msg (mirroring `GitPreview`) so navigating to large files never blocks; needs a live smoke test before merge  [medium]
+- [x] `[preview]` async syntax highlight for large files (> 32 KB): render plain text immediately, fill a memoized highlight cache off the event loop (`HighlightPreview` cmd + `HighlightFilledMsg`) and swap the coloured version in when ready; small files stay synchronous and unchanged. keeps navigation responsive (chroma measured at 40-115 ms synchronous); revisits hit the cache instantly. live smoke test recommended  [medium]
 - [ ] `[docs]` improve the README and sharpen the product pitch: make the value proposition land faster, tighten the description and feature framing  [easy]
 - [ ] `[install]` add / document non-Homebrew install paths (direct binary via `install.sh` exists) and research other package managers to submit to (e.g. apt/deb, AUR, nixpkgs, scoop, MacPorts, asdf); pick targets and submit  [medium]
 

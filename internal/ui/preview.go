@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"charm.land/lipgloss/v2"
 	"github.com/alecthomas/chroma/v2/quick"
@@ -43,7 +44,77 @@ func (m Model) BuildPreview() string {
 	if selected.IsDir {
 		return m.previewDir(fullPath, selected, t)
 	}
-	return m.previewFile(fullPath, selected, t)
+	// large files render as plain text immediately; the highlighted version is
+	// filled asynchronously into highlightCache and picked up here on the next
+	// build (nav-back, theme change, or the fill's own re-render).
+	if fileNeedsAsyncHighlight(selected) {
+		if v, ok := highlightCacheGet(highlightKey(fullPath, selected, t)); ok {
+			return v
+		}
+		return m.previewFile(fullPath, selected, t, false)
+	}
+	return m.previewFile(fullPath, selected, t, true)
+}
+
+// asyncHighlightThreshold is the file size above which syntax highlighting is done
+// off the event loop instead of synchronously (chroma on a large file blocks the UI
+// for tens to >100 ms; see the BuildPreview benchmark).
+const asyncHighlightThreshold = 32 * 1024
+
+// fileNeedsAsyncHighlight reports whether e is a regular file large enough to warrant
+// async highlighting rather than a blocking synchronous highlight.
+func fileNeedsAsyncHighlight(e filesystem.Entry) bool {
+	return !e.IsDir && e.Info != nil && e.Info.Size() > asyncHighlightThreshold
+}
+
+// highlightCache memoizes highlighted previews for large files so a revisit renders
+// instantly. Keyed by path/size/mtime/theme; filled by HighlightPreview off the loop.
+// Bounded to avoid unbounded growth over a long session.
+var (
+	highlightMu    sync.Mutex
+	highlightCache = map[string]string{}
+)
+
+const highlightCacheMax = 128
+
+// highlightKey identifies a highlighted preview by path, size, mtime, and theme, so
+// an edited file (new mtime) or a theme switch misses and re-highlights.
+func highlightKey(path string, e filesystem.Entry, t Theme) string {
+	var size, mod int64
+	if e.Info != nil {
+		size = e.Info.Size()
+		mod = e.Info.ModTime().UnixNano()
+	}
+	return fmt.Sprintf("%s|%d|%d|%s", path, size, mod, t.ChromaStyle)
+}
+
+func highlightCacheGet(key string) (string, bool) {
+	highlightMu.Lock()
+	defer highlightMu.Unlock()
+	v, ok := highlightCache[key]
+	return v, ok
+}
+
+func highlightCachePut(key, val string) {
+	highlightMu.Lock()
+	defer highlightMu.Unlock()
+	if len(highlightCache) >= highlightCacheMax {
+		highlightCache = map[string]string{} // crude bound: reset when full
+	}
+	highlightCache[key] = val
+}
+
+// buildHighlightedFile builds the selected file's preview with highlighting forced
+// on; used by the async fill command for large files.
+func (m Model) buildHighlightedFile(path string) string {
+	if len(m.Entries) == 0 || m.Cursor >= len(m.Entries) {
+		return ""
+	}
+	e := m.Entries[m.Cursor]
+	if e.IsDir {
+		return ""
+	}
+	return m.previewFile(path, e, Themes[m.ThemeIdx], true)
 }
 
 func (m Model) previewDir(path string, e filesystem.Entry, t Theme) string {
@@ -85,7 +156,7 @@ func (m Model) previewDir(path string, e filesystem.Entry, t Theme) string {
 	return sb.String()
 }
 
-func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
+func (m Model) previewFile(path string, e filesystem.Entry, t Theme, highlight bool) string {
 	accentStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.Accent)).Bold(true)
 	dimStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(t.Dim))
 
@@ -118,12 +189,6 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 	}
 
 	previewStr := string(previewData)
-	lang := filepath.Ext(path)
-	if len(lang) > 0 {
-		lang = lang[1:]
-	} else {
-		lang = filepath.Base(path)
-	}
 
 	// cap to maxLines BEFORE highlighting so chroma only tokenises what is shown,
 	// not the whole (up to 128 KB) buffer that would then be discarded.
@@ -134,9 +199,19 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme) string {
 		previewStr = strings.Join(rawLines[:maxLines], "\n")
 	}
 
-	var b bytes.Buffer
-	if err := quick.Highlight(&b, previewStr, lang, "terminal256", t.ChromaStyle); err == nil && b.Len() > 0 {
-		previewStr = b.String()
+	// highlight is skipped for large files on the synchronous path; they render as
+	// plain text immediately and gain colour from the async cache fill (see BuildPreview).
+	if highlight {
+		lang := filepath.Ext(path)
+		if len(lang) > 0 {
+			lang = lang[1:]
+		} else {
+			lang = filepath.Base(path)
+		}
+		var b bytes.Buffer
+		if err := quick.Highlight(&b, previewStr, lang, "terminal256", t.ChromaStyle); err == nil && b.Len() > 0 {
+			previewStr = b.String()
+		}
 	}
 
 	// render the constant dim-gutter wrapper once; only the line number varies,
