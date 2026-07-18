@@ -441,6 +441,7 @@ make push-tags       # default: retrigger goreleaser via tag push
 ### bugs
 
 - [x] `[explorer]` auto-refresh not working — file changes on disk are not reflected in the file list or preview pane without manual navigation  [medium]
+- [ ] `[explorer]` explorer search next/previous (`n`/`N`) does not move focus between matches when a query has multiple hits; likely tied to `enter` committing the search and clearing `ExplorerSearchInput`, which `n`/`N` stepping keys off; needs repro  [medium]
 
 ### near term
 
