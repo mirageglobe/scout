@@ -10,6 +10,40 @@ import (
 	"github.com/mirageglobe/scout/internal/filesystem"
 )
 
+// preview highlight styles; the colours are fixed, only .Width() varies per frame,
+// so the bases are built once here instead of on every View call.
+var (
+	previewMatchBase        = lipgloss.NewStyle().Background(lipgloss.Color("#44475A")).Foreground(lipgloss.Color("#F1FA8C"))
+	previewCurrentMatchBase = lipgloss.NewStyle().Background(lipgloss.Color("#F1FA8C")).Foreground(lipgloss.Color("#282A36")).Bold(true)
+	previewSelectionBase    = lipgloss.NewStyle().Background(lipgloss.Color("#3D59A1")).Foreground(lipgloss.Color("#C0CAF5"))
+)
+
+// withPreviewDisplay recomputes the cached display rows for m.Preview: each source
+// line wrapped (PreviewWrap on) or truncated to the pane width. Update calls this
+// only when an input changes, so View and scrolling read the cache instead of
+// re-expanding every line on every frame.
+func (m Model) withPreviewDisplay() Model {
+	w := previewWrapWidth(m)
+	raw := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
+	dimEllipsis := lipgloss.NewStyle().Foreground(lipgloss.Color(Themes[m.ThemeIdx].Dim)).Render(m.Sym.Ellipsis)
+	out := make([]displayLine, 0, len(raw))
+	for origIdx, l := range raw {
+		if m.PreviewWrap {
+			for _, sub := range strings.Split(lipgloss.Wrap(l, w, " "), "\n") {
+				out = append(out, displayLine{sub, origIdx})
+			}
+		} else {
+			out = append(out, displayLine{filesystem.TruncateWithTail(l, w, dimEllipsis), origIdx})
+		}
+	}
+	m.previewDisplay = out
+	m.previewDisplayFor = m.Preview
+	m.previewDisplayW = w
+	m.previewDisplayWrap = m.PreviewWrap
+	m.previewDisplayTheme = m.ThemeIdx
+	return m
+}
+
 // hintTips returns the rotating [key, description] pairs shown after 10s idle,
 // built from the active glyph set so arrows honour SCOUT_UNICODE_SAFE.
 func hintTips(g Glyphs) [][2]string {
@@ -82,7 +116,7 @@ func (m Model) View() tea.View {
 		Background(selectedBg).
 		Bold(true).
 		Width(leftWidth - 4)
-	dirStyle     := lipgloss.NewStyle().Foreground(dirColor)
+	dirStyle := lipgloss.NewStyle().Foreground(dirColor)
 	dirCountStyle := lipgloss.NewStyle().Foreground(dimColor)
 
 	for i := scrollOffset; i < len(m.Entries) && len(listLines) < contentHeight-1; i++ {
@@ -206,8 +240,6 @@ func (m Model) View() tea.View {
 	leftContent := strings.Join(listLines, "\n")
 
 	// ── Right pane: preview ────────────────────────────────────────────
-	rawPreviewLines := strings.Split(strings.TrimSuffix(m.Preview, "\n"), "\n")
-
 	// build match lookup for highlighting
 	matchSet := make(map[int]bool, len(m.SearchMatches))
 	for _, idx := range m.SearchMatches {
@@ -217,40 +249,14 @@ func (m Model) View() tea.View {
 	if len(m.SearchMatches) > 0 {
 		currentMatchLine = m.SearchMatches[m.SearchMatchIdx]
 	}
-	matchStyle := lipgloss.NewStyle().
-		Background(lipgloss.Color("#44475A")).
-		Foreground(lipgloss.Color("#F1FA8C")).
-		Width(rightWidth - 4)
-	currentMatchStyle := lipgloss.NewStyle().
-		Background(lipgloss.Color("#F1FA8C")).
-		Foreground(lipgloss.Color("#282A36")).
-		Bold(true).
-		Width(rightWidth - 4)
-	selectionStyle := lipgloss.NewStyle().
-		Background(lipgloss.Color("#3D59A1")).
-		Foreground(lipgloss.Color("#C0CAF5")).
-		Width(rightWidth - 4)
+	matchStyle := previewMatchBase.Width(rightWidth - 4)
+	currentMatchStyle := previewCurrentMatchBase.Width(rightWidth - 4)
+	selectionStyle := previewSelectionBase.Width(rightWidth - 4)
 
-	// expand lines: wrap or truncate depending on mode
-	type displayLine struct {
-		text    string
-		origIdx int
-	}
-	var displayLines []displayLine
-	wrapWidth := rightWidth - 4
-	dimEllipsis := lipgloss.NewStyle().Foreground(dimColor).Render(m.Sym.Ellipsis)
-	for origIdx, l := range rawPreviewLines {
-		if m.PreviewWrap {
-			wrapped := lipgloss.Wrap(l, wrapWidth, " ")
-			for _, sub := range strings.Split(wrapped, "\n") {
-				displayLines = append(displayLines, displayLine{sub, origIdx})
-			}
-		} else {
-			displayLines = append(displayLines, displayLine{
-				filesystem.TruncateWithTail(l, wrapWidth, dimEllipsis), origIdx,
-			})
-		}
-	}
+	// display lines are precomputed and cached on the model (see withPreviewDisplay);
+	// Update rebuilds the cache only when the preview, width, wrap, or theme changes,
+	// so this render path stays O(visible) instead of re-expanding every line.
+	displayLines := m.previewDisplay
 
 	startIdx := min(m.PreviewScroll, len(displayLines))
 	endIdx := min(startIdx+contentHeight, len(displayLines))
@@ -295,7 +301,7 @@ func (m Model) View() tea.View {
 
 	rightPane := lipgloss.NewStyle().
 		Width(rightWidth).
-		Height(contentHeight + 2).
+		Height(contentHeight+2).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(rightBorderColor).
 		Padding(0, 1).
@@ -319,7 +325,7 @@ func (m Model) View() tea.View {
 
 	leftPane := lipgloss.NewStyle().
 		Width(leftWidth).
-		Height(contentHeight + 2).
+		Height(contentHeight+2).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(leftBorderColor).
 		Padding(0, 1).

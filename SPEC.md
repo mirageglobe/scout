@@ -483,6 +483,14 @@ make push-tags       # default: retrigger goreleaser via tag push
 - [ ] `[release]` standardise the CHANGELOG date-heading separator: history mixes an em dash and a hyphen; pick the keep-a-changelog hyphen and reflow existing entries  [easy]
 - [ ] `[release]` add a pre-tag preflight (e.g. `make release-check`) that fails if the computed next tag already exists on origin, guarding against re-publishing a version  [easy]
 
+- [x] `[preview]` cache expanded display lines on the model; scrolling and the line-count read a precomputed slice rebuilt only on preview/width/wrap/theme change, instead of re-wrapping/truncating every line each frame (O(visible), not O(total))  [medium]
+- [x] `[preview]` truncate to the line cap before chroma highlighting, so large files tokenise only what is shown rather than the whole 128 KB buffer  [easy]
+- [x] `[preview]` render the dim line-number gutter wrapper once (via `ansiWrap`) instead of a lipgloss render per line  [easy]
+- [x] `[ui]` hoist the per-frame preview highlight styles to package-level bases; only `.Width()` varies per frame  [easy]
+- [ ] `[preview]` async preview build: move file read + chroma off the event loop via a `tea.Cmd` + msg (mirroring `GitPreview`) so navigating to large files never blocks; needs a live smoke test before merge  [medium]
+- [ ] `[docs]` improve the README and sharpen the product pitch: make the value proposition land faster, tighten the description and feature framing  [easy]
+- [ ] `[install]` add / document non-Homebrew install paths (direct binary via `install.sh` exists) and research other package managers to submit to (e.g. apt/deb, AUR, nixpkgs, scoop, MacPorts, asdf); pick targets and submit  [medium]
+
 ### ideas
 
 - [ ] `[ai]` detect locally running ollama instance and connect for in-app chat — probe `http://localhost:11434` on startup; if available, expose a chat panel keybinding to open a conversational interface backed by the detected model  [hard]
