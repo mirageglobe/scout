@@ -479,6 +479,10 @@ make push-tags       # default: retrigger goreleaser via tag push
 
 - [x] `[explorer]` search-to-jump: pressing enter in an explorer search commits the query; the cursor (already moved to the match live while typing) stays on the matched file and the search bar clears; `n`/`N` stepping ends on commit  [easy]
 
+- [ ] `[release]` reconcile the orphaned v0.8.0 tag: it points at a pre-rebase commit not reachable from main, so `git describe` skipped it (the reason the bump math broke); re-point the tag to its main-equivalent commit, or adopt a "do not rebase main after tagging" policy so tags stay reachable  [medium]
+- [ ] `[release]` standardise the CHANGELOG date-heading separator: history mixes an em dash and a hyphen; pick the keep-a-changelog hyphen and reflow existing entries  [easy]
+- [ ] `[release]` add a pre-tag preflight (e.g. `make release-check`) that fails if the computed next tag already exists on origin, guarding against re-publishing a version  [easy]
+
 ### ideas
 
 - [ ] `[ai]` detect locally running ollama instance and connect for in-app chat — probe `http://localhost:11434` on startup; if available, expose a chat panel keybinding to open a conversational interface backed by the detected model  [hard]
@@ -517,3 +521,4 @@ make push-tags       # default: retrigger goreleaser via tag push
 | 2-second tick for stats and git      | low enough overhead to feel live; high enough to avoid hammering the filesystem            |
 | `runtime.ReadMemStats` for memory    | zero-dependency way to surface allocated heap without external tooling                     |
 | preview content-source enum (`d`)    | one `PreviewMode` (file/diff/log) feeds the existing viewport; git output fetched async (`GitPreview` cmd + `GitPreviewMsg`) so shelling out never blocks the UI; resets to file on navigation |
+| version bump anchors to highest tag  | `make bump-*` reads the highest semver tag (`git tag --list 'v*' --sort`), not `git describe`; main was rebased after v0.8.0 was tagged, orphaning that tag, so describe (reachable from HEAD) anchored to v0.7.0 and would have recomputed an already-published version |

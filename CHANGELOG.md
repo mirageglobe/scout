@@ -8,20 +8,17 @@ versions follow [semantic versioning](https://semver.org/).
 
 ## [unreleased]
 
-### changed
-- `make demo` now records from a throwaway `$HOME`, so `demo.gif` always renders `~/scout` and never leaks a local checkout path; requires GNU Make 4+ (`.ONESHELL`)
+## [v0.9.0] - 2026-07-18
 
 ### added
-- `SCOUT_UNICODE_SAFE=1` swaps UI marker glyphs (directory, symlink, branch, prompt, arrows, dividers, etc.) for narrow-safe ASCII, fixing column misalignment in terminals that render ambiguous-width characters as 2 cells (e.g. `RUNEWIDTH_EASTASIAN=1`)
-
-### added
+- pressing `enter` in an explorer search commits the query: the cursor stays on the matched file and the search bar clears
 - `d` cycles the preview content between the file, its `git diff`, and `git log` for the selected file; git output is fetched asynchronously and highlighted with the chroma diff lexer; `d:git` hint-bar indicator lights up when a git view is active
-
-### added
+- `SCOUT_UNICODE_SAFE=1` swaps UI marker glyphs (directory, symlink, branch, prompt, arrows, dividers, etc.) for narrow-safe ASCII, fixing column misalignment in terminals that render ambiguous-width characters as 2 cells (e.g. `RUNEWIDTH_EASTASIAN=1`)
 - `install.sh` curl one-liner installer: detects os/arch, downloads the matching release binary, verifies its sha256 checksum, and installs to `~/.local/bin`; re-run to upgrade. `SCOUT_VERSION` pins a version; `SCOUT_BIN_DIR` overrides the install dir. alternative to Homebrew.
 - `y` copies the selected entry's full path to the system clipboard
 
 ### changed
+- `make demo` now records from a throwaway `$HOME`, so `demo.gif` always renders `~/scout` and never leaks a local checkout path; requires GNU Make 4+ (`.ONESHELL`)
 - hint bar: renamed `i:hidden` toggle to `i:show hidden` (highlights when hidden files are shown; shown by default)
 - hint bar: dropped the `tab:explorer` indicator and its idle tip; `tab` still cycles explorer pane width as an unadvertised hotkey
 - help overlay: `?`, `q`, and `esc` all dismiss it (`q` no longer quits the app while help is open); `ctrl+c` still hard-quits
