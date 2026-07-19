@@ -441,11 +441,28 @@ make push-tags       # default: retrigger goreleaser via tag push
 
 ### bugs
 
-- [x] `[explorer]` auto-refresh not working — file changes on disk are not reflected in the file list or preview pane without manual navigation  [medium]
-- [x] `[explorer]` explorer search next/previous (`n`/`N`) did not step between matches after `enter`: commit cleared `ExplorerSearchInput`, which stepping keyed off. fixed by adding a committed `ExplorerSearchQuery` (mirroring the preview side) that survives commit so `n`/`N` and filtering keep working; the bar still clears on enter  [medium]
+no open bugs.
 
 ### near term
 
+ordered by difficulty (easy first).
+
+- [ ] `[release]` reconcile the orphaned v0.8.0 tag: it points at a pre-rebase commit not reachable from main, so `git describe` skipped it (the reason the bump math broke); re-point the tag to its main-equivalent commit, or adopt a "do not rebase main after tagging" policy so tags stay reachable  [medium]
+- [ ] `[install]` add / document non-Homebrew install paths (direct binary via `install.sh` exists) and research other package managers to submit to (e.g. apt/deb, AUR, nixpkgs, scoop, MacPorts, asdf); pick targets and submit  [medium]
+
+### ideas
+
+ordered by difficulty (easy first).
+
+- [ ] `[explorer]` fuzzy file search  [hard]
+- [ ] `[ai]` detect locally running ollama instance and connect for in-app chat - probe `http://localhost:11434` on startup; if available, expose a chat panel keybinding to open a conversational interface backed by the detected model  [hard]
+
+### done
+
+completed and shipped; kept for reference (in original order).
+
+- [x] `[explorer]` auto-refresh not working — file changes on disk are not reflected in the file list or preview pane without manual navigation  [medium]
+- [x] `[explorer]` explorer search next/previous (`n`/`N`) did not step between matches after `enter`: commit cleared `ExplorerSearchInput`, which stepping keyed off. fixed by adding a committed `ExplorerSearchQuery` (mirroring the preview side) that survives commit so `n`/`N` and filtering keep working; the bar still clears on enter  [medium]
 - [x] `[site]` add github pages website — astro source in `/site`, ci builds and deploys to github pages environment (no branch); workflow triggers on `/site/**` changes  [easy]
 - [x] `[explorer]` consider showing in file pane, the number of changed files  [easy]
 - [x] `[explorer]` update naming of command `root-focus` to `root-lock`  [easy]
@@ -476,29 +493,18 @@ make push-tags       # default: retrigger goreleaser via tag push
 - [x] `[ui]` remove the `tab:explorer` indicator from the hint bar and drop it as a visible toggle; `tab` stays as an unadvertised background hotkey that still cycles explorer pane width  [easy]
 - [x] `[ui]` rename the `i:hidden` hint-bar indicator to `i:show hidden`; hidden files shown by default (toggle on at startup)  [easy]
 - [x] `[ui]` help modal keys: while the `?` help overlay is open, `?`, `q`, and `esc` all close it; standardise every other popup modal to close on `q` and `esc`  [easy]
-
 - [x] `[demo]` automate neutral-path demo recording: `make demo` should record with a temp `$HOME` so `demo.gif` always renders `~/scout`, never the maintainer's local checkout path (public repo)  [easy]
-
 - [x] `[explorer]` search-to-jump: pressing enter in an explorer search commits the query; the cursor (already moved to the match live while typing) stays on the matched file and the search bar clears; `n`/`N` stepping ends on commit  [easy]
-
-- [ ] `[release]` reconcile the orphaned v0.8.0 tag: it points at a pre-rebase commit not reachable from main, so `git describe` skipped it (the reason the bump math broke); re-point the tag to its main-equivalent commit, or adopt a "do not rebase main after tagging" policy so tags stay reachable  [medium]
 - [x] `[release]` standardise the CHANGELOG date-heading separator: reflowed all date headings (and stray in-entry em dashes) to the keep-a-changelog hyphen; CHANGELOG is now em-dash-free  [easy]
 - [x] `[release]` add a pre-tag preflight `make release-check` that fetches origin tags and fails if the next patch/minor/major tag already exists, guarding against re-publishing a version  [easy]
-
 - [x] `[preview]` cache expanded display lines on the model; scrolling and the line-count read a precomputed slice rebuilt only on preview/width/wrap/theme change, instead of re-wrapping/truncating every line each frame (O(visible), not O(total))  [medium]
 - [x] `[preview]` truncate to the line cap before chroma highlighting, so large files tokenise only what is shown rather than the whole 128 KB buffer  [easy]
 - [x] `[preview]` render the dim line-number gutter wrapper once (via `ansiWrap`) instead of a lipgloss render per line  [easy]
 - [x] `[ui]` hoist the per-frame preview highlight styles to package-level bases; only `.Width()` varies per frame  [easy]
 - [x] `[preview]` async syntax highlight for large files (> 32 KB): render plain text immediately, fill a memoized highlight cache off the event loop (`HighlightPreview` cmd + `HighlightFilledMsg`) and swap the coloured version in when ready; small files stay synchronous and unchanged. keeps navigation responsive (chroma measured at 40-115 ms synchronous); revisits hit the cache instantly. live smoke test recommended  [medium]
 - [x] `[docs]` improve the README and sharpen the product pitch: rewrote the intro to a concrete dual-pane value prop, tightened feature framing, fixed the editor bullet ($EDITOR, not vim)  [easy]
-- [ ] `[install]` add / document non-Homebrew install paths (direct binary via `install.sh` exists) and research other package managers to submit to (e.g. apt/deb, AUR, nixpkgs, scoop, MacPorts, asdf); pick targets and submit  [medium]
 - [x] `[explorer]` `o` on a directory copies the selected folder's absolute path to the clipboard and shows a confirmation in the status footer, instead of the file "open with default app" action (which does not apply to directories)  [easy]
-
-### ideas
-
-- [ ] `[ai]` detect locally running ollama instance and connect for in-app chat — probe `http://localhost:11434` on startup; if available, expose a chat panel keybinding to open a conversational interface backed by the detected model  [hard]
 - [x] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
-- [ ] `[explorer]` fuzzy file search  [hard]
 - [x] `[ui]` ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; add `SCOUT_UNICODE_SAFE=1` env var that swaps the symbol set to narrow-safe ASCII alternatives at startup  [medium]
 - [x] `[git]` git diff preview — when selected file has an `M` badge, show `git diff` output in the preview pane  [medium]
 - [x] `[git]` git log preview — when selecting a file, offer a keypress to show `git log --oneline` for that file in the preview pane  [medium]
