@@ -33,10 +33,10 @@ versions follow [semantic versioning](https://semver.org/).
 
 ---
 
-## [v0.8.0] — 2026-05-19
+## [v0.8.0] - 2026-05-19
 
 ### added
-- mouse drag text selection in preview pane — releasing mouse copies selected lines to clipboard
+- mouse drag text selection in preview pane - releasing mouse copies selected lines to clipboard
 - multi-step explorer width cycle via `tab`
 - github pages site (`/site` astro source, `/docs` built output)
 - theme-aware chroma syntax highlighting; CLI flags (`--theme`, `--wrap`)
@@ -50,12 +50,12 @@ versions follow [semantic versioning](https://semver.org/).
 
 ---
 
-## [v0.7.0] — 2026-05-10
+## [v0.7.0] - 2026-05-10
 
 ### added
 - dark / light mode auto-detection via OSC 11 terminal query; auto-selects an appropriate theme on first launch; `t` cycles within the detected mode (dark or light themes only)
 - three light themes: Solarized Light, Github Light, Paper, Light Mono
-- word-wrap toggle (`w`) in preview pane — wraps long lines to fit pane width instead of truncating; scrollbar and scroll position update accordingly
+- word-wrap toggle (`w`) in preview pane - wraps long lines to fit pane width instead of truncating; scrollbar and scroll position update accordingly
 - scrollbar indicator in preview pane showing scroll position
 - scrollbar indicator in explorer pane showing scroll position
 - mouse click to select files in the explorer pane
@@ -73,12 +73,12 @@ versions follow [semantic versioning](https://semver.org/).
 
 ---
 
-## [v0.6.0] — 2026-05-02
+## [v0.6.0] - 2026-05-02
 
 ### added
 - `± N` changed-file count badge in explorer stat line when git status is dirty
-- renamed `root-focus` to `root-lock`; toggle key remapped from `f` → `l`
-- removed vim-style navigation keys `j`/`k`/`h`/`l` — arrow keys are now the sole navigation bindings
+- renamed `root-focus` to `root-lock`; toggle key remapped from `f` -> `l`
+- removed vim-style navigation keys `j`/`k`/`h`/`l` - arrow keys are now the sole navigation bindings
 - right-aligned human-readable file size column in file list (e.g. `1.2 KB`), matching dir child-count layout
 
 ### fixed
@@ -86,7 +86,7 @@ versions follow [semantic versioning](https://semver.org/).
 
 ---
 
-## [v0.5.0] — 2026-04-26
+## [v0.5.0] - 2026-04-26
 
 ### added
 - status message notification when the selected file or previewed file changes on disk
@@ -98,16 +98,16 @@ versions follow [semantic versioning](https://semver.org/).
 
 ### fixed
 - untracked files now highlighted with accent colour in file explorer
-- auto-refresh not working — file changes on disk now reflected in real-time in file list and preview pane
+- auto-refresh not working - file changes on disk now reflected in real-time in file list and preview pane
 
 ---
 
-## [v0.4.0] — 2026-04-24
+## [v0.4.0] - 2026-04-24
 
 ### added
 - persistent `scout ›` prompt in status line with state-aware messages (idle, loading, search, errors)
 - animated loading spinner (`scout › ·/··/···`) during directory navigation
-- toggle state indicators in hint bar — `i:hidden`, `f:root-lock`, `tab:explorer` render bold+accent when active
+- toggle state indicators in hint bar - `i:hidden`, `f:root-lock`, `tab:explorer` render bold+accent when active
 - cursor restores to previous folder when navigating to parent directory
 - root-lock mode: restricts navigation to the launch directory (`f` to toggle)
 - theme preference persisted to `~/.config/scout/config`
@@ -121,7 +121,7 @@ versions follow [semantic versioning](https://semver.org/).
 
 ---
 
-## [v0.3.0] — 2026-04-22
+## [v0.3.0] - 2026-04-22
 
 ### added
 - search in both explorer (`/` in left pane) and preview pane (`/` in right pane) with `n`/`N` navigation
@@ -131,7 +131,7 @@ versions follow [semantic versioning](https://semver.org/).
 
 ---
 
-## [v0.2.0] — 2026-04-20
+## [v0.2.0] - 2026-04-20
 
 ### added
 - goreleaser cross-platform build and homebrew-tap auto-update on tag push
@@ -139,7 +139,7 @@ versions follow [semantic versioning](https://semver.org/).
 
 ---
 
-## [v0.1.0] — 2026-04-20
+## [v0.1.0] - 2026-04-20
 
 ### added
 - dual-pane layout: file list (left) + file preview (right)
