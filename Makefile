@@ -10,7 +10,7 @@
 .SHELLFLAGS := -eu -o pipefail -c
 .ONESHELL:
 
-.PHONY: help build run test fmt clean lint version bump-patch bump-minor bump-major push-tags release release-reset release-dry demo site-install site-build site-preview site-dev
+.PHONY: help build run test fmt clean lint version bump-patch bump-minor bump-major push-tags release release-reset release-dry release-check demo site-install site-build site-preview site-dev
 
 # ============================================================== targets ===== #
 
@@ -124,6 +124,9 @@ release-reset: ## delete GitHub release for current tag
 
 release-dry: ## dry-run goreleaser without publishing
 	goreleaser release --snapshot --clean
+
+release-check: ## verify the next patch/minor/major tags are unused on origin (run before bump)
+	@git fetch --tags --quiet origin 2>/dev/null || true; for t in $(NEXT_VERSION) $(NEXT_MINOR_VERSION) $(NEXT_MAJOR_VERSION); do if git ls-remote --tags --exit-code origin "refs/tags/$$t" >/dev/null 2>&1; then printf "  [ fail ] %s already exists on origin; bump math would re-publish it\n" "$$t"; exit 1; fi; done; printf "  [ ok ] next tags free on origin: %s / %s / %s\n" "$(NEXT_VERSION)" "$(NEXT_MINOR_VERSION)" "$(NEXT_MAJOR_VERSION)"
 
 ##@ site
 

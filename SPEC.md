@@ -373,9 +373,10 @@ git checkout main && git pull
 **step 3 :: tag.** always use `make bump-*`; do NOT run `git tag` directly. bump-* anchors to the HIGHEST published tag (via `git tag --sort`), so it stays correct even if a prior tag was orphaned by a rebase; `git describe` would anchor to a stale tag and could recompute an already-published version.
 
 ```bash
-make bump-patch   # bug fixes only         e.g. v0.8.0 -> v0.8.1
-make bump-minor   # new features           e.g. v0.8.0 -> v0.9.0
-make bump-major   # breaking changes       e.g. v0.8.0 -> v1.0.0
+make release-check   # preflight: fails if the next patch/minor/major tag already exists on origin
+make bump-patch      # bug fixes only         e.g. v0.8.0 -> v0.8.1
+make bump-minor      # new features           e.g. v0.8.0 -> v0.9.0
+make bump-major      # breaking changes       e.g. v0.8.0 -> v1.0.0
 ```
 
 **step 4 :: publish (pick ONE method).**
@@ -481,8 +482,8 @@ make push-tags       # default: retrigger goreleaser via tag push
 - [x] `[explorer]` search-to-jump: pressing enter in an explorer search commits the query; the cursor (already moved to the match live while typing) stays on the matched file and the search bar clears; `n`/`N` stepping ends on commit  [easy]
 
 - [ ] `[release]` reconcile the orphaned v0.8.0 tag: it points at a pre-rebase commit not reachable from main, so `git describe` skipped it (the reason the bump math broke); re-point the tag to its main-equivalent commit, or adopt a "do not rebase main after tagging" policy so tags stay reachable  [medium]
-- [ ] `[release]` standardise the CHANGELOG date-heading separator: history mixes an em dash and a hyphen; pick the keep-a-changelog hyphen and reflow existing entries  [easy]
-- [ ] `[release]` add a pre-tag preflight (e.g. `make release-check`) that fails if the computed next tag already exists on origin, guarding against re-publishing a version  [easy]
+- [x] `[release]` standardise the CHANGELOG date-heading separator: reflowed all date headings (and stray in-entry em dashes) to the keep-a-changelog hyphen; CHANGELOG is now em-dash-free  [easy]
+- [x] `[release]` add a pre-tag preflight `make release-check` that fetches origin tags and fails if the next patch/minor/major tag already exists, guarding against re-publishing a version  [easy]
 
 - [x] `[preview]` cache expanded display lines on the model; scrolling and the line-count read a precomputed slice rebuilt only on preview/width/wrap/theme change, instead of re-wrapping/truncating every line each frame (O(visible), not O(total))  [medium]
 - [x] `[preview]` truncate to the line cap before chroma highlighting, so large files tokenise only what is shown rather than the whole 128 KB buffer  [easy]
