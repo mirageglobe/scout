@@ -1,4 +1,4 @@
-# Scout — Specification & Architecture
+# Scout - Specification & Architecture
 
 > a terminal file browser built with Go and the Charm library suite (Bubble Tea, Lip Gloss).
 
@@ -6,11 +6,11 @@
 
 ## 1. Overview
 
-**Scout** is a two-pane terminal UI (TUI) file manager that lets you browse the filesystem, preview file contents, check git status at a glance, and hand off to an editor — all without leaving the terminal.
+**Scout** is a two-pane terminal UI (TUI) file manager that lets you browse the filesystem, preview file contents, check git status at a glance, and hand off to an editor - all without leaving the terminal.
 
 ### Design Philosophy
 
-**non-blocking, read-only by default.** scout never locks, writes to, or modifies the filesystem it browses. all directory reads and git queries are issued as async `tea.Cmd` values — they complete in the background and deliver results as messages, leaving the UI responsive at all times. this constraint keeps the codebase simple: no mutexes, no write paths, no risk of data loss.
+**non-blocking, read-only by default.** scout never locks, writes to, or modifies the filesystem it browses. all directory reads and git queries are issued as async `tea.Cmd` values - they complete in the background and deliver results as messages, leaving the UI responsive at all times. this constraint keeps the codebase simple: no mutexes, no write paths, no risk of data loss.
 
 ### Goals
 
@@ -45,7 +45,7 @@
 | `charm.land/bubbletea/v2`                                    | v2.0.6  | TUI runtime, MVU event loop          |
 | `charm.land/lipgloss/v2`                                     | v2.0.3  | terminal styling and layout          |
 | `github.com/alecthomas/chroma/v2`                            | v2.x    | syntax highlighting for file preview |
-| Go stdlib (`os`, `os/exec`, `path/filepath`, `runtime`, ...) | —       | I/O, process execution, system stats |
+| Go stdlib (`os`, `os/exec`, `path/filepath`, `runtime`, ...) | -       | I/O, process execution, system stats |
 
 > **no external bubbles components are used.** the file list is hand-rolled to give precise control over scrolling, padding, and git badge rendering.
 
@@ -133,7 +133,7 @@ type Model struct {
 runs asynchronously with a 10-second context timeout. reads the directory via `ReadDirContext`, sorts entries (directories first, then alphabetical), fetches git status and branch. stores the current directory name in `PendingCursor` before navigating to parent so the cursor is restored on load. returns `DirLoadedMsg`.
 
 #### `WatchDir(path string) tea.Cmd`
-background directory poll with a 5-second timeout. like `LoadDir` but returns `DirWatchMsg`, which is handled without resetting cursor or scroll — used by the 2-second tick to detect external filesystem changes.
+background directory poll with a 5-second timeout. like `LoadDir` but returns `DirWatchMsg`, which is handled without resetting cursor or scroll - used by the 2-second tick to detect external filesystem changes.
 
 #### `RefreshGit() tea.Cmd`
 re-fetches git status and branch with a 5-second timeout. returns `GitRefreshMsg`.
@@ -204,10 +204,10 @@ Nine themes are defined in a `Themes` slice. Each theme carries a name, accent, 
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-- **header bar** — full-width, shows app name/version, clock, CPU, and memory.
-- **left pane** — 40 % of terminal width (or 8 chars when collapsed), rounded border, theme accent.
-- **right pane** — remaining terminal width, rounded border, same accent; dimmed border when unfocused.
-- **status bar** — single line; item count, file size, git branch, and key hints.
+- **header bar** - full-width, shows app name/version, clock, CPU, and memory.
+- **left pane** - 40 % of terminal width (or 8 chars when collapsed), rounded border, theme accent.
+- **right pane** - remaining terminal width, rounded border, same accent; dimmed border when unfocused.
+- **status bar** - single line; item count, file size, git branch, and key hints.
 
 ---
 
@@ -461,9 +461,9 @@ ordered by difficulty (easy first).
 
 completed and shipped; kept for reference (in original order).
 
-- [x] `[explorer]` auto-refresh not working — file changes on disk are not reflected in the file list or preview pane without manual navigation  [medium]
+- [x] `[explorer]` auto-refresh not working - file changes on disk are not reflected in the file list or preview pane without manual navigation  [medium]
 - [x] `[explorer]` explorer search next/previous (`n`/`N`) did not step between matches after `enter`: commit cleared `ExplorerSearchInput`, which stepping keyed off. fixed by adding a committed `ExplorerSearchQuery` (mirroring the preview side) that survives commit so `n`/`N` and filtering keep working; the bar still clears on enter  [medium]
-- [x] `[site]` add github pages website — astro source in `/site`, ci builds and deploys to github pages environment (no branch); workflow triggers on `/site/**` changes  [easy]
+- [x] `[site]` add github pages website - astro source in `/site`, ci builds and deploys to github pages environment (no branch); workflow triggers on `/site/**` changes  [easy]
 - [x] `[explorer]` consider showing in file pane, the number of changed files  [easy]
 - [x] `[explorer]` update naming of command `root-focus` to `root-lock`  [easy]
 - [x] `[explorer]` ls all files in current directory  [easy]
@@ -482,10 +482,10 @@ completed and shipped; kept for reference (in original order).
 - [x] `[explorer]` navigating to parent directory should restore cursor focus to the folder you came from  [medium]
 - [x] `[ui]` toggle state indicators in the hint bar (bold accent on i:hidden, l:root-lock, tab:explorer when active)  [easy]
 - [x] `[explorer]` add context.Context with timeout to WatchDir, LoadDir, RefreshGit, and GetStats to prevent goroutine pile-up on slow or hung mounts  [medium]
-- [x] `[preview]` preview pane text wrapping — long lines truncated at pane boundary with a dim-styled `…` indicator; horizontal scroll deferred (use `e` to open in `$EDITOR`)  [easy]
-- [x] `[preview]` stale preview notification — preview auto-refreshes on file change via dirEntriesChanged ModTime check; no separate notification needed  [easy]
-- [x] `[ui]` rotating hint bar tips — normal bar shown at rest; after 10s idle, cycles once through 12 friendly tips (5s each) then returns to normal; any keypress cancels and resets  [medium]
-- [x] `[ui]` consistent message bar styling — uniform dim style for all messages; bracketed tag prefix `[error]`, `[ok]`, `[info]` distinguishes type; no colour emphasis on body or tag  [easy]
+- [x] `[preview]` preview pane text wrapping - long lines truncated at pane boundary with a dim-styled `…` indicator; horizontal scroll deferred (use `e` to open in `$EDITOR`)  [easy]
+- [x] `[preview]` stale preview notification - preview auto-refreshes on file change via dirEntriesChanged ModTime check; no separate notification needed  [easy]
+- [x] `[ui]` rotating hint bar tips - normal bar shown at rest; after 10s idle, cycles once through 12 friendly tips (5s each) then returns to normal; any keypress cancels and resets  [medium]
+- [x] `[ui]` consistent message bar styling - uniform dim style for all messages; bracketed tag prefix `[error]`, `[ok]`, `[info]` distinguishes type; no colour emphasis on body or tag  [easy]
 - [x] `[preview]` increase truncation for text files to 1200 lines (currently ~1000 lines or 32 KB) [easy]
 - [x] `[explorer]` mouse click to select and navigate files in the explorer pane  [medium]
 - [x] `[preview]` scrollbar indicator in the preview pane showing scroll position  [easy]
@@ -504,22 +504,22 @@ completed and shipped; kept for reference (in original order).
 - [x] `[preview]` async syntax highlight for large files (> 32 KB): render plain text immediately, fill a memoized highlight cache off the event loop (`HighlightPreview` cmd + `HighlightFilledMsg`) and swap the coloured version in when ready; small files stay synchronous and unchanged. keeps navigation responsive (chroma measured at 40-115 ms synchronous); revisits hit the cache instantly. live smoke test recommended  [medium]
 - [x] `[docs]` improve the README and sharpen the product pitch: rewrote the intro to a concrete dual-pane value prop, tightened feature framing, fixed the editor bullet ($EDITOR, not vim)  [easy]
 - [x] `[explorer]` `o` on a directory copies the selected folder's absolute path to the clipboard and shows a confirmation in the status footer, instead of the file "open with default app" action (which does not apply to directories)  [easy]
-- [x] `[explorer]` copy file path to clipboard — single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
-- [x] `[ui]` ambiguous-width Unicode rendering in CJK locales — characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; add `SCOUT_UNICODE_SAFE=1` env var that swaps the symbol set to narrow-safe ASCII alternatives at startup  [medium]
-- [x] `[git]` git diff preview — when selected file has an `M` badge, show `git diff` output in the preview pane  [medium]
-- [x] `[git]` git log preview — when selecting a file, offer a keypress to show `git log --oneline` for that file in the preview pane  [medium]
+- [x] `[explorer]` copy file path to clipboard - single keypress copies the full path of the selected entry to the system clipboard (`pbcopy`/`xclip`)  [easy]
+- [x] `[ui]` ambiguous-width Unicode rendering in CJK locales - characters like `›`, `⎇`, `▸` may render as 2-cell wide in terminals with `RUNEWIDTH_EASTASIAN=1`, causing column misalignment; add `SCOUT_UNICODE_SAFE=1` env var that swaps the symbol set to narrow-safe ASCII alternatives at startup  [medium]
+- [x] `[git]` git diff preview - when selected file has an `M` badge, show `git diff` output in the preview pane  [medium]
+- [x] `[git]` git log preview - when selecting a file, offer a keypress to show `git log --oneline` for that file in the preview pane  [medium]
   - approach (both git-preview items): model as a preview content-source enum (`PreviewFile`/`GitDiff`/`GitLog`) that feeds the existing preview viewport, not a behavioral key-remapping mode; fetch git output via an async `tea.Cmd` + msg (mirroring `RefreshGit`/`GitRefreshMsg`) since it shells out, keeping `BuildPreview` sync for files; reuse the chroma `diff` lexer; reset to `PreviewFile` on navigation; guard non-repo (`GitBranch == ""`) and untracked `?` files
-- [x] `[preview]` mouse drag text selection in preview viewport — click-drag highlights lines; releasing the mouse copies the selected text to the system clipboard  [medium]
-- [x] `[install]` curl binary install/upgrade script — provide a one-liner script that detects OS/arch, downloads the correct tarball from the GitHub release, and places the binary in `~/.local/bin` or `/usr/local/bin`; re-running the script upgrades to the latest release; alternative to Homebrew for non-Mac or Homebrew-free environments  [medium]
-- [x] `[explorer]` four-width explorer pane — `tab` from default (~40 cols) enters a sub-cycle: sliver (5 cols) → narrow (13 cols) → wide (50%) → sliver; default is an entry point only and is never revisited via tab; replaces the binary collapse toggle; `tab:explorer` hint bar indicator activates when not in default mode  [medium]
-- [x] `[explorer]` file size column in the file list — show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
-- [x] `[ui]` dark / light mode — detect terminal background via OSC 11 query (`tea.BackgroundColorMsg`); auto-select a light theme when on a light background, dark when dark; `t` continues to cycle within the active mode  [medium]
-- [x] `[ui]` manual dark/light mode toggle — `T` (shift+t) switches between dark and light mode pools and selects the first theme in the new pool; `t` continues to cycle within the active pool  [easy]
-- [x] `[preview]` theme-aware chroma syntax highlighting — map each scout theme to a named chroma style (e.g. `dracula` for dark, `github` for light) so syntax colours complement the active palette; switch style when theme changes  [medium]
-- [x] `[ui]` more light themes — add 2–3 light-background palettes (e.g. light mono, light warm, Github Light) so light-mode users have themes to cycle through  [easy]
-- [x] `[ui]` context-aware help overlay — filter displayed keybindings to only those relevant to the active pane; explorer-only keys (e, o, i, l) hidden when preview is focused, preview-only keys (r, n/N) hidden when explorer is focused  [easy]
-- [x] `[preview]` word-wrap toggle — keypress (e.g. `w`) wraps long lines in the preview pane to fit the pane width instead of truncating with `…`; wrap state persists across file navigation until toggled off  [easy]
-- [x] `[cli]` update check — `scout --version` compares the running version against the latest GitHub release tag via the API and prints a notice if an upgrade is available  [easy]
+- [x] `[preview]` mouse drag text selection in preview viewport - click-drag highlights lines; releasing the mouse copies the selected text to the system clipboard  [medium]
+- [x] `[install]` curl binary install/upgrade script - provide a one-liner script that detects OS/arch, downloads the correct tarball from the GitHub release, and places the binary in `~/.local/bin` or `/usr/local/bin`; re-running the script upgrades to the latest release; alternative to Homebrew for non-Mac or Homebrew-free environments  [medium]
+- [x] `[explorer]` four-width explorer pane - `tab` from default (~40 cols) enters a sub-cycle: sliver (5 cols) → narrow (13 cols) → wide (50%) → sliver; default is an entry point only and is never revisited via tab; replaces the binary collapse toggle; `tab:explorer` hint bar indicator activates when not in default mode  [medium]
+- [x] `[explorer]` file size column in the file list - show human-readable size for files alongside the name (data already available via `Entry.Info`)  [easy]
+- [x] `[ui]` dark / light mode - detect terminal background via OSC 11 query (`tea.BackgroundColorMsg`); auto-select a light theme when on a light background, dark when dark; `t` continues to cycle within the active mode  [medium]
+- [x] `[ui]` manual dark/light mode toggle - `T` (shift+t) switches between dark and light mode pools and selects the first theme in the new pool; `t` continues to cycle within the active pool  [easy]
+- [x] `[preview]` theme-aware chroma syntax highlighting - map each scout theme to a named chroma style (e.g. `dracula` for dark, `github` for light) so syntax colours complement the active palette; switch style when theme changes  [medium]
+- [x] `[ui]` more light themes - add 2–3 light-background palettes (e.g. light mono, light warm, Github Light) so light-mode users have themes to cycle through  [easy]
+- [x] `[ui]` context-aware help overlay - filter displayed keybindings to only those relevant to the active pane; explorer-only keys (e, o, i, l) hidden when preview is focused, preview-only keys (r, n/N) hidden when explorer is focused  [easy]
+- [x] `[preview]` word-wrap toggle - keypress (e.g. `w`) wraps long lines in the preview pane to fit the pane width instead of truncating with `…`; wrap state persists across file navigation until toggled off  [easy]
+- [x] `[cli]` update check - `scout --version` compares the running version against the latest GitHub release tag via the API and prints a notice if an upgrade is available  [easy]
 
 ---
 
@@ -533,7 +533,7 @@ completed and shipped; kept for reference (in original order).
 | no `bubbles/list` component          | gives full control over git badge rendering, scrolling, and padding behaviour              |
 | directories-first sort               | standard filesystem browser convention; reduces cognitive load                             |
 | 128 KB / 2500-line preview cap       | prevents large files from blocking the UI during preview generation                       |
-| wrap-aware scroll via `previewDisplayLineCount` | `view.go` expands raw lines into display lines (wrap); `update.go` must compute the same count to bound `PreviewScroll` correctly — `previewDisplayLineCount` approximates it using visible rune count / pane width without re-running `lipgloss.Wrap` on every keypress |
+| wrap-aware scroll via `previewDisplayLineCount` | `view.go` expands raw lines into display lines (wrap); `update.go` must compute the same count to bound `PreviewScroll` correctly - `previewDisplayLineCount` approximates it using visible rune count / pane width without re-running `lipgloss.Wrap` on every keypress |
 | time-based theme auto-selection      | reduces manual configuration; theme still switchable at runtime with `t`                  |
 | 2-second tick for stats and git      | low enough overhead to feel live; high enough to avoid hammering the filesystem            |
 | `runtime.ReadMemStats` for memory    | zero-dependency way to surface allocated heap without external tooling                     |
