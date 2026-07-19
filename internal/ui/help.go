@@ -30,7 +30,7 @@ func (m Model) RenderHelp() string {
 		keyStyle.Render("backspace")+descStyle.Render("nav to parent directory"),
 		keyStyle.Render("enter")+descStyle.Render("enter directory / nav to preview"),
 		keyStyle.Render("e")+descStyle.Render("open file in editor"),
-		keyStyle.Render("o")+descStyle.Render("open with system default"),
+		keyStyle.Render("o")+descStyle.Render("open file, or copy path when on a folder"),
 		keyStyle.Render("y")+descStyle.Render("copy selected path to clipboard"),
 		keyStyle.Render("i")+descStyle.Render("toggle hidden files"),
 		keyStyle.Render("l")+descStyle.Render("toggle root-lock mode"),

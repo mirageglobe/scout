@@ -463,7 +463,14 @@ func (m Model) handleMsg(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if len(m.Entries) > 0 {
 				selected := m.Entries[m.Cursor]
 				fullPath := filepath.Join(m.Cwd, selected.Name)
-				if !selected.IsDir {
+				if selected.IsDir {
+					// o on a directory copies its absolute path; open-with-default is a file action
+					if err := copyToClipboard(fullPath); err == nil {
+						m.StatusMsg = fmt.Sprintf("[ok] copied path: %s", fullPath)
+					} else {
+						m.StatusMsg = "[err] clipboard unavailable"
+					}
+				} else {
 					if err := filesystem.OpenWithSystem(fullPath); err != nil {
 						m.StatusMsg = fmt.Sprintf("[error] %v", err)
 					} else {
@@ -1018,7 +1025,8 @@ func selectedEntryPath(m Model) string {
 }
 
 // copyToClipboard writes text to the system clipboard using pbcopy (macOS) or xclip (Linux).
-func copyToClipboard(text string) error {
+// copyToClipboard is a package var so tests can stub the system clipboard.
+var copyToClipboard = func(text string) error {
 	var cmd *exec.Cmd
 	if runtime.GOOS == "darwin" {
 		cmd = exec.Command("pbcopy")
