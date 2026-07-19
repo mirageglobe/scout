@@ -70,7 +70,7 @@ Set `SCOUT_UNICODE_SAFE=1` to swap the UI marker glyphs (`▸`, `⎇`, `›`, ar
 | `→` / `enter`  | enter directory or nav to preview pane             |
 | `g` / `G`      | jump to top / bottom of active pane                |
 | `e`            | open file in editor                                |
-| `o`            | open file with system default application          |
+| `o`            | open file with default app; copy dir path          |
 | `d`            | cycle git preview (file / diff / log)              |
 | `y`            | copy selected path to clipboard                    |
 | `i`            | toggle hidden files                                |
