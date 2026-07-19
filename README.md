@@ -6,19 +6,21 @@
 
 ![Scout Demo](demo.gif)
 
-Scout is a fast, elegant, terminal-native file explorer designed for immediate situational awareness. It combines a high-performance dual-pane layout with real-time Git integration and rich previews to help you navigate your codebase with speed and precision.
+Scout is a fast, keyboard-driven file explorer for the terminal. Files on the left, a live syntax-highlighted preview on the right, with Git status, diffs, and system stats always in view, so you can read and move through a codebase at speed without opening an editor.
+
+Built for developers who live in the terminal: it stays responsive on large files and directories, shows what changed at a glance, and hands off to your `$EDITOR` the moment you want to edit.
 
 ---
 
 ## Key Features
 
 - **Navigation**: fully keyboard-driven with instant directory entry, parent-navigation, and top/bottom jumps.
-- **Rich Previews**: real-time file previews with Chroma syntax highlighting, directory metadata, and intelligent binary detection.
+- **Live Previews**: syntax-highlighted file previews (Chroma), directory metadata, and binary detection; large files highlight in the background so navigation never stalls.
 - **Git Integration**: integrated git status badges (`M`, `+`, `?`, `!`) and branch name in the status bar; `d` cycles the preview between the file, its `git diff`, and `git log`.
 - **Time-Aware Themes**: nine color themes auto-selected by time of day, manually cycled with `t`; `T` toggles dark / light mode.
 - **Help Overlay**: full keybinding and symbol reference available at any time with `?`.
 - **System Stats**: live CPU usage, memory consumption, directory size, and clock in the header bar.
-- **Editor Handoff**: seamlessly launch into `vim` with a single keystroke; TUI suspends and resumes cleanly.
+- **Editor Handoff**: open the selected file in your `$EDITOR` with a single keystroke (`e`); the TUI suspends and resumes cleanly.
 - **Resizable Explorer**: cycle the file list pane through sliver, narrow, and wide widths with `tab` to trade list space for preview space.
 - **Search & Clipboard**: search the active pane with `/` (`n`/`N` to step matches); copy the selected path with `y`.
 
