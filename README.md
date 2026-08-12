@@ -42,7 +42,11 @@ brew upgrade mirageglobe/tap/scout
 curl -fsSL https://raw.githubusercontent.com/mirageglobe/scout/main/install.sh | sh
 ```
 
-detects your os/arch, downloads the matching release binary, verifies its checksum, and installs to `~/.local/bin`. re-run any time to upgrade to the latest release. set `SCOUT_VERSION` to pin a version or `SCOUT_BIN_DIR` to choose the install directory.
+detects your os/arch, downloads the matching release binary, verifies its sha256 checksum against the published checksums file, and installs to `~/.local/bin`. re-run any time to upgrade to the latest release.
+
+verification is required, not advisory: if the checksum cannot be confirmed for any reason (checksums file unreachable, archive missing from it, no `sha256sum` or `shasum` on the machine) the install aborts rather than continuing unverified. set `SCOUT_SKIP_VERIFY=1` to bypass it deliberately.
+
+set `SCOUT_VERSION` to pin a version or `SCOUT_BIN_DIR` to choose the install directory.
 
 **from source:**
 
