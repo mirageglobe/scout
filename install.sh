@@ -6,8 +6,10 @@
 #   curl -fsSL https://raw.githubusercontent.com/mirageglobe/scout/main/install.sh | sh
 #
 # environment overrides:
-#   SCOUT_VERSION   install a specific version (e.g. 0.8.0); default: latest release
-#   SCOUT_BIN_DIR   install directory; default: ~/.local/bin (falls back to /usr/local/bin)
+#   SCOUT_VERSION      install a specific version (e.g. 0.8.0); default: latest release
+#   SCOUT_BIN_DIR      install directory; default: ~/.local/bin (falls back to /usr/local/bin)
+#   SCOUT_SKIP_VERIFY  set to 1 to install without verifying the checksum; off by default,
+#                      and the only way to proceed when the checksum cannot be confirmed
 
 set -eu
 
@@ -85,26 +87,35 @@ trap 'rm -rf "$tmp"' EXIT
 info "downloading $archive ($tag)..."
 dl "$base/$archive" "$tmp/$archive" || fail "download failed: $base/$archive"
 
-info "verifying checksum..."
-if dl "$base/$checksums" "$tmp/$checksums" 2>/dev/null; then
-  expected=$(grep " $archive\$" "$tmp/$checksums" | awk '{print $1}')
-  if [ -n "$expected" ]; then
-    if command -v sha256sum >/dev/null 2>&1; then
-      actual=$(sha256sum "$tmp/$archive" | awk '{print $1}')
-    elif command -v shasum >/dev/null 2>&1; then
-      actual=$(shasum -a 256 "$tmp/$archive" | awk '{print $1}')
-    else
-      actual=""
-      info "no sha256 tool found; skipping verification"
-    fi
-    if [ -n "$actual" ] && [ "$actual" != "$expected" ]; then
-      fail "checksum mismatch: expected $expected, got $actual"
-    fi
-  else
-    info "archive not listed in checksums; skipping verification"
-  fi
+# verification is fail-closed: anything that stops us confirming the checksum aborts
+# the install. this script is meant to be piped into sh, where an advisory "skipping
+# verification" line scrolls past unread, so skipping has to be opted into by hand.
+if [ "${SCOUT_SKIP_VERIFY:-0}" = "1" ]; then
+  info "SCOUT_SKIP_VERIFY=1 set; installing WITHOUT checksum verification"
 else
-  info "checksums file unavailable; skipping verification"
+  info "verifying checksum..."
+
+  # pick a sha256 tool up front, same shape as the dl() selection above
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256() { sha256sum "$1"; }
+  elif command -v shasum >/dev/null 2>&1; then
+    sha256() { shasum -a 256 "$1"; }
+  else
+    fail "no sha256 tool found (need sha256sum or shasum); install one, or re-run with SCOUT_SKIP_VERIFY=1 to bypass"
+  fi
+
+  dl "$base/$checksums" "$tmp/$checksums" ||
+    fail "could not download checksums: $base/$checksums; re-run with SCOUT_SKIP_VERIFY=1 to bypass"
+
+  expected=$(grep " $archive\$" "$tmp/$checksums" | awk '{print $1}')
+  [ -n "$expected" ] ||
+    fail "$archive is not listed in $checksums; re-run with SCOUT_SKIP_VERIFY=1 to bypass"
+
+  actual=$(sha256 "$tmp/$archive" | awk '{print $1}')
+  [ "$actual" = "$expected" ] ||
+    fail "checksum mismatch for $archive: expected $expected, got $actual"
+
+  info "checksum ok"
 fi
 
 # --- extract & install -----------------------------------------------------

@@ -8,6 +8,9 @@ versions follow [semantic versioning](https://semver.org/).
 
 ## [unreleased]
 
+### changed
+- `install.sh` now requires checksum verification instead of treating it as advisory. previously an unreachable checksums file, an archive missing from it, or a machine with no `sha256sum`/`shasum` printed a "skipping verification" line and installed anyway; all three now abort. set `SCOUT_SKIP_VERIFY=1` to install without verifying on purpose. **breaking for machines with no sha256 tool**: those installs previously succeeded unverified and now fail with an error naming the bypass
+
 ## [v0.9.1] - 2026-07-18
 
 ### changed
