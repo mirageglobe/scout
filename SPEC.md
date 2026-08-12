@@ -381,6 +381,8 @@ make bump-minor      # new features           e.g. v0.8.0 -> v0.9.0
 make bump-major      # breaking changes       e.g. v0.8.0 -> v1.0.0
 ```
 
+> **policy: never rebase `main` after a tag has been pushed.** a rebase rewrites the commits a published tag points at, stranding the tag on a commit no longer reachable from `main`. `v0.8.0` is the standing example: the tag points at `b6df13b`, whose main-equivalent is `6754ec0`. the two trees are byte-identical (`b6d1e50`) and goreleaser injects only `{{.Version}}`, no commit sha, so nothing shipped wrong; but `git describe` stopped seeing the tag, which is the whole reason `make bump-*` had to be re-anchored to the highest published tag. if `main` needs rewriting, do it *before* tagging.
+
 **step 4 :: publish (pick ONE method).**
 
 default, via CI goreleaser:
