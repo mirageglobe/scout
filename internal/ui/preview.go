@@ -61,6 +61,14 @@ func (m Model) BuildPreview() string {
 // for tens to >100 ms; see the BuildPreview benchmark).
 const asyncHighlightThreshold = 32 * 1024
 
+// preview caps. maxPreviewBytes bounds how much of a file is read into the preview
+// buffer; maxPreviewLines bounds how many lines of that buffer are rendered. both are
+// applied before chroma runs so highlighting only tokenises what is actually shown.
+const (
+	maxPreviewBytes = 128 * 1024
+	maxPreviewLines = 2500
+)
+
 // fileNeedsAsyncHighlight reports whether e is a regular file large enough to warrant
 // async highlighting rather than a blocking synchronous highlight.
 func fileNeedsAsyncHighlight(e filesystem.Entry) bool {
@@ -179,8 +187,8 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme, highlight b
 	}
 
 	previewData := data
-	if len(previewData) > 131072 {
-		previewData = previewData[:131072]
+	if len(previewData) > maxPreviewBytes {
+		previewData = previewData[:maxPreviewBytes]
 	}
 
 	if filesystem.IsBinary(previewData) {
@@ -190,13 +198,12 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme, highlight b
 
 	previewStr := string(previewData)
 
-	// cap to maxLines BEFORE highlighting so chroma only tokenises what is shown,
-	// not the whole (up to 128 KB) buffer that would then be discarded.
-	maxLines := 2500
+	// cap to maxPreviewLines BEFORE highlighting so chroma only tokenises what is
+	// shown, not the whole maxPreviewBytes buffer that would then be discarded.
 	rawLines := strings.Split(previewStr, "\n")
-	truncatedLines := len(rawLines) > maxLines
+	truncatedLines := len(rawLines) > maxPreviewLines
 	if truncatedLines {
-		previewStr = strings.Join(rawLines[:maxLines], "\n")
+		previewStr = strings.Join(rawLines[:maxPreviewLines], "\n")
 	}
 
 	// highlight is skipped for large files on the synchronous path; they render as
@@ -215,14 +222,14 @@ func (m Model) previewFile(path string, e filesystem.Entry, t Theme, highlight b
 	}
 
 	// render the constant dim-gutter wrapper once; only the line number varies,
-	// avoiding a lipgloss render call per line (up to maxLines of them).
+	// avoiding a lipgloss render call per line (up to maxPreviewLines of them).
 	gPre, gSuf := ansiWrap(dimStyle)
 	for i, l := range strings.Split(previewStr, "\n") {
 		l = strings.ReplaceAll(l, "\t", "    ")
 		sb.WriteString(gPre + fmt.Sprintf("%3d │", i+1) + gSuf + " " + l + "\n")
 	}
 
-	if len(data) > 131072 || truncatedLines {
+	if len(data) > maxPreviewBytes || truncatedLines {
 		sb.WriteString("\n  " + m.Sym.Ellipsis + " (truncated)")
 	}
 
@@ -254,10 +261,9 @@ func (m Model) renderGitPreview(mode int, content string) string {
 	}
 
 	lines := strings.Split(strings.TrimSuffix(body, "\n"), "\n")
-	maxLines := 2500
 	truncated := false
-	if len(lines) > maxLines {
-		lines = lines[:maxLines]
+	if len(lines) > maxPreviewLines {
+		lines = lines[:maxPreviewLines]
 		truncated = true
 	}
 	for _, l := range lines {
