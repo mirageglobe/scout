@@ -258,15 +258,17 @@ Nine themes are defined in a `Themes` slice. Each theme carries a name, accent, 
 
 ## 7. Preview Logic
 
-| selected entry  | preview content                                                             |
-| --------------- | --------------------------------------------------------------------------- |
-| **directory**   | icon, modified time, mode, child count, list of up to 20 children           |
-| **text file**   | icon, size, modified time, mode, syntax-highlighted content with line numbers (first ~1000 lines or 32 KB) |
-| **binary file** | icon, metadata, `(binary file – no preview)` message                       |
+| selected entry  | preview content                                                                                            |
+| :-------------- | :--------------------------------------------------------------------------------------------------------- |
+| **directory**   | icon, modified time, mode, child count, list of up to 20 children                                          |
+| **text file**   | icon, size, modified time, mode, syntax-highlighted content with line numbers (first 2500 lines or 128 KB) |
+| **binary file** | icon, metadata, `(binary file – no preview)` message                                                       |
 
 binary detection: any null byte (`0x00`) in the first 4 KB marks the file as binary.
 
-syntax highlighting uses Chroma with the Dracula theme. the lexer is selected by file extension; falls back to plain text if unknown.
+syntax highlighting uses Chroma; the style is theme-mapped, each scout theme carries its own `ChromaStyle` (e.g. `monokai`, `dracula`, `github`), so highlighting follows the active palette. the lexer is selected by file extension; falls back to plain text if unknown.
+
+the 32 KB figure is `asyncHighlightThreshold`, not a preview cap: files above it render as plain text immediately and gain colour from an async highlight pass. the preview cap is the 128 KB / 2500-line pair above.
 
 preview is regenerated whenever the cursor moves, a directory is loaded, or the window is resized. it is stored in `Model.Preview` as a pre-rendered string to keep `View()` allocation-light. when `FocusRight` is true, `j`/`k` scroll `PreviewScroll` instead of moving the cursor.
 
@@ -486,7 +488,7 @@ completed and shipped; kept for reference (in original order).
 - [x] `[preview]` stale preview notification - preview auto-refreshes on file change via dirEntriesChanged ModTime check; no separate notification needed  [easy]
 - [x] `[ui]` rotating hint bar tips - normal bar shown at rest; after 10s idle, cycles once through 12 friendly tips (5s each) then returns to normal; any keypress cancels and resets  [medium]
 - [x] `[ui]` consistent message bar styling - uniform dim style for all messages; bracketed tag prefix `[error]`, `[ok]`, `[info]` distinguishes type; no colour emphasis on body or tag  [easy]
-- [x] `[preview]` increase truncation for text files to 1200 lines (currently ~1000 lines or 32 KB) [easy]
+- [x] `[preview]` increase truncation for text files; shipped cap is 2500 lines / 128 KB  [easy]
 - [x] `[explorer]` mouse click to select and navigate files in the explorer pane  [medium]
 - [x] `[preview]` scrollbar indicator in the preview pane showing scroll position  [easy]
 - [x] `[explorer]` mouse wheel scroll in the file explorer pane  [easy]
