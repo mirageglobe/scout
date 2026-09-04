@@ -453,6 +453,8 @@ ordered by difficulty (easy first).
 
 - [ ] `[release]` reconcile the orphaned v0.8.0 tag: it points at a pre-rebase commit not reachable from main, so `git describe` skipped it (the reason the bump math broke); re-point the tag to its main-equivalent commit, or adopt a "do not rebase main after tagging" policy so tags stay reachable  [medium]
 - [ ] `[install]` add / document non-Homebrew install paths (direct binary via `install.sh` exists) and research other package managers to submit to (e.g. apt/deb, AUR, nixpkgs, scoop, MacPorts, asdf); pick targets and submit  [medium]
+- [ ] `[cli]` add a non-interactive CLI option/flag to scout (headless output for scripting, distinct from the interactive TUI mode)  [medium]
+- [ ] `[graph]` PoC: graph-based document relationship visualization for markdown files (parse markdown links across a doc tree, render as a graph)  [hard]
 
 ### ideas
 
