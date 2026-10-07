@@ -94,3 +94,7 @@ Set `SCOUT_UNICODE_SAFE=1` to swap the UI marker glyphs (`▸`, `⎇`, `›`, ar
 ---
 
 > for architecture, design decisions, roadmap, and release process see [SPEC.md](SPEC.md).
+
+---
+
+[buy me a coffee](https://buymeacoffee.com/mirageglobe)
