@@ -306,7 +306,7 @@ scout/
 ├── .goreleaser.yaml                   # cross-platform build + archive + checksum (no brew; tap is updated separately)
 ├── go.mod
 ├── go.sum
-├── AGENT.md                           # AI assistant guidelines (CLAUDE.md symlinks here)
+├── AGENTS.md                          # AI assistant guidelines (CLAUDE.md symlinks here)
 ├── CHANGELOG.md                       # hand-curated release history (keep-a-changelog format)
 ├── Makefile
 ├── README.md
